@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")"
-PORT="${PORT:-8000}"
-echo "[gateway] Starting on port ${PORT}..."
+PORT="${PORT:-80}"
+echo "[gateway] PORT='${PORT}' → starting uvicorn"
 exec uvicorn app:app --host 0.0.0.0 --port "${PORT}"
