@@ -1,1 +1,1 @@
-"""Martech service package"""
+# Marks martech as a Python package.

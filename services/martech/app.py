@@ -1,54 +1,32 @@
+import os
 import logging
-import json
-from typing import List
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, HttpUrl
-
-from .detect import detect
+from fastapi import FastAPI, Body
 
 log = logging.getLogger("uvicorn.error")
 
+app = FastAPI(title="Martech Service", version="0.1.0")
 
-def jlog(event: str, **kw: object) -> None:
-    log.info("%s %s", event, json.dumps(kw))
+@app.get("/health", tags=["Health"])
+async def health():
+    """Railway healthcheck endpoint."""
+    log.info("martech /health OK")
+    return {"status": "ok"}
 
-
-app = FastAPI(title="Martech Analyzer Service")
-
-
-class AnalyzeRequest(BaseModel):
-    url: HttpUrl
-
-
-class AnalyzeResponse(BaseModel):
-    core: List[str] = []
-    adjacent: List[str] = []
-    broader: List[str] = []
-    competitors: List[str] = []
-
-
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def root():
     return {"service": "martech", "docs": "/docs"}
 
-
-@app.get("/health")
-async def health():
-    jlog("health")
-    return {"status": "ok"}
-
-
-@app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
-    jlog("analyze", url=str(req.url))
-    try:
-        data = detect(str(req.url))
-    except Exception as e:  # pragma: no cover - network heavy
-        raise HTTPException(status_code=502, detail=f"martech detection error: {e}")
-    return AnalyzeResponse(
-        core=data.get("core", []),
-        adjacent=data.get("adjacent", []),
-        broader=data.get("broader", []),
-        competitors=data.get("competitors", []),
-    )
+@app.post("/analyze", summary="Analyze a URL")
+async def analyze(payload: dict = Body(..., example={"url": "https://example.com"})):
+    """
+    Stub analysis: accept JSON with {"url": "..."} and return empty buckets.
+    (We'll wire in real martech detection later.)
+    """
+    url = payload.get("url")
+    log.info("martech /analyze url=%s", url)
+    return {
+        "core": [],
+        "adjacent": [],
+        "broader": [],
+        "competitors": []
+    }
