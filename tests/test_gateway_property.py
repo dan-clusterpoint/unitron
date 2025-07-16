@@ -5,7 +5,7 @@ from unittest import mock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from services.gateway.property_analyzer import analyze_domain
+from services.gateway.gateway.property_analyzer import analyze_domain
 
 
 def test_analyze_domain_success():

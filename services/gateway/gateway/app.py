@@ -1,12 +1,17 @@
 import os
 import logging
 import json
-from typing import List, Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, HttpUrl, Field, model_validator
-from services.gateway.property_analyzer import analyze_domain
+from .models import (
+    GatewayAnalyzeIn,
+    GatewayAnalyzeOut,
+    GatewayPropertyOut,
+    GatewayMartechOut,
+    MartechIn,
+)
+from .property_analyzer import analyze_domain
 
 log = logging.getLogger("uvicorn.error")
 
@@ -15,44 +20,7 @@ def jlog(event: str, **kw: object) -> None:
     log.info("%s %s", event, json.dumps(kw))
 
 
-app = FastAPI(title="Unitron Gateway")
-
-
-class PropertyIn(BaseModel):
-    domain: str
-
-
-class MartechIn(BaseModel):
-    url: HttpUrl
-
-
-class MartechOut(BaseModel):
-    core: List[str] = []
-    adjacent: List[str] = []
-    broader: List[str] = []
-    competitors: List[str] = []
-
-
-class GatewayPropertyOut(BaseModel):
-    domain: str
-    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
-    notes: List[str] = []
-
-
-class GatewayAnalyzeIn(BaseModel):
-    property: Optional[PropertyIn] = None
-    martech: Optional[MartechIn] = None
-
-    @model_validator(mode="after")
-    def check_one(cls, values):
-        if not (values.property or values.martech):
-            raise ValueError("property or martech required")
-        return values
-
-
-class GatewayAnalyzeOut(BaseModel):
-    property: Optional[GatewayPropertyOut] = None
-    martech: Optional[MartechOut] = None
+app = FastAPI(title="Unitron Gateway", version="0.1.0")
 
 
 @app.get("/")
@@ -66,8 +34,8 @@ async def health():
     return {"status": "ok"}
 
 
-async def _martech_call(m: MartechIn) -> MartechOut:
-    base = os.getenv("MARTECH_URL", "http://martech:8000").rstrip("/")
+async def _martech_call(m: MartechIn) -> GatewayMartechOut:
+    base = os.getenv("MARTECH_URL", "http://localhost:8000").rstrip("/")
     url = f"{base}/analyze"
     payload = {"url": str(m.url)}
     try:
@@ -75,10 +43,10 @@ async def _martech_call(m: MartechIn) -> MartechOut:
             resp = await client.post(url, json=payload)
         resp.raise_for_status()
         data = resp.json()
-        return MartechOut(**data)
+        return GatewayMartechOut(**data)
     except Exception as exc:
         jlog("martech_error", error=str(exc))
-        return MartechOut()
+        return GatewayMartechOut()
 
 
 @app.post("/analyze", response_model=GatewayAnalyzeOut)
