@@ -8,12 +8,6 @@ log = logging.getLogger("uvicorn.error")
 
 app = FastAPI(title="Martech Service", version="0.1.0")
 
-@app.get("/health", tags=["Health"])
-async def health():
-    """Railway healthcheck endpoint."""
-    log.info("martech /health OK")
-    return {"status": "ok"}
-
 @app.get("/", include_in_schema=False)
 async def root():
     return {"service": "martech", "docs": "/docs"}
