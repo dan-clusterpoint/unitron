@@ -1,5 +1,6 @@
 import os, logging
-from fastapi import FastAPI, Body, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException
+
 from detector import detect, DetectionError
 from models import MartechAnalyzeIn, MartechAnalyzeOut
 
@@ -18,7 +19,7 @@ async def root():
     return {"service": "martech", "docs": "/docs"}
 
 @app.post("/analyze", summary="Analyze a URL", response_model=MartechAnalyzeOut)
-async def analyze(payload: MartechAnalyzeIn = Body(..., example={"url": "https://example.com"}), debug: bool = Query(False)):
+async def analyze(payload: MartechAnalyzeIn, debug: bool = Query(False)):
     """
     Fetch and fingerprint martech stack for the given URL.
     If ?debug=true, include debug info (scripts fetched, errors) in output.
