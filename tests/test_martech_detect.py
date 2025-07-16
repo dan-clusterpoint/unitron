@@ -67,3 +67,19 @@ async def test_detect_adobe_com(monkeypatch):
     monkeypatch.setattr("httpx.AsyncClient.get", fake_get)
     res = await detect("https://www.adobe.com")
     assert "adobe-analytics" in res["core"], f"Expected adobe-analytics in core, got {res['core']}"
+
+
+@pytest.mark.asyncio
+async def test_detect_adobe_com_signatures(monkeypatch):
+    html = (
+        '<script src="https://assets.adobedtm.com/launch-ENabcdef.min.js"></script>'
+        '<script>var s=new AppMeasurement();</script>'
+        '<script src="https://www.omniture.com/js/omniture.js"></script>'
+        '<script src="https://cdn.adobedtm.com/satelliteLib.js"></script>'
+        '<script src="https://assets.adobedtm.com/experience.adobedtm.com/launch.min.js"></script>'
+    )
+    async def fake_get(self, url):
+        return Response(200, text=html)
+    monkeypatch.setattr("httpx.AsyncClient.get", fake_get)
+    res = await detect("https://www.adobe.com")
+    assert "adobe-analytics" in res["core"], f"Expected adobe-analytics in core, got {res['core']}"

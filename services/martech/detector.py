@@ -18,29 +18,33 @@ async def detect(url: str) -> Dict[str, List[str]]:
     """
     signatures = {
         "core": [
-            # Inline GA
+            # Google Analytics & GTM
             (re.compile(r"gtag\("), "google-analytics"),
             (re.compile(r"analytics\.js"), "google-analytics"),
-            # External GA script
             (
                 re.compile(r"https?://www\.google-analytics\.com/analytics\.js"),
                 "google-analytics",
             ),
-            # Google Tag Manager script
             (
                 re.compile(
                     r"https?://www\.googletagmanager\.com/gtm\.js\?id=GTM-[A-Z0-9]+"
                 ),
                 "google-tag-manager",
             ),
-            # Adobe Analytics (AppMeasurement, Omniture, DTM, AEP Web SDK)
+
+            # Adobe Analytics classic (AppMeasurement, Omniture, DTM)
             (re.compile(r"AppMeasurement(\.js)?"), "adobe-analytics"),
             (re.compile(r"omniture"), "adobe-analytics"),
-            (re.compile(r"https?://[^ ]*satelliteLib"), "adobe-analytics"),
+            (re.compile(r"https?://[^ ]*satelliteLib(\.js)?"), "adobe-analytics"),
             (
                 re.compile(r"https?://[^ ]*experience\.adobedtm\.com"),
                 "adobe-analytics",
             ),
+            (
+                re.compile(r"https?://assets\.adobedtm\.com/launch-[^ ]+\.min\.js"),
+                "adobe-analytics",
+            ),
+            (re.compile(r"alloy\.js"), "adobe-analytics"),
         ],
         "adjacent": [
             (re.compile(r"https?://js\.hs-scripts\.com/"), "hubspot"),
