@@ -15,9 +15,11 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt .
+COPY ../../constraints/python311.txt /constraints/python311.txt
 
 RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+ && pip install --no-cache-dir -r requirements.txt \
+    --constraint=/constraints/python311.txt
 
 COPY . .
 
