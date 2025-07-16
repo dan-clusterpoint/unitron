@@ -1,6 +1,7 @@
 import logging
 import json
 from typing import List
+import asyncio
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -30,10 +31,15 @@ async def root():
     return {"service": "property", "docs": "/docs"}
 
 
-@app.get("/health")
-async def health():
-    jlog("health")
-    return {"status": "ok"}
+
+@app.on_event("startup")
+async def _startup() -> None:
+    await asyncio.sleep(1)
+
+    @app.get("/health", include_in_schema=False)
+    async def health() -> dict[str, str]:
+        jlog("health")
+        return {"status": "ok"}
 
 
 @app.post("/analyze", response_model=PropertyResponse)

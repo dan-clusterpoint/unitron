@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import asyncio
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -28,10 +29,15 @@ async def root():
     return {"service": "gateway", "docs": "/docs"}
 
 
-@app.get("/health")
-async def health():
-    jlog("health")
-    return {"status": "ok"}
+
+@app.on_event("startup")
+async def _startup() -> None:
+    await asyncio.sleep(1)
+
+    @app.get("/health", include_in_schema=False)
+    async def health() -> dict[str, str]:
+        jlog("health")
+        return {"status": "ok"}
 
 
 async def _martech_call(m: MartechIn) -> GatewayMartechOut:
