@@ -5,15 +5,18 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Install build tooling (only what's needed; expand later if libmagic, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential curl && \
-    rm -rf /var/lib/apt/lists/*
+      build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Copy service code
 COPY . .
 
+# default fallback; Railway passes PORT env var at runtime
 ENV PORT=8000
 EXPOSE 8000
 
