@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, HttpUrl, Field, root_validator
+from services.martech.models import Technology
 
 class PropertyIn(BaseModel):
     domain: str
@@ -12,6 +13,7 @@ class GatewayMartechOut(BaseModel):
     adjacent: List[str] = []
     broader: List[str] = []
     competitors: List[str] = []
+    technologies: List[Technology] = []
 
 class GatewayPropertyOut(BaseModel):
     domain: str
