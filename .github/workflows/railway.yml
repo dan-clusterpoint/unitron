@@ -25,10 +25,10 @@ jobs:
         run: |
           docker build --pull \
             --file services/martech/Dockerfile \
-            --tag martech:ci tests/services/martech
+            --tag martech:ci services/martech
           docker build --pull \
             --file services/gateway/Dockerfile \
-            --tag gateway:ci tests/services/gateway
+            --tag gateway:ci services/gateway
       - name: Healthcheck images
         run: |
           set -e
