@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import builtwith
+from .detect import detect
 
-app = FastAPI(title="Martech Analyzer Service")
+app = FastAPI(title="Martech Analyzer Service (OSS)")
 
 class AnalyzeRequest(BaseModel):
     url: str
@@ -20,27 +20,14 @@ async def health():
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):
     try:
-        tech_data = builtwith.parse(req.url)
+        data = detect(req.url)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
-
-    core, adjacent, broader, competitors = [], [], [], []
-    COMPETITORS = {"Sitecore", "Optimizely", "Salesforce", "Contentful"}
-
-    for tech, categories in tech_data.items():
-        cats = [c.lower() for c in categories]
-        if any(k in cats for k in ["cms", "analytics", "marketing", "tag manager"]):
-            core.append(tech)
-        elif any(k in cats for k in ["cdn", "cloud", "security"]):
-            broader.append(tech)
-        else:
-            adjacent.append(tech)
-        if tech in COMPETITORS:
-            competitors.append(tech)
+        raise HTTPException(status_code=502, detail=f"martech detection error: {e}")
 
     return AnalyzeResponse(
-        core=core,
-        adjacent=adjacent,
-        broader=broader,
-        competitors=competitors
+        core=data["core"],
+        adjacent=data["adjacent"],
+        broader=data["broader"],
+        competitors=data["competitors"],
+        evidence=data.get("evidence"),
     )
