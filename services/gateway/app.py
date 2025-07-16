@@ -1,86 +1,51 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import httpx
 import os
-from services.gateway.models import AnalyzeResponse
+import logging
+from fastapi import FastAPI, HTTPException
+import httpx
 
-PROPERTY_URL = os.getenv("PROPERTY_URL")
-MARTECH_URL = os.getenv("MARTECH_URL")
+from models import (
+    PropertyIn, MartechIn,
+    PropertyOut, MartechOut,
+    GatewayAnalyzeIn, GatewayAnalyzeOut,
+)
 
-app = FastAPI(title="Unitron Gateway Service")
+log = logging.getLogger("gateway")
 
-property_app = FastAPI()
-martech_app = FastAPI()
-
-
-class PropertyRequest(BaseModel):
-    domain: str
-
-
-class PropertyResponse(BaseModel):
-    domain: str
-    confidence: float
-    notes: list[str]
-
-
-class TechRequest(BaseModel):
-    url: str
-
-
-class TechResponse(BaseModel):
-    core: list[str]
-    adjacent: list[str]
-    broader: list[str]
-    competitors: list[str]
-
-
-class CombinedRequest(BaseModel):
-    property: PropertyRequest
-    martech: TechRequest
-
-
-class CombinedResponse(BaseModel):
-    property: PropertyResponse
-    martech: TechResponse
-
+app = FastAPI(title="Unitron Gateway", version="0.1.0")
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
 
-@property_app.post("/analyze", response_model=PropertyResponse)
-async def property_analyze(req: PropertyRequest):
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{PROPERTY_URL}/analyze", json=req.model_dump())
-    if resp.status_code != 200:
-        raise HTTPException(resp.status_code, "Property service error")
-    return resp.json()
+def _martech_base() -> str:
+    # Accept MARTECH_URL from env; must be full base URL (no trailing /)
+    url = os.getenv("MARTECH_URL", "http://martech.railway.internal")
+    return url.rstrip("/")
 
+async def _call_martech(m: MartechIn) -> MartechOut:
+    base = _martech_base()
+    url = f"{base}/analyze"
+    payload = {"url": str(m.url)}
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.post(url, json=payload)
+        r.raise_for_status()
+        data = r.json()
+        return MartechOut(**data)
+    except Exception as exc:  # broad: downstream may not exist yet
+        log.exception("Martech call failed: %s", exc)
+        # graceful degrade
+        return MartechOut()
 
-@martech_app.post("/analyze", response_model=TechResponse)
-async def martech_analyze(req: TechRequest):
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{MARTECH_URL}/analyze", json=req.model_dump())
-    if resp.status_code != 200:
-        raise HTTPException(resp.status_code, "Martech service error")
-    return resp.json()
-
-
-app.mount("/property", property_app)
-app.mount("/martech", martech_app)
-
-
-@app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_endpoint(request: PropertyRequest) -> AnalyzeResponse:
-    async with httpx.AsyncClient() as client:
-        martech_res = await client.post(
-            f"{MARTECH_URL}/analyze",
-            json={"url": request.domain},
-        )
-    if martech_res.status_code != 200:
-        raise HTTPException(martech_res.status_code, "Martech service error")
-    return AnalyzeResponse(
-        property=request,
-        martech=martech_res.json(),
+@app.post("/analyze", response_model=GatewayAnalyzeOut)
+async def analyze_endpoint(req: GatewayAnalyzeIn) -> GatewayAnalyzeOut:
+    # downstream martech
+    martech_res = await _call_martech(req.martech)
+    # stub property; when property service is wired, replace with real call
+    prop_res = PropertyOut(
+        domain=req.property.domain,
+        confidence=0.5,
+        notes=["stub: property service not yet wired"],
     )
+    return GatewayAnalyzeOut(property=prop_res, martech=martech_res)

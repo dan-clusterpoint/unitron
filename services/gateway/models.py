@@ -1,19 +1,27 @@
-from pydantic import BaseModel
-from typing import List, Dict, Optional
+from pydantic import BaseModel, HttpUrl, Field
+from typing import List, Optional
 
-
-class PropertyRequest(BaseModel):
+class PropertyIn(BaseModel):
     domain: str
 
+class MartechIn(BaseModel):
+    url: HttpUrl
 
-class MartechResponse(BaseModel):
-    core: List[str]
-    adjacent: List[str]
-    broader: List[str]
-    competitors: List[str]
-    evidence: Optional[Dict[str, List[str]]] = None
+class MartechOut(BaseModel):
+    core: List[str] = []
+    adjacent: List[str] = []
+    broader: List[str] = []
+    competitors: List[str] = []
 
+class PropertyOut(BaseModel):
+    domain: str
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    notes: List[str] = []
 
-class AnalyzeResponse(BaseModel):
-    property: PropertyRequest
-    martech: MartechResponse
+class GatewayAnalyzeIn(BaseModel):
+    property: PropertyIn
+    martech: MartechIn
+
+class GatewayAnalyzeOut(BaseModel):
+    property: PropertyOut
+    martech: MartechOut
