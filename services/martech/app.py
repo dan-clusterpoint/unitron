@@ -32,3 +32,7 @@ async def analyze(payload: MartechAnalyzeIn, debug: bool = Query(False)):
     except Exception as e:
         log.exception("Unexpected error in /analyze: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/health", include_in_schema=False)
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
