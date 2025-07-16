@@ -1,29 +1,20 @@
-# Force Dockerfile builds (ignore Nixpacks)
-[build]
-engine = "docker"
+# Root-level Railway config
+projectPath = "."
+branch = "main"
+environment = "production"
 
-# Point to root Dockerfile
+# Gateway service
+[[services]]
+name = "unitron"
+projectPath = "services/gateway"
 dockerfilePath = "Dockerfile"
+startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+healthcheckPath = "/health"
 
-[[services]]
-name           = "property"
-projectPath    = "."
-startCommand   = "uvicorn app:app --host 0.0.0.0 --port 80"
-healthcheckPath= "/health"
-
-[[services]]
-name           = "gateway"
-projectPath    = "services/gateway"
-dockerfilePath = "services/gateway/Dockerfile"
-startCommand   = "uvicorn app:app --host 0.0.0.0 --port 80"
-healthcheckPath= "/health"
-
+# Martech service
 [[services]]
 name = "martech"
 projectPath = "services/martech"
 dockerfilePath = "Dockerfile"
 startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
 healthcheckPath = "/health"
-
-[env]
-RAILWAY_DOCKERFILE_PATH = "Dockerfile"
