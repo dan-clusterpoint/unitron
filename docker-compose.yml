@@ -1,17 +1,24 @@
 version: "3.9"
 services:
   gateway:
-    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    build:
+      context: ./services/gateway
     environment:
-      - MODULE_NAME=gateway.main
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - ./services/gateway:/app
+      PROPERTY_URL: http://property:80
+      MARTECH_URL: http://martech:80
     ports:
       - "8000:80"
     depends_on:
-      - redis
-      - db
+      - property
+      - martech
+  property:
+    build: ./services/property
+    ports:
+      - "8001:80"
+  martech:
+    build: ./services/martech
+    ports:
+      - "8002:80"
   redis:
     image: redis:7-alpine
     ports:
