@@ -1,29 +1,22 @@
-FROM python:3.11-slim AS runtime
+FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    build-essential \
-    libxml2-dev \
-    libxslt-dev \
-    curl \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY services/martech/requirements.txt /tmp/requirements.txt
+COPY constraints/python311.txt /tmp/constraints.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt \
+        --constraint=/tmp/constraints.txt
+
+COPY services/martech /app
 
 WORKDIR /app
-
-COPY requirements.txt .
-COPY ../../constraints/python311.txt /constraints/python311.txt
-
-RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt \
-    --constraint=/constraints/python311.txt
-
-COPY . .
-
-ENV PORT=8000
 EXPOSE 8000
 
-CMD ["python", "start.py"]
+ENTRYPOINT ["sh", "-c"]
+CMD ["exec uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
