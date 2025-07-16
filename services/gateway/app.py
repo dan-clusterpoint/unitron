@@ -63,12 +63,12 @@ app.mount("/martech", martech_app)
 async def analyze(req: CombinedRequest):
     async with httpx.AsyncClient() as client:
         prop_r = await client.post(
-            f"{PROPERTY_URL}/analyze", json=req.property.model_dump()
+            f"{PROPERTY_URL}/analyze", json=req.property
         )
         if prop_r.status_code != 200:
             raise HTTPException(prop_r.status_code, "Property service error")
         tech_r = await client.post(
-            f"{MARTECH_URL}/analyze", json=req.martech.model_dump()
+            f"{MARTECH_URL}/analyze", json=req.martech
         )
         if tech_r.status_code != 200:
             raise HTTPException(tech_r.status_code, "Martech service error")
