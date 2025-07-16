@@ -12,7 +12,7 @@ async def test_detect_empty(monkeypatch):
         return Response(200, text="", request=httpx.Request("GET", url))
     monkeypatch.setattr("httpx.AsyncClient.get", fake_get, raising=False)
     res = await detect("https://example.com")
-    assert res["core"] == []
+    assert res["core"]["vendors"] == []
 
 
 # Adobe synthetic snippet
@@ -26,6 +26,6 @@ async def test_detect_adobe(monkeypatch):
         return Response(200, text=html, request=httpx.Request("GET", url))
     monkeypatch.setattr("httpx.AsyncClient.get", fake_get, raising=False)
     res = await detect("https://www.adobe.com")
-    prods = [p["product"] for p in res["core"]]
+    prods = [p["product"] for p in res["core"]["vendors"]]
     assert "adobe-analytics" in prods
 

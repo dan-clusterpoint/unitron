@@ -6,15 +6,26 @@ class MartechAnalyzeIn(BaseModel):
     url: HttpUrl
 
 
+class Signal(BaseModel):
+    type: str  # 'wappalyzer' | 'regex' | 'gtm' | 'script' | 'header' | ...
+    value: str
+    url: Optional[str] = None
+
+
 class VendorHit(BaseModel):
     product: str
-    confidence: float = Field(ge=0.0, le=1.0)
-    evidence: List[str] = []
+    confidence: float = Field(ge=0, le=1)
+    signals: List[Signal] = []
+
+
+class BucketOut(BaseModel):
+    vendors: List[VendorHit] = []
+    names: List[str] = []  # backward compat simple list
 
 
 class MartechAnalyzeOut(BaseModel):
-    core: List[VendorHit] = []
-    adjacent: List[VendorHit] = []
-    broader: List[VendorHit] = []
-    competitors: List[VendorHit] = []
+    core: BucketOut = BucketOut()
+    adjacent: BucketOut = BucketOut()
+    broader: BucketOut = BucketOut()
+    competitors: BucketOut = BucketOut()
     debug: Optional[Dict[str, Any]] = None
