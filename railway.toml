@@ -11,5 +11,12 @@ projectPath    = "."
 startCommand   = "uvicorn app:app --host 0.0.0.0 --port 80"
 healthcheckPath= "/health"
 
+[[services]]
+name           = "gateway"
+projectPath    = "services/gateway"
+dockerfilePath = "services/gateway/Dockerfile"
+startCommand   = "uvicorn app:app --host 0.0.0.0 --port 80"
+healthcheckPath= "/health"
+
 [env]
 RAILWAY_DOCKERFILE_PATH = "Dockerfile"
