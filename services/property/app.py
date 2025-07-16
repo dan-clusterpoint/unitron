@@ -4,6 +4,11 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Web-Property Service")
 
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 class PropertyRequest(BaseModel):
     domain: str
 

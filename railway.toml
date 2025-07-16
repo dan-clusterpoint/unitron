@@ -1,9 +1,15 @@
+# Force Dockerfile builds (ignore Nixpacks)
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"  # root-level Dockerfile
+engine = "docker"
 
-[deploy]
-startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
-healthcheckPath = "/docs"
+# Point to root Dockerfile
+dockerfilePath = "Dockerfile"
 
-# Environment variables stay in the Railway dashboard (OPENAI_API_KEY, PG*)
+[[services]]
+name           = "property"
+projectPath    = "."
+startCommand   = "uvicorn app:app --host 0.0.0.0 --port 80"
+healthcheckPath= "/health"
+
+[env]
+RAILWAY_DOCKERFILE_PATH = "Dockerfile"

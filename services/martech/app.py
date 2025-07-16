@@ -4,6 +4,11 @@ import builtwith
 
 app = FastAPI(title="Martech Analyzer Service")
 
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 COMPETITORS = {"Sitecore", "Optimizely", "Salesforce", "Contentful"}
 
 class TechRequest(BaseModel):
