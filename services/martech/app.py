@@ -1,6 +1,7 @@
 import os
 import logging
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, HTTPException
+from detector import detect, DetectionError
 
 log = logging.getLogger("uvicorn.error")
 
@@ -18,15 +19,14 @@ async def root():
 
 @app.post("/analyze", summary="Analyze a URL")
 async def analyze(payload: dict = Body(..., example={"url": "https://example.com"})):
-    """
-    Stub analysis: accept JSON with {"url": "..."} and return empty buckets.
-    (We'll wire in real martech detection later.)
-    """
+    """Fetch and fingerprint martech stack for the given URL."""
     url = payload.get("url")
     log.info("martech /analyze url=%s", url)
-    return {
-        "core": [],
-        "adjacent": [],
-        "broader": [],
-        "competitors": []
-    }
+    try:
+        data = await detect(url)
+        return data
+    except DetectionError as de:
+        raise HTTPException(status_code=502, detail=str(de))
+    except Exception as e:
+        log.exception("Unexpected error in /analyze: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
