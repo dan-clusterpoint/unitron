@@ -34,10 +34,11 @@ async def root():
 async def _startup() -> None:
     await asyncio.sleep(1)
 
-    @app.get("/health", include_in_schema=False)
-    async def health() -> dict[str, str]:
-        jlog("health")
-        return {"status": "ok"}
+
+@app.get("/health", include_in_schema=False)
+async def health() -> dict[str, str]:
+    jlog("health")
+    return {"status": "ok"}
 
 
 async def _martech_call(m: MartechIn) -> GatewayMartechOut:
