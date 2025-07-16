@@ -1,23 +1,17 @@
-# Force Railway to use Dockerfile builder
+# Force Railway to use Dockerfile builds for each micro-service
 [build]
-builder = "DOCKERFILE"
-
-# Service definitions
-[[services]]
-name = "property"
-projectPath = "services/property"
-dockerfilePath = "services/property/Dockerfile"
-startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+engine = "docker"
 
 [[services]]
-name = "martech"
-projectPath = "services/martech"
-dockerfilePath = "services/martech/Dockerfile"
-startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+name          = "property"
+projectPath   = "services/property"   # folder that contains the Dockerfile
+dockerfilePath = "Dockerfile"         # relative to projectPath
+startCommand  = "uvicorn app:app --host 0.0.0.0 --port 80"
 
-# (Optional) Future services:
-# [[services]]
-# name = "gateway"
-# projectPath = "services/gateway"
-# dockerfilePath = "services/gateway/Dockerfile"
-# startCommand = "uvicorn gateway.main:app --host 0.0.0.0 --port 80"
+[[services]]
+name          = "martech"
+projectPath   = "services/martech"
+dockerfilePath = "Dockerfile"
+startCommand  = "uvicorn app:app --host 0.0.0.0 --port 80"
+
+# (Add more services — gateway, n8n, etc. — using the same pattern)
