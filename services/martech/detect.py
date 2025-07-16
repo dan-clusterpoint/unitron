@@ -26,7 +26,7 @@ PATTERNS = {
     "Adobe Analytics": r"AppMeasurement\.js|s_code\.js",
     "Adobe Target": r"mbox\\.js|at\\.js",
     "Google Tag Manager": r"googletagmanager\.com/gtm\.js",
-    "Google Analytics": r"gtag\\(|analytics\.js",
+    "Google Analytics": r"gtag\(|analytics\.js",
     "Sitecore": r"sitecore|sc_itemid|sc_site=",
     "Optimizely": r"optimizely\.com",
     "Salesforce Marketing Cloud": r"pardot|pi\.pardot\.com|exacttarget",
