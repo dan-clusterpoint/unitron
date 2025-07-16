@@ -50,3 +50,20 @@ async def test_detect_adobe(monkeypatch):
     res = await detect("https://www.adobe.com")
     assert "google-tag-manager" in res["core"]
     assert "google-analytics" in res["core"]
+
+
+@pytest.mark.asyncio
+async def test_detect_adobe_com(monkeypatch):
+    # Simulate page with Adobe Analytics embed
+    html = (
+        '<script src="https://assets.adobedtm.com/launch-ENabcdef.min.js"></script>'
+        '<script>var s=new AppMeasurement();</script>'
+        '<script src="https://www.omniture.com/js/omniture.js"></script>'
+    )
+
+    async def fake_get(self, url):
+        return Response(200, text=html)
+
+    monkeypatch.setattr("httpx.AsyncClient.get", fake_get)
+    res = await detect("https://www.adobe.com")
+    assert "adobe-analytics" in res["core"], f"Expected adobe-analytics in core, got {res['core']}"
