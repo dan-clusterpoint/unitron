@@ -18,20 +18,31 @@ async def detect(url: str) -> Dict[str, List[str]]:
     """
     signatures = {
         "core": [
+            # Inline GA
             (re.compile(r"gtag\("), "google-analytics"),
             (re.compile(r"analytics\.js"), "google-analytics"),
-            (re.compile(r"GTM-[A-Z0-9]+"), "google-tag-manager"),
-            (re.compile(r"s_code\.js"), "adobe-analytics"),
+            # External GA script
+            (
+                re.compile(r"https?://www\.google-analytics\.com/analytics\.js"),
+                "google-analytics",
+            ),
+            # Google Tag Manager script
+            (
+                re.compile(
+                    r"https?://www\.googletagmanager\.com/gtm\.js\?id=GTM-[A-Z0-9]+"
+                ),
+                "google-tag-manager",
+            ),
         ],
         "adjacent": [
-            (re.compile(r"js\.hs-scripts\.com"), "hubspot"),
-            (re.compile(r"mktow1"), "marketo"),
+            (re.compile(r"https?://js\.hs-scripts\.com/"), "hubspot"),
+            (re.compile(r"https?://.+\.mktoweb\.com/"), "marketo"),
         ],
         "broader": [
-            (re.compile(r"cdn\.segment\.com"), "segment"),
+            (re.compile(r"https?://cdn\.segment\.com/"), "segment"),
         ],
         "competitors": [
-            # add competitor rules here
+            # Extend with your competitor patterns
         ],
     }
     result = {k: [] for k in signatures}
