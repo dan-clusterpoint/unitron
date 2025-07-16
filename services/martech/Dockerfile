@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 2) Copy & install requirements
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --verbose -r requirements.txt
 
 # 3) Copy service code
 COPY . .
