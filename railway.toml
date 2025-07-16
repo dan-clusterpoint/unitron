@@ -3,18 +3,23 @@ projectPath = "."
 branch = "main"
 environment = "production"
 
-# Gateway service
-[[services]]
-name = "unitron"
-projectPath = "services/gateway"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
+[services.unitron]
 healthcheckPath = "/health"
+autoDeploy = true
+dockerfilePath = "services/gateway/Dockerfile"
+rootDirectory = "services/gateway"
 
-# Martech service
-[[services]]
-name = "martech"
-projectPath = "services/martech"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
+[services.martech]
 healthcheckPath = "/health"
+autoDeploy = true
+dockerfilePath = "services/martech/Dockerfile"
+rootDirectory = "services/martech"
+
+[services.property]
+healthcheckPath = "/health"
+autoDeploy = true
+dockerfilePath = "services/property/Dockerfile"
+rootDirectory = "services/property"
+
+[variables]
+MARTECH_URL = "https://martech-production-12e1.up.railway.app" # TODO: adjust per environment
