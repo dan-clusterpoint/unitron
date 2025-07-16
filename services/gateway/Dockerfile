@@ -1,19 +1,22 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY services/gateway/requirements.txt /tmp/requirements.txt
+COPY constraints/python311.txt /tmp/constraints.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt \
+        --constraint=/tmp/constraints.txt
+
+COPY services/gateway /app
+
 WORKDIR /app
-
-COPY requirements.txt ./requirements.txt
-COPY ../../constraints/python311.txt /constraints/python311.txt
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt \
-    --constraint=/constraints/python311.txt
-
-COPY . /app
-
 EXPOSE 8000
 
-CMD ["python", "start.py"]
+ENTRYPOINT ["sh", "-c"]
+CMD ["exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
