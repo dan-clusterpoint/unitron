@@ -1,9 +1,2 @@
-pydantic<2.0.0,>=1.10.9
-fastapi>=0.110.0,<0.120.0
-uvicorn[standard]>=0.22.0
-httpx>=0.27.0
-requests>=2.31
-lxml>=4.9
-Wappalyzer==1.2.0
-pytest>=7
-pytest-asyncio>=0.20
+-r ../../constraints/python311-common.txt
+# Add *service-specific* packages below (none yet)
