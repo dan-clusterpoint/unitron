@@ -1,0 +1,16 @@
+[build]
+engine = "docker"
+
+[[services]]
+name = "property"
+projectPath = "services/property"
+buildCommand = ""
+startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+
+[[services]]
+name = "martech"
+projectPath = "services/martech"
+buildCommand = ""
+startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+
+# add more services here as you scaffold gateway, n8n, etc.

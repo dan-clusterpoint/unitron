@@ -12,5 +12,5 @@ Then open **[http://localhost:8000/docs](http://localhost:8000/docs)** for the P
 
 ## Deployment
 
-Push to `main`; the GitHub Action auto-deploys to Railway.
+Push to `main`; Railway reads `railway.toml`, builds each service, and deploys.
 
