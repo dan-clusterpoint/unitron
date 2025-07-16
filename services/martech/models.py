@@ -1,6 +1,10 @@
 from pydantic import BaseModel, HttpUrl, Field
 from typing import List, Optional, Dict, Any
 
+class Technology(BaseModel):
+    name: str
+    version: Optional[str] = None
+
 
 class MartechAnalyzeIn(BaseModel):
     url: HttpUrl
@@ -28,4 +32,5 @@ class MartechAnalyzeOut(BaseModel):
     adjacent: BucketOut = BucketOut()
     broader: BucketOut = BucketOut()
     competitors: BucketOut = BucketOut()
+    technologies: List[Technology] = []
     debug: Optional[Dict[str, Any]] = None
