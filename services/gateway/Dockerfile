@@ -5,15 +5,15 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libffi-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt /tmp/requirements.txt
+COPY constraints.txt /tmp/constraints.txt
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --constraint /tmp/constraints.txt -r /tmp/requirements.txt
 
 COPY . .
 
 ENV PORT=8000
-EXPOSE 8000
+EXPOSE $PORT
 
-CMD ["python", "start.py"]
+CMD ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "$PORT"]
