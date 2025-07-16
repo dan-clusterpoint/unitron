@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Install pinned runtime dependencies
-COPY ../../constraints /tmp/constraints
+COPY constraints /tmp/constraints
 RUN pip install --no-cache-dir -r /tmp/constraints/python311-common.txt
 
 # Install service requirements
