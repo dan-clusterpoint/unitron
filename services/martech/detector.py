@@ -125,7 +125,7 @@ async def detect(url: str, max_scripts=20, return_debug=False):
     vendor_map: Dict[str,Any] = {}
 
     # ---- primary fetch
-    async with httpx.AsyncClient(timeout=10, follow_redirects=True, headers={"User-Agent":"UnitronMartechBot/0.3"}) as client:
+    async with httpx.AsyncClient(timeout=10, follow_redirects=True, headers={"User-Agent":"UnitronMartechBot/0.3"}, trust_env=False) as client:
         try:
             html = await _fetch_text(client, url, 1_000_000)
             debug["primary_len"] = len(html)
