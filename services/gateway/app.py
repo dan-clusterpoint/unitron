@@ -6,6 +6,7 @@ from typing import List, Optional
 import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, HttpUrl, Field, model_validator
+from services.gateway.property_analyzer import analyze_domain
 
 log = logging.getLogger("uvicorn.error")
 
@@ -32,7 +33,7 @@ class MartechOut(BaseModel):
     competitors: List[str] = []
 
 
-class PropertyOut(BaseModel):
+class GatewayPropertyOut(BaseModel):
     domain: str
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     notes: List[str] = []
@@ -50,7 +51,7 @@ class GatewayAnalyzeIn(BaseModel):
 
 
 class GatewayAnalyzeOut(BaseModel):
-    property: Optional[PropertyOut] = None
+    property: Optional[GatewayPropertyOut] = None
     martech: Optional[MartechOut] = None
 
 
@@ -80,13 +81,16 @@ async def _martech_call(m: MartechIn) -> MartechOut:
         return MartechOut()
 
 
-async def _property_stub(p: PropertyIn) -> PropertyOut:
-    return PropertyOut(domain=p.domain, confidence=0.1, notes=["stubbed property analysis"])
-
-
 @app.post("/analyze", response_model=GatewayAnalyzeOut)
 async def analyze(req: GatewayAnalyzeIn) -> GatewayAnalyzeOut:
     jlog("analyze", property=bool(req.property), martech=bool(req.martech))
-    prop = await _property_stub(req.property) if req.property else None
-    mt = await _martech_call(req.martech) if req.martech else None
-    return GatewayAnalyzeOut(property=prop, martech=mt)
+    martech_out = await _martech_call(req.martech) if req.martech else None
+    property_out = None
+    if req.property:
+        conf, notes = await analyze_domain(req.property.domain)
+        property_out = GatewayPropertyOut(
+            domain=req.property.domain,
+            confidence=conf,
+            notes=notes,
+        )
+    return GatewayAnalyzeOut(property=property_out, martech=martech_out)
