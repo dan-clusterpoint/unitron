@@ -29,6 +29,13 @@ curl -X POST http://localhost:8000/analyze \
   -d '{"property":{"domain":"example.com"},"martech":{"url":"https://example.com"}}'
 ```
 
+### Gateway Service
+
+The gateway calls the Martech service via the `MARTECH_URL` environment
+variable (default `http://localhost:8000`). Gateway modules are packaged in
+`services/gateway/gateway` and use relative imports so the container can build
+from that directory.
+
 ## Deployment
 
 Push to `main`; Railway reads `railway.toml`, builds each service, and deploys.
