@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  gateway:
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    environment:
+      - MODULE_NAME=gateway.main
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./services/gateway:/app
+    ports:
+      - "8000:80"
+    depends_on:
+      - redis
+      - db
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: presales
+      POSTGRES_DB: presales
+    ports:
+      - "5432:5432"
+  n8n:
+    image: n8nio/n8n:1.51.1
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=America/Los_Angeles
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=presales
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=presales
+      - DB_POSTGRESDB_PASSWORD=password
+    depends_on:
+      - db
