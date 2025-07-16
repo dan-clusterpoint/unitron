@@ -24,7 +24,7 @@ class GatewayAnalyzeIn(BaseModel):
     property: Optional[PropertyIn] = None
     martech: Optional[MartechIn] = None
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_one(cls, values):
         if not (values.get("property") or values.get("martech")):
             raise ValueError("property or martech required")

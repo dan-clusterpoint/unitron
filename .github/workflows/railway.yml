@@ -9,6 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install -r services/gateway/requirements.txt \
+                      -r services/martech/requirements.txt \
+                      -r services/property/requirements.txt
+      - name: Run tests
+        run: pytest --maxfail=1 --disable-warnings
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
