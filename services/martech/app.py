@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .detect import detect
+from detect import detect
 
 app = FastAPI(title="Martech Analyzer Service (OSS)")
 
