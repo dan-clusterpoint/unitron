@@ -18,6 +18,7 @@ jobs:
           pip install -r services/gateway/requirements.txt \
                       -r services/martech/requirements.txt \
                       -r services/property/requirements.txt
+          pip install pytest-asyncio
       - name: Run tests
         run: pytest --maxfail=1 --disable-warnings
       - name: Build Docker images
