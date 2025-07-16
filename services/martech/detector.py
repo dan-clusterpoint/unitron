@@ -33,6 +33,14 @@ async def detect(url: str) -> Dict[str, List[str]]:
                 ),
                 "google-tag-manager",
             ),
+            # Adobe Analytics (AppMeasurement, Omniture, DTM, AEP Web SDK)
+            (re.compile(r"AppMeasurement(\.js)?"), "adobe-analytics"),
+            (re.compile(r"omniture"), "adobe-analytics"),
+            (re.compile(r"https?://[^ ]*satelliteLib"), "adobe-analytics"),
+            (
+                re.compile(r"https?://[^ ]*experience\.adobedtm\.com"),
+                "adobe-analytics",
+            ),
         ],
         "adjacent": [
             (re.compile(r"https?://js\.hs-scripts\.com/"), "hubspot"),
