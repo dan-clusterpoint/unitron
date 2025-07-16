@@ -1,17 +1,9 @@
-# Force Railway to use Dockerfile builds for each micro-service
 [build]
-engine = "docker"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"  # root-level Dockerfile
 
-[[services]]
-name          = "property"
-projectPath   = "services/property"   # folder that contains the Dockerfile
-dockerfilePath = "Dockerfile"         # relative to projectPath
-startCommand  = "uvicorn app:app --host 0.0.0.0 --port 80"
+[deploy]
+startCommand = "uvicorn app:app --host 0.0.0.0 --port 80"
+healthcheckPath = "/docs"
 
-[[services]]
-name          = "martech"
-projectPath   = "services/martech"
-dockerfilePath = "Dockerfile"
-startCommand  = "uvicorn app:app --host 0.0.0.0 --port 80"
-
-# (Add more services — gateway, n8n, etc. — using the same pattern)
+# Environment variables stay in the Railway dashboard (OPENAI_API_KEY, PG*)
