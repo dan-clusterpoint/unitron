@@ -18,16 +18,17 @@ jobs:
           pip install -r services/gateway/requirements.txt \
                       -r services/martech/requirements.txt \
                       -r services/property/requirements.txt
+          pip install pytest-asyncio
       - name: Run tests
         run: pytest --maxfail=1 --disable-warnings
       - name: Build Docker images
         run: |
           docker build --pull \
             --file services/martech/Dockerfile \
-            --tag martech:ci tests/services/martech
+            --tag martech:ci services/martech
           docker build --pull \
             --file services/gateway/Dockerfile \
-            --tag gateway:ci tests/services/gateway
+            --tag gateway:ci services/gateway
       - name: Healthcheck images
         run: |
           set -e
