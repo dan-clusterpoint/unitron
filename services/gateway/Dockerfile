@@ -1,19 +1,16 @@
 FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-COPY requirements.txt /tmp/requirements.txt
-COPY constraints.txt /tmp/constraints.txt
+COPY requirements.txt ./requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir --constraint /tmp/constraints.txt -r /tmp/requirements.txt
+COPY . /app
 
-COPY . .
+EXPOSE 8000
 
-ENV PORT=8000
-EXPOSE $PORT
-
-CMD ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "$PORT"]
+CMD ["python", "start.py"]
