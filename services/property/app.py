@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import whois, tldextract, ssl, socket, dns.resolver, httpx, asyncpg, os
+import whois, tldextract, ssl, socket, dns.resolver, httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
+from shared import db
 
 app = FastAPI(title="Web-Property Service")
+
+
+@app.on_event("startup")
+async def startup_event():
+    await db.init_db()
 
 
 async def get_dns_records(domain: str) -> list[str]:
@@ -57,25 +63,17 @@ async def fetch_internal_links(domain: str, url: str) -> list[str]:
 
 
 async def save_domains(domains: list[str]):
-    if not domains:
-        return
-    pool = await asyncpg.create_pool(
-        user=os.getenv("PGUSER", "presales"),
-        password=os.getenv("PGPASSWORD", "password"),
-        database=os.getenv("PGDATABASE", "presales"),
-        host=os.getenv("PGHOST", "db"),
-    )
-    async with pool.acquire() as conn:
-        await conn.executemany(
-            "INSERT INTO discovered_domains(domain) VALUES($1) ON CONFLICT (domain) DO NOTHING",
-            [(d,) for d in domains],
-        )
-    await pool.close()
+    await db.save_discovered_domains(domains)
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.get("/domains", response_model=list[str])
+async def get_domains(limit: int | None = None):
+    """Return previously discovered domains."""
+    return await db.list_discovered_domains(limit)
 
 class PropertyRequest(BaseModel):
     domain: str
@@ -138,3 +136,4 @@ async def analyze(req: PropertyRequest):
 
     score = len([e for e in evidence if not e.startswith("whois_error") and not e.startswith("ssl_error")]) / 5
     return PropertyResponse(domain=req.domain, confidence=round(score, 2), evidence=evidence)
+
