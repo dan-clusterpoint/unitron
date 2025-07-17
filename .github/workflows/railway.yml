@@ -13,3 +13,11 @@ jobs:
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: unitron
+      - uses: railwayapp/railway-deploy@v2
+        with:
+          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
+          service: martech
+      - uses: railwayapp/railway-deploy@v2
+        with:
+          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
+          service: property
