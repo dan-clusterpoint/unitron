@@ -25,19 +25,24 @@ jobs:
         run: |
           docker build --pull \
             --file services/martech/Dockerfile \
-            --tag martech:ci services/martech
+            --tag martech:ci .
           docker build --pull \
             --file services/gateway/Dockerfile \
-            --tag gateway:ci services/gateway
+            --tag gateway:ci .
+          docker build --pull \
+            --file services/property/Dockerfile \
+            --tag property:ci .
       - name: Healthcheck images
         run: |
           set -e
           m_id=$(docker run -d -p 9000:8000 martech:ci)
           g_id=$(docker run -d -p 9001:8080 gateway:ci)
+          p_id=$(docker run -d -p 9002:8000 property:ci)
           sleep 3
           curl -f http://localhost:9000/health
           curl -f http://localhost:9001/health
-          docker rm -f "$m_id" "$g_id"
+          curl -f http://localhost:9002/health
+          docker rm -f "$m_id" "$g_id" "$p_id"
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
