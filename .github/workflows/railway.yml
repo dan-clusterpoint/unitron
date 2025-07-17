@@ -12,4 +12,4 @@ jobs:
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: gateway
+          service: unitron
