@@ -3,5 +3,3 @@ uvicorn==0.22.0
 httpx==0.24.0
 python-wappalyzer==0.3.1
 pydantic==1.10.17
-setuptools<81
-

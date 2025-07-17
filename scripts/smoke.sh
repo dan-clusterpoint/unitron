@@ -12,7 +12,7 @@ run_one() {
   local port
   port=$(shuf -i 5000-5999 -n 1)
   echo "-- Building $s"
-  docker build -t "unitron_$s:test" -f "$dir/Dockerfile" . >/dev/null
+  docker build -t "unitron_$s:test" "$dir" >/dev/null
   cid=$(docker run -d -p "$port:8000" -e PORT=8000 "unitron_$s:test")
   trap "docker rm -f $cid >/dev/null" RETURN
   sleep 2
