@@ -38,7 +38,6 @@ async def save_discovered_domains(domains: list[str]) -> None:
             "ON CONFLICT (domain) DO NOTHING",
             [(d,) for d in domains],
         )
-
 async def list_discovered_domains(limit: int | None = None) -> list[str]:
     """Return discovered domains ordered by discovery time."""
     pool = await get_pool()
