@@ -7,6 +7,7 @@ COPY services/property/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code and startup script
+COPY shared ./shared
 COPY services/property/ .
 RUN chmod +x start.sh
 
