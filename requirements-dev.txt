@@ -1,0 +1,5 @@
+-r services/gateway/requirements.txt
+-r services/property/requirements.txt
+-r services/martech/requirements.txt
+pytest
+pytest-asyncio
