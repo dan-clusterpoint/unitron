@@ -38,6 +38,17 @@ async def save_discovered_domains(domains: list[str]) -> None:
             "ON CONFLICT (domain) DO NOTHING",
             [(d,) for d in domains],
         )
+async def list_discovered_domains(limit: int | None = None) -> list[str]:
+    """Return discovered domains ordered by discovery time."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        query = "SELECT domain FROM discovered_domains ORDER BY discovered_at DESC"
+        params = []
+        if limit is not None:
+            query += " LIMIT $1"
+            params.append(limit)
+        rows = await conn.fetch(query, *params)
+    return [r["domain"] for r in rows]
 
 async def upsert_job(job_id: str, stage: str, status: str, result_url: str | None = None) -> None:
     """Insert or update a job status record."""
