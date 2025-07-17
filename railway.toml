@@ -18,3 +18,11 @@ projectPath = "services/martech"
 dockerfilePath = "Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
+
+# Property service
+[[services]]
+name = "property"
+projectPath = "services/property"
+dockerfilePath = "Dockerfile"
+startCommand = "./start.sh"
+healthcheckPath = "/health"
