@@ -6,23 +6,23 @@ environment = "production"
 # Gateway service
 [[services]]
 name = "unitron"
-projectPath = "services/gateway"
-dockerfilePath = "Dockerfile"
+projectPath = "."
+dockerfilePath = "services/gateway/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
 
 # Martech service
 [[services]]
 name = "martech"
-projectPath = "services/martech"
-dockerfilePath = "Dockerfile"
+projectPath = "."
+dockerfilePath = "services/martech/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
 
 # Property service
 [[services]]
 name = "property"
-projectPath = "services/property"
-dockerfilePath = "Dockerfile"
+projectPath = "."
+dockerfilePath = "services/property/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
