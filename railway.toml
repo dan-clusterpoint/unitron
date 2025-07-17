@@ -7,19 +7,19 @@ environment = "production"
 healthcheckPath = "/health"
 autoDeploy = true
 dockerfilePath = "services/gateway/Dockerfile"
-rootDirectory = "services/gateway"
+rootDirectory = "."
 
 [services.martech]
 healthcheckPath = "/health"
 autoDeploy = true
 dockerfilePath = "services/martech/Dockerfile"
-rootDirectory = "services/martech"
+rootDirectory = "."
 
 [services.property]
 healthcheckPath = "/health"
 autoDeploy = true
 dockerfilePath = "services/property/Dockerfile"
-rootDirectory = "services/property"
+rootDirectory = "."
 
 [variables]
 MARTECH_URL = "https://martech-production-12e1.up.railway.app" # TODO: adjust per environment
