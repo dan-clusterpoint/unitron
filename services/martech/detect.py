@@ -5,17 +5,17 @@ Strategy:
 1. Fetch target URL (follow redirects).
 2. Run Wappalyzer fingerprints (if available).
 3. Run custom regex/header heuristics for high-signal Martech tags.
-4. Map detected tech -> Core / Adjacent / Broader tiers.
+4. Score each detected technology based on available evidence.
 5. Mark competitive platforms (vs Adobe).
 
-Return categorized lists + raw evidence for debugging.
+Return a list of per-product dictionaries with confidence, evidence and
+competitor flag.
 """
 
 from __future__ import annotations
 import re
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Any
 import httpx
-import tldextract
 from Wappalyzer import Wappalyzer, WebPage
 
 # ------------------------------------------------------------------ #
@@ -105,52 +105,41 @@ def _categorize(name: str, cats: List[str]) -> str:
         return "broader"
     return "adjacent"
 
-def detect(url: str) -> Dict[str, List[str]]:
-    """Main detection function: returns dict with keys core/adjacent/broader/competitors/evidence."""
+def detect(url: str) -> List[Dict[str, Any]]:
+    """Detect marketing technology and return per-product details."""
     resp = _fetch(url)
     html = resp.text
     headers = dict(resp.headers)
 
-    # Wappalyzer
+    # Wappalyzer and regex/header heuristics
     wapp_hits = _run_wappalyzer(url, html)  # {tech:[cats]}
-    # Regex heuristics
-    re_hits = _regex_hits(html, headers)    # {tech:evidence}
+    re_hits = _regex_hits(html, headers)  # {tech:evidence}
 
-    # Merge
-    tech_to_cats: Dict[str, List[str]] = {}
-    for tech, cats in wapp_hits.items():
-        tech_to_cats[tech] = list(cats) if isinstance(cats, (list, set, tuple)) else [str(cats)]
+    all_techs = set(wapp_hits) | set(re_hits)
+    results: List[Dict[str, Any]] = []
 
-    for tech, ev in re_hits.items():
-        tech_to_cats.setdefault(tech, []).append(ev)
+    for tech in sorted(all_techs):
+        cats = wapp_hits.get(tech, [])
+        evidence: List[str] = [f"wapp:{c}" for c in cats]
+        regex_ev = re_hits.get(tech)
+        if regex_ev:
+            evidence.append(regex_ev)
 
-    # Categorize
-    core, adjacent, broader, competitors = [], [], [], []
-    evidence = {}
+        confidence = 0.0
+        if tech in wapp_hits:
+            confidence += 0.5
+        if regex_ev:
+            if regex_ev.startswith("pattern:"):
+                confidence += 0.3
+            elif regex_ev.startswith("header:"):
+                confidence += 0.2
+        confidence = round(min(confidence, 1.0), 2)
 
-    for tech, cats in tech_to_cats.items():
-        tier = _categorize(tech, cats)
-        if tier == "core":
-            core.append(tech)
-        elif tier == "broader":
-            broader.append(tech)
-        else:
-            adjacent.append(tech)
-        if any(c.lower().startswith("pattern:") for c in cats):
-            evidence[tech] = cats
-        if tech in COMPETITORS:
-            competitors.append(tech)
+        results.append({
+            "product": tech,
+            "confidence": confidence,
+            "evidence": evidence,
+            "competitor": tech in COMPETITORS,
+        })
 
-    # De-dup & sort
-    core = sorted(set(core))
-    adjacent = sorted(set(adjacent))
-    broader = sorted(set(broader))
-    competitors = sorted(set(competitors))
-
-    return {
-        "core": core,
-        "adjacent": adjacent,
-        "broader": broader,
-        "competitors": competitors,
-        "evidence": evidence,
-    }
+    return results
