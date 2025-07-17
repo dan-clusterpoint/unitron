@@ -70,6 +70,11 @@ async def save_domains(domains: list[str]):
 async def health():
     return {"status": "ok"}
 
+@app.get("/domains", response_model=list[str])
+async def get_domains(limit: int | None = None):
+    """Return previously discovered domains."""
+    return await db.list_discovered_domains(limit)
+
 class PropertyRequest(BaseModel):
     domain: str
 
