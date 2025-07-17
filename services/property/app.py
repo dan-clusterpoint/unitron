@@ -1,8 +1,76 @@
 from fastapi import FastAPI
-import whois, tldextract, ssl, socket
 from pydantic import BaseModel
+import whois, tldextract, ssl, socket, dns.resolver, httpx, asyncpg, os
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 app = FastAPI(title="Web-Property Service")
+
+
+async def get_dns_records(domain: str) -> list[str]:
+    try:
+        answers = dns.resolver.resolve(domain, "A")
+        return [str(r) for r in answers]
+    except Exception:
+        return []
+
+
+def get_ssl_san(domain: str) -> list[str]:
+    ctx = ssl.create_default_context()
+    with ctx.wrap_socket(socket.socket(), server_hostname=domain) as s:
+        s.settimeout(3)
+        s.connect((domain, 443))
+        cert = s.getpeercert()
+    return [v for k, v in cert.get("subjectAltName", []) if k == "DNS"]
+
+
+async def fetch_sitemap(domain: str) -> list[str]:
+    urls = []
+    for scheme in ("https", "http"):
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(f"{scheme}://{domain}/sitemap.xml")
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "xml")
+                urls.extend([loc.text for loc in soup.find_all("loc")])
+                break
+        except Exception:
+            continue
+    return urls
+
+
+async def fetch_internal_links(domain: str, url: str) -> list[str]:
+    links = []
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(url)
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            for a in soup.find_all("a", href=True):
+                href = urljoin(url, a["href"])
+                parsed = urlparse(href)
+                if parsed.hostname and parsed.hostname.endswith(domain):
+                    links.append(href)
+    except Exception:
+        pass
+    return links
+
+
+async def save_domains(domains: list[str]):
+    if not domains:
+        return
+    pool = await asyncpg.create_pool(
+        user=os.getenv("PGUSER", "presales"),
+        password=os.getenv("PGPASSWORD", "password"),
+        database=os.getenv("PGDATABASE", "presales"),
+        host=os.getenv("PGHOST", "db"),
+    )
+    async with pool.acquire() as conn:
+        await conn.executemany(
+            "INSERT INTO discovered_domains(domain) VALUES($1) ON CONFLICT (domain) DO NOTHING",
+            [(d,) for d in domains],
+        )
+    await pool.close()
 
 
 @app.get("/health")
@@ -15,33 +83,58 @@ class PropertyRequest(BaseModel):
 class PropertyResponse(BaseModel):
     domain: str
     confidence: float
-    notes: list[str]
+    evidence: list[str]
 
 @app.post("/analyze", response_model=PropertyResponse)
 async def analyze(req: PropertyRequest):
-    notes, score = [], 0.0
+    evidence = []
+    discovered = set()
+
     # WHOIS check
     try:
         w = whois.whois(req.domain)
         if w.get("org"):
-            score += 0.30
-            notes.append("WHOIS org found")
+            evidence.append("whois_org")
     except Exception as e:
-        notes.append(f"WHOIS error: {e}")
-    # SSL certificate check
+        evidence.append(f"whois_error:{e}")
+
+    # DNS records
+    dns_records = await get_dns_records(req.domain)
+    if dns_records:
+        evidence.append("dns_a")
+
+    # SSL certificate & SAN
     try:
-        ctx = ssl.create_default_context()
-        with ctx.wrap_socket(socket.socket(), server_hostname=req.domain) as s:
-            s.settimeout(3)
-            s.connect((req.domain, 443))
-            if s.getpeercert():
-                score += 0.30
-                notes.append("SSL cert present")
+        san = get_ssl_san(req.domain)
+        if san:
+            evidence.append("ssl_san")
+            discovered.update(san)
     except Exception as e:
-        notes.append(f"SSL error: {e}")
+        evidence.append(f"ssl_error:{e}")
+
     # Domain semantics
     ext = tldextract.extract(req.domain)
     if ext.domain and len(ext.domain) > 2:
-        score += 0.40
-        notes.append("Domain appears brand-specific")
-    return PropertyResponse(domain=req.domain, confidence=round(score, 2), notes=notes)
+        evidence.append("brand_like")
+
+    # Sitemap and internal links
+    sitemap_links = await fetch_sitemap(req.domain)
+    internal_links = []
+    for url in sitemap_links[:5]:
+        internal_links.extend(await fetch_internal_links(req.domain, url))
+    if not internal_links:
+        for scheme in ("https", "http"):
+            internal_links = await fetch_internal_links(req.domain, f"{scheme}://{req.domain}")
+            if internal_links:
+                break
+    if internal_links:
+        evidence.append("links_found")
+        for link in internal_links:
+            parsed = urlparse(link)
+            if parsed.hostname:
+                discovered.add(parsed.hostname)
+
+    await save_domains(list(discovered))
+
+    score = len([e for e in evidence if not e.startswith("whois_error") and not e.startswith("ssl_error")]) / 5
+    return PropertyResponse(domain=req.domain, confidence=round(score, 2), evidence=evidence)
