@@ -1,5 +1,5 @@
 # Use official Python image
-FROM python:3.11-slim AS base
+FROM python:3.11.13-slim AS base
 WORKDIR /app
 
 # Copy and install dependencies
