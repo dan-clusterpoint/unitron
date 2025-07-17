@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY services/property/ .
 RUN chmod +x start.sh
 
-# Set args for Railway variables during build
-ARG RAILWAY_ENVIRONMENT
+# Railway sets `RAILWAY_ENVIRONMENT` automatically but the value is not
+# consumed during build or runtime, so no build arguments are required.
 
 # Expose and run
 EXPOSE 80

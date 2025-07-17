@@ -19,6 +19,7 @@ Environment variables expected by the services include:
 - `MARTECH_URL` – URL for the Martech service used by the gateway
 - `PORT` – port the service listens on (set automatically by Railway)
 - `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGHOST` – optional database settings
+- `RAILWAY_ENVIRONMENT` – automatically provided during deploy but unused by the Dockerfiles
 
 ## Quick Start (Local)
 
