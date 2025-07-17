@@ -1,12 +1,12 @@
 # Root-level Railway config
-projectPath = "."
+rootDirectory = "."
 branch = "main"
 environment = "production"
 
 # Gateway service
 [[services]]
 name = "unitron"
-projectPath = "."
+rootDirectory = "."
 dockerfilePath = "services/gateway/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
@@ -14,7 +14,7 @@ healthcheckPath = "/health"
 # Martech service
 [[services]]
 name = "martech"
-projectPath = "."
+rootDirectory = "."
 dockerfilePath = "services/martech/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
@@ -22,7 +22,7 @@ healthcheckPath = "/health"
 # Property service
 [[services]]
 name = "property"
-projectPath = "."
+rootDirectory = "."
 dockerfilePath = "services/property/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
