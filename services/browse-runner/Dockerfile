@@ -1,8 +1,9 @@
-FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
+FROM python:3.11.13-slim
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    playwright install --with-deps
 
 COPY . .
 RUN chmod +x start.sh
