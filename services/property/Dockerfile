@@ -1,9 +1,16 @@
 FROM python:3.11.13-slim
 WORKDIR /app
-COPY services/property/requirements.txt .
+
+# Install dependencies for the property service
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY shared ./shared
-COPY services/property/ .
+
+# Pull in shared utilities
+COPY ../shared ./shared
+
+# Copy the property service code
+COPY . .
 RUN chmod +x start.sh
+
 EXPOSE 80
 CMD ["./start.sh"]

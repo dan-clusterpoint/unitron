@@ -1,13 +1,17 @@
 FROM python:3.11.13-slim
 WORKDIR /app
-# Copy requirements from the gateway service directory
-COPY services/gateway/requirements.txt .
+
+# Install dependencies for the gateway service
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Include shared modules located at the repo root
-COPY shared ./shared
-# Copy the gateway source code
-COPY services/gateway/ .
+
+# Pull in shared utilities
+COPY ../shared ./shared
+
+# Copy the gateway application code
+COPY . .
 RUN chmod +x start.sh
+
 EXPOSE 80
 CMD ["./start.sh"]
 
