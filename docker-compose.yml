@@ -5,6 +5,8 @@ services:
     environment:
       PROPERTY_URL: http://property:80
       MARTECH_URL: http://martech:80
+      INSIGHT_AGENT_URL: http://insight-agent:80
+      BROWSE_RUNNER_URL: http://browse-runner:80
       N8N_URL: http://n8n:5678
     ports:
       - "8000:80"

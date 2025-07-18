@@ -7,7 +7,9 @@ from shared.db import upsert_job, get_job
 from shared.models import JobStatus
 
 PROPERTY_URL = os.getenv("PROPERTY_URL")
-MARTECH_URL  = os.getenv("MARTECH_URL")
+MARTECH_URL = os.getenv("MARTECH_URL")
+INSIGHT_AGENT_URL = os.getenv("INSIGHT_AGENT_URL")
+BROWSE_RUNNER_URL = os.getenv("BROWSE_RUNNER_URL")
 N8N_URL = os.getenv("N8N_URL")
 N8N_WORKFLOW_ID = os.getenv("N8N_WORKFLOW_ID", "1")
 
@@ -43,7 +45,24 @@ class CombinedResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    services = {
+        "property": PROPERTY_URL,
+        "martech": MARTECH_URL,
+        "insight_agent": INSIGHT_AGENT_URL,
+        "browse_runner": BROWSE_RUNNER_URL,
+    }
+    results = {}
+    async with httpx.AsyncClient() as client:
+        for name, url in services.items():
+            if not url:
+                continue
+            try:
+                resp = await client.get(f"{url}/health", timeout=3)
+                results[name] = resp.status_code == 200
+            except Exception:
+                results[name] = False
+    status = "ok" if all(results.values()) else "degraded"
+    return {"status": status, "services": results}
 
 @property_app.post("/analyze", response_model=PropertyResponse)
 async def property_analyze(req: PropertyRequest):
