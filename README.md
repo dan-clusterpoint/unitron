@@ -47,8 +47,8 @@ services are exposed on ports `8001` (property), `8002` (martech), `8003` (insig
 ## Deployment
 
 Deployment is handled by [Railway](https://railway.app/). The `railway.toml`
-file lists each service with its build context and health check. On every push
-to `main`, the GitHub action in `.github/workflows/railway.yml` runs
-`railwayapp/railway-deploy@v2` which builds the images and deploys them to
-Railway using the project token.
+file now defines a single service using the root `Dockerfile` and a `/health`
+check. On every push to `main`, the GitHub action in
+`.github/workflows/railway.yml` runs `railwayapp/railway-deploy@v2` which
+builds the image and deploys the service to Railway using the project token.
 
