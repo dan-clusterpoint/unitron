@@ -2,5 +2,6 @@
 -r services/property/requirements.txt
 -r services/martech/requirements.txt
 -r services/insight-agent/requirements.txt
+-r services/browse-runner/requirements.txt
 pytest
 pytest-asyncio

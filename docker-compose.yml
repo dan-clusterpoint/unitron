@@ -26,6 +26,14 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8003:80"
+  browse-runner:
+    build: ./services/browse-runner
+    volumes:
+      - ./screenshots:/screenshots
+    environment:
+      SCREENSHOT_DIR: /screenshots
+    ports:
+      - "8004:80"
   redis:
     image: redis:7-alpine
     ports:

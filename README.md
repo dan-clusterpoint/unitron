@@ -13,6 +13,7 @@ script.
 | `property`| `services/property`| Basic domain analysis service   |
 | `martech` | `services/martech` | Detects marketing technology    |
 | `insight-agent` | `services/insight-agent` | Generates research notes via LLM |
+| `browse-runner` | `services/browse-runner` | Runs task scripts with Playwright |
 
 Environment variables expected by the services include:
 
@@ -31,7 +32,7 @@ docker compose up --build
 
 The gateway API will be available at
 **[http://localhost:8000/docs](http://localhost:8000/docs)**. The other
-services are exposed on ports `8001` (property) and `8002` (martech).
+services are exposed on ports `8001` (property), `8002` (martech), `8003` (insight-agent) and `8004` (browse-runner).
 
 ## Deployment
 
