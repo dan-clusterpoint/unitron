@@ -13,8 +13,10 @@ healthcheckDelay   = 5
 name        = "unitron"
 projectPath = "services/gateway"
 startCommand = "sh -c \"uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+instances    = 1  
 
 [[services]]
 name        = "martech"
 projectPath = "services/martech"
 startCommand = "sh -c \"uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+instances    = 1  
