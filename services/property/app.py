@@ -3,10 +3,19 @@ from pydantic import BaseModel
 import whois, tldextract, ssl, socket, dns.resolver, httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
+from pathlib import Path
 from shared import db
 import logging
 
 app = FastAPI(title="Web-Property Service")
+
+# Configure a local, static public suffix list for tldextract
+_suffix_cache = Path(__file__).resolve().parent / "suffix_cache"
+_extract = tldextract.TLDExtract(
+    cache_dir=str(_suffix_cache),
+    suffix_list_urls=[],
+    fallback_to_snapshot=True,
+)
 
 
 @app.on_event("startup")
@@ -115,7 +124,7 @@ async def analyze(req: PropertyRequest):
         evidence.append(f"ssl_error:{e}")
 
     # Domain semantics
-    ext = tldextract.extract(req.domain)
+    ext = _extract(req.domain)
     if ext.domain and len(ext.domain) > 2:
         evidence.append("brand_like")
 
