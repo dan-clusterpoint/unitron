@@ -20,6 +20,12 @@ services:
     build: ./services/martech
     ports:
       - "8002:80"
+  insight-agent:
+    build: ./services/insight-agent
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8003:80"
   redis:
     image: redis:7-alpine
     ports:
