@@ -1,7 +1,9 @@
 version: "3.9"
 services:
   gateway:
-    build: ./services/gateway
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
     environment:
       PROPERTY_URL: http://property:80
       MARTECH_URL: http://martech:80
@@ -12,7 +14,9 @@ services:
       - property
       - martech
   property:
-    build: ./services/property
+    build:
+      context: .
+      dockerfile: services/property/Dockerfile
     ports:
       - "8001:80"
   martech:
