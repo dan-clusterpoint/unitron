@@ -10,9 +10,9 @@ app = FastAPI(title="Web-Property Service")
 
 
 @app.on_event("startup")
-async def startup_event():
+def startup_event():
     try:
-        await db.init_db()
+        db.init_db()
     except Exception as e:
         logging.error("Failed to initialize database: %s", e)
 
@@ -66,8 +66,8 @@ async def fetch_internal_links(domain: str, url: str) -> list[str]:
     return links
 
 
-async def save_domains(domains: list[str]):
-    await db.save_discovered_domains(domains)
+def save_domains(domains: list[str]):
+    db.save_discovered_domains(domains)
 
 
 @app.get("/health")
@@ -75,9 +75,9 @@ async def health():
     return {"status": "ok"}
 
 @app.get("/domains", response_model=list[str])
-async def get_domains(limit: int | None = None):
+def get_domains(limit: int | None = None):
     """Return previously discovered domains."""
-    return await db.list_discovered_domains(limit)
+    return db.list_discovered_domains(limit)
 
 class PropertyRequest(BaseModel):
     domain: str
@@ -136,7 +136,7 @@ async def analyze(req: PropertyRequest):
             if parsed.hostname:
                 discovered.add(parsed.hostname)
 
-    await save_domains(list(discovered))
+    save_domains(list(discovered))
 
     score = len([e for e in evidence if not e.startswith("whois_error") and not e.startswith("ssl_error")]) / 5
     return PropertyResponse(domain=req.domain, confidence=round(score, 2), evidence=evidence)

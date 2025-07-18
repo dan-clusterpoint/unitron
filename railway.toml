@@ -1,42 +1,8 @@
-# Root-level Railway config
 rootDirectory = "."
 branch = "main"
-environment = "production"
-
-# Gateway service
-[[services]]
+[service]
 name = "unitron"
-rootDirectory = "services/gateway"
+rootDirectory = "."
 dockerfilePath = "Dockerfile"
-startCommand = "uvicorn app:app --host 0.0.0.0 --port \"$PORT\""
-healthcheckPath = "/health"
-
-# Martech service
-[[services]]
-name = "martech"
-rootDirectory = "services/martech"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
-healthcheckPath = "/health"
-
-# Property service
-[[services]]
-name = "property"
-rootDirectory = "services/property"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
-healthcheckPath = "/health"
-
-[[services]]
-name = "insight-agent"
-rootDirectory = "services/insight-agent"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
-healthcheckPath = "/health"
-
-[[services]]
-name = "browse-runner"
-rootDirectory = "services/browse-runner"
-dockerfilePath = "Dockerfile"
-startCommand = "./start.sh"
+startCommand = "uvicorn backend.main:app --host 0.0.0.0 --port \"$PORT\""
 healthcheckPath = "/health"

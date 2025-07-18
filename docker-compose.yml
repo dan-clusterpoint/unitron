@@ -1,65 +1,6 @@
 version: "3.9"
 services:
-  gateway:
-    build: ./services/gateway
-    environment:
-      PROPERTY_URL: http://property:80
-      MARTECH_URL: http://martech:80
-      INSIGHT_AGENT_URL: http://insight-agent:80
-      BROWSE_RUNNER_URL: http://browse-runner:80
-      N8N_URL: http://n8n:5678
+  backend:
+    build: .
     ports:
-      - "8000:80"
-    depends_on:
-      - property
-      - martech
-  property:
-    build:
-      context: .
-      dockerfile: services/property/Dockerfile
-    ports:
-      - "8001:80"
-  martech:
-    build: ./services/martech
-    ports:
-      - "8002:80"
-  insight-agent:
-    build: ./services/insight-agent
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-    ports:
-      - "8003:80"
-  browse-runner:
-    build: ./services/browse-runner
-    volumes:
-      - ./screenshots:/screenshots
-    environment:
-      SCREENSHOT_DIR: /screenshots
-    ports:
-      - "8004:80"
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: presales
-      POSTGRES_DB: presales
-    ports:
-      - "5432:5432"
-  n8n:
-    image: n8nio/n8n:1.51.1
-    ports:
-      - "5678:5678"
-    environment:
-      - GENERIC_TIMEZONE=America/Los_Angeles
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_DATABASE=presales
-      - DB_POSTGRESDB_HOST=db
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_USER=presales
-      - DB_POSTGRESDB_PASSWORD=password
-    depends_on:
-      - db
+      - "8000:8000"
