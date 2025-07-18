@@ -5,9 +5,7 @@
 ## Services
 
 Each service lives under `services/<name>` with its own `Dockerfile` and startup
-script. Dockerfiles build from the service folder itself so all `COPY` paths are
-relative. Shared modules live in `shared/` and are pulled in with
-`COPY ../shared ./shared` when needed.
+script.
 
 | Name      | Path                | Purpose                         |
 |-----------|--------------------|---------------------------------|
