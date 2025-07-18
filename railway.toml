@@ -1,4 +1,8 @@
 # Root-level Railway config
+# Keep this file in sync with `.github/workflows/railway.yml`.
+# Gateway and property services build from the repository root so
+# they can copy the shared modules. Their service path in Railway
+# should therefore be set to `.`.
 rootDirectory = "."
 branch = "main"
 environment = "production"
