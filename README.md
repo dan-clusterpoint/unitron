@@ -5,9 +5,9 @@
 ## Services
 
 Each service lives under `services/<name>` with its own `Dockerfile` and startup
-script. The gateway and property services build from the repo root so they can
-copy the shared utilities via `COPY shared ./shared`. Other services build from
-their individual folders.
+script. Dockerfiles build from the service folder itself so all `COPY` paths are
+relative. Shared modules live in `shared/` and are pulled in with
+`COPY ../shared ./shared` when needed.
 
 | Name      | Path                | Purpose                         |
 |-----------|--------------------|---------------------------------|
