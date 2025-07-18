@@ -21,3 +21,7 @@ jobs:
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: property
+      - uses: railwayapp/railway-deploy@v2
+        with:
+          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
+          service: insight-agent

@@ -12,11 +12,13 @@ script.
 | `gateway` | `services/gateway` | Combines the other services and exposes a single API |
 | `property`| `services/property`| Basic domain analysis service   |
 | `martech` | `services/martech` | Detects marketing technology    |
+| `insight-agent` | `services/insight-agent` | Generates research notes via LLM |
 
 Environment variables expected by the services include:
 
 - `PROPERTY_URL` – URL for the Property service used by the gateway
 - `MARTECH_URL` – URL for the Martech service used by the gateway
+- `OPENAI_API_KEY` – API key for the Insight Agent service
 - `PORT` – port the service listens on (set automatically by Railway)
 - `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGHOST` – optional database settings
 - `RAILWAY_ENVIRONMENT` – automatically provided during deploy but unused by the Dockerfiles
