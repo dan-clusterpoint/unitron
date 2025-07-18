@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 from pathlib import Path
 import pathlib
 import os
 import boto3
+import ast
 from playwright.async_api import async_playwright
 
 SCREENSHOT_DIR = os.getenv("SCREENSHOT_DIR", "/tmp/screenshots")
@@ -18,12 +19,22 @@ class RunRequest(BaseModel):
 class RunResponse(BaseModel):
     screenshots: List[str]
 
+def validate_script(script: str) -> None:
+    try:
+        tree = ast.parse(script)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid script") from exc
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            raise HTTPException(status_code=400, detail="Import statements are not allowed")
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
 @app.post("/run", response_model=RunResponse)
 async def run(req: RunRequest):
+    validate_script(req.script)
     screenshot_dir = Path(SCREENSHOT_DIR)
     screenshot_dir.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as pw:
