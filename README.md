@@ -25,7 +25,11 @@ Environment variables expected by the services include:
 - `N8N_WORKFLOW_ID` – ID of the workflow to execute (default `1`)
 - `OPENAI_API_KEY` – API key for the Insight Agent service
 - `PORT` – port the service listens on (set automatically by Railway)
-- `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGHOST` – optional database settings
+- `S3_BUCKET` – optional AWS S3 bucket for screenshots captured by Browse Runner
+- `PGUSER` – optional PostgreSQL user
+- `PGPASSWORD` – optional PostgreSQL password
+- `PGDATABASE` – optional PostgreSQL database name
+- `PGHOST` – optional PostgreSQL host
 - `RAILWAY_ENVIRONMENT` – automatically provided during deploy but unused by the Dockerfiles
 
 The gateway's `/health` endpoint checks each service listed above and returns a consolidated status.
