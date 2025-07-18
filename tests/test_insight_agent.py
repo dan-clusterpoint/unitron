@@ -10,7 +10,6 @@ spec.loader.exec_module(insight_agent_app)
 
 client = TestClient(insight_agent_app.app)
 
-@pytest.mark.asyncio
 def test_generate_mocked():
     mock_resp = type('obj', (object,), {
         'choices': [type('c', (object,), {'message': type('m', (object,), {'content': 'notes'})()})]
