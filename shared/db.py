@@ -17,7 +17,7 @@ def init_db():
     with engine.begin() as conn:
         metadata.create_all(conn)
 
-async def save_discovered_domains(domains: list[str]) -> None:
+def save_discovered_domains(domains: list[str]) -> None:
     if not domains:
         return
     init_db()
