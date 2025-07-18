@@ -18,10 +18,7 @@ async def test_ready():
     dummy = type('R', (object,), {'status_code': 200})()
     with (
         patch('httpx.AsyncClient.get', new=AsyncMock(return_value=dummy)),
-        patch('services.gateway.app.PROPERTY_URL', 'http://prop'),
         patch('services.gateway.app.MARTECH_URL', 'http://martech'),
-        patch('services.gateway.app.INSIGHT_AGENT_URL', 'http://insight'),
-        patch('services.gateway.app.BROWSE_RUNNER_URL', 'http://browse'),
     ):
         resp = client.get('/ready')
     assert resp.status_code == 200
