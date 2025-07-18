@@ -11,7 +11,7 @@ environment = "production"
 [[services]]
 name = "unitron"
 rootDirectory = "services/gateway"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "services/gateway/Dockerfile"
 startCommand = "./start.sh"
 healthcheckPath = "/health"
 
