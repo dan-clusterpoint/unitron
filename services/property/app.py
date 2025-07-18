@@ -4,13 +4,17 @@ import whois, tldextract, ssl, socket, dns.resolver, httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from shared import db
+import logging
 
 app = FastAPI(title="Web-Property Service")
 
 
 @app.on_event("startup")
 async def startup_event():
-    await db.init_db()
+    try:
+        await db.init_db()
+    except Exception as e:
+        logging.error("Failed to initialize database: %s", e)
 
 
 async def get_dns_records(domain: str) -> list[str]:
