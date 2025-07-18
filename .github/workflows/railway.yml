@@ -13,7 +13,7 @@ jobs:
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: unitron
-          servicePath: services/gateway
+          servicePath: .
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
@@ -23,7 +23,7 @@ jobs:
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: property
-          servicePath: services/property
+          servicePath: .
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
