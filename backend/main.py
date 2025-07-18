@@ -2,8 +2,12 @@ from fastapi import FastAPI
 
 import services.property.app as property_app
 import services.martech.app as martech_app
-import services.insight-agent.app as insight_app
-import services.browse-runner.app as browse_app
+import importlib
+
+# Hyphenated service directories can't be imported using the normal syntax, so
+# load them dynamically using ``importlib.import_module``.
+insight_app = importlib.import_module("services.insight-agent.app")
+browse_app = importlib.import_module("services.browse-runner.app")
 
 app = FastAPI(title="Unitron Backend")
 
