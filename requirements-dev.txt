@@ -1,4 +1,0 @@
--r services/gateway/requirements.txt
--r services/martech/requirements.txt
-pytest
-pytest-asyncio
