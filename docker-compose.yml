@@ -1,14 +1,18 @@
 version: "3.9"
 services:
   gateway:
-    build: ./services/gateway
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
     environment:
       - PORT=8000
       - MARTECH_URL=http://martech:8000
     ports: ["8080:8000"]
 
   martech:
-    build: ./services/martech
+    build:
+      context: .
+      dockerfile: services/martech/Dockerfile
     environment:
       - PORT=8000
       - DB_URL=${DB_URL:-sqlite:///./local.db}
