@@ -46,8 +46,3 @@ to `main`, the GitHub action in `.github/workflows/railway.yml` runs
 `railwayapp/railway-deploy@v2` which builds the images and deploys them to
 Railway using the project token.
 
-> **Note**: The gateway and property services build from the repository root.
-> Set their service path to `"."` in Railway; using a subdirectory (for
-> example `services/gateway`) will cause `COPY` errors like
-> `/services/gateway not found`.
-
