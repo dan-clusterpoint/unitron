@@ -107,7 +107,7 @@ async def jobs_start():
     if not N8N_URL:
         raise HTTPException(status_code=500, detail="N8N_URL not configured")
     job_id = str(uuid4())
-    await upsert_job(job_id, "start", "pending")
+    upsert_job(job_id, "start", "pending")
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -122,7 +122,7 @@ async def jobs_start():
 
 @app.get("/jobs/{job_id}", response_model=JobStatus)
 async def jobs_get(job_id: str):
-    job = await get_job(job_id)
+    job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return JobStatus(**job)

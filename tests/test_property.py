@@ -14,7 +14,7 @@ async def test_analyze_mocked():
         patch('services.property.app.get_ssl_san', return_value=['www.example.com']),
         patch('services.property.app.fetch_sitemap', new=AsyncMock(return_value=['http://example.com/sitemap.xml'])),
         patch('services.property.app.fetch_internal_links', new=AsyncMock(return_value=['http://example.com/page'])),
-        patch('services.property.app.save_domains', new=AsyncMock()),
+        patch('services.property.app.save_domains'),
     ):
         resp = client.post('/analyze', json={'domain': 'example.com'})
     assert resp.status_code == 200

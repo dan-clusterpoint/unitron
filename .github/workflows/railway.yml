@@ -13,24 +13,4 @@ jobs:
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: unitron
-          servicePath: services/gateway
-      - uses: railwayapp/railway-deploy@v2
-        with:
-          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: martech
-          servicePath: services/martech
-      - uses: railwayapp/railway-deploy@v2
-        with:
-          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: property
-          servicePath: services/property
-      - uses: railwayapp/railway-deploy@v2
-        with:
-          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: insight-agent
-          servicePath: services/insight-agent
-      - uses: railwayapp/railway-deploy@v2
-        with:
-          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
-          service: browse-runner
-          servicePath: services/browse-runner
+          servicePath: .

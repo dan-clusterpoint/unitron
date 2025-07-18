@@ -29,7 +29,7 @@ async def test_jobs_start():
     dummy_resp = type('R', (object,), {'status_code': 200, 'raise_for_status': lambda self: None})()
     with (
         patch('httpx.AsyncClient.post', new=AsyncMock(return_value=dummy_resp)),
-        patch('services.gateway.app.upsert_job', new=AsyncMock()),
+        patch('services.gateway.app.upsert_job'),
         patch('services.gateway.app.uuid4', return_value='job123'),
     ):
         resp = client.post('/jobs/start')
@@ -41,7 +41,7 @@ async def test_jobs_start():
 @pytest.mark.asyncio
 async def test_jobs_get():
     job = {'job_id': 'job123', 'stage': 'start', 'status': 'pending', 'result_url': None}
-    with patch('services.gateway.app.get_job', new=AsyncMock(return_value=job)):
+    with patch('services.gateway.app.get_job', return_value=job):
         resp = client.get('/jobs/job123')
     assert resp.status_code == 200
     assert resp.json() == job
@@ -49,6 +49,6 @@ async def test_jobs_get():
 
 @pytest.mark.asyncio
 async def test_jobs_get_missing():
-    with patch('services.gateway.app.get_job', new=AsyncMock(return_value=None)):
+    with patch('services.gateway.app.get_job', return_value=None):
         resp = client.get('/jobs/none')
     assert resp.status_code == 404
