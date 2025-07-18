@@ -17,26 +17,6 @@ def init_db():
     with engine.begin() as conn:
         metadata.create_all(conn)
 
-def save_discovered_domains(domains: list[str]) -> None:
-    if not domains:
-        return
-    init_db()
-    with SessionLocal() as session:
-        for d in domains:
-            session.execute(
-                text("INSERT OR IGNORE INTO discovered_domains(domain) VALUES(:d)"),
-                {"d": d},
-            )
-        session.commit()
-
-def list_discovered_domains(limit: int | None = None) -> list[str]:
-    init_db()
-    with SessionLocal() as session:
-        query = "SELECT domain FROM discovered_domains ORDER BY discovered_at DESC"
-        if limit:
-            query += f" LIMIT {limit}"
-        rows = session.execute(text(query)).all()
-    return [r[0] for r in rows]
 
 def upsert_job(job_id: str, stage: str, status: str, result_url: str | None = None) -> None:
     init_db()

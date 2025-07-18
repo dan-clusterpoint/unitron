@@ -1,6 +1,13 @@
 version: "3.9"
 services:
-  backend:
-    build: .
+  gateway:
+    build: ./services/gateway
     ports:
-      - "8000:8000"
+      - "8000:80"
+    environment:
+      MARTECH_URL: "http://martech:80"
+
+  martech:
+    build: ./services/martech
+    ports:
+      - "8001:80"

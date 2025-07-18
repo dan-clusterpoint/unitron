@@ -9,27 +9,16 @@ script.
 
 | Name      | Path                | Purpose                         |
 |-----------|--------------------|---------------------------------|
-| `gateway` | `services/gateway` | Combines the other services and exposes a single API |
-| `property`| `services/property`| Basic domain analysis service   |
+| `gateway` | `services/gateway` | Main API entrypoint             |
 | `martech` | `services/martech` | Detects marketing technology    |
-| `insight-agent` | `services/insight-agent` | Generates research notes via LLM |
-| `browse-runner` | `services/browse-runner` | Runs task scripts with Playwright |
 
-> **Warning**: `services/browse-runner` executes arbitrary Python code sent to
-> its `/run` endpoint. Only run this service in controlled, trusted
-> environments.
 
 Environment variables expected by the services include:
 
-- `PROPERTY_URL` – URL for the Property service used by the gateway
 - `MARTECH_URL` – URL for the Martech service used by the gateway
-- `INSIGHT_AGENT_URL` – URL for the Insight Agent service used by the gateway
-- `BROWSE_RUNNER_URL` – URL for the Browse Runner service used by the gateway
 - `N8N_URL` – base URL for the n8n instance
 - `N8N_WORKFLOW_ID` – ID of the workflow to execute (default `1`)
-- `OPENAI_API_KEY` – API key for the Insight Agent service
 - `PORT` – port the service listens on (set automatically by Railway)
-- `S3_BUCKET` – optional AWS S3 bucket for screenshots captured by Browse Runner
 - `PGUSER` – optional PostgreSQL user
 - `PGPASSWORD` – optional PostgreSQL password
 - `PGDATABASE` – optional PostgreSQL database name
@@ -45,8 +34,7 @@ docker compose up --build
 ```
 
 The gateway API will be available at
-**[http://localhost:8000/docs](http://localhost:8000/docs)**. The other
-services are exposed on ports `8001` (property), `8002` (martech), `8003` (insight-agent) and `8004` (browse-runner).
+**[http://localhost:8000/docs](http://localhost:8000/docs)**. The martech service is exposed on port `8001`.
 
 ## Deployment
 

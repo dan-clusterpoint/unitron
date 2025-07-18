@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS discovered_domains (
-    domain TEXT PRIMARY KEY,
-    discovered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
