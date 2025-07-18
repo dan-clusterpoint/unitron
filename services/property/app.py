@@ -1,16 +1,19 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 import whois, tldextract, ssl, socket, dns.resolver, httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from shared import db
 
-app = FastAPI(title="Web-Property Service")
 
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await db.init_db()
+    yield
+
+
+app = FastAPI(title="Web-Property Service", lifespan=lifespan)
 
 
 async def get_dns_records(domain: str) -> list[str]:
