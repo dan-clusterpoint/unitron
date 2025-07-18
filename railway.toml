@@ -4,8 +4,10 @@
 builder = "DOCKERFILE"
 
 [deploy]
+# default health path & timeouts for all services
 healthcheckPath    = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 10
+healthcheckDelay   = 5
 
 [[services]]
 name        = "unitron"

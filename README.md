@@ -52,3 +52,7 @@ directory under `services/`. On every push to `main`, the workflow in
 `.github/workflows/railway.yml` deploys both services with
 `railwayapp/railway-deploy@v2`.
 
+Both services run in **service mode**, so Railway keeps the containers
+running and performs repeated health checks instead of treating them as
+one-off jobs.
+
