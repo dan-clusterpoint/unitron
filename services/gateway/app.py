@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import asyncio
 import httpx
 import os
 from uuid import uuid4
@@ -53,14 +54,16 @@ async def health():
     }
     results = {}
     async with httpx.AsyncClient() as client:
-        for name, url in services.items():
-            if not url:
-                continue
+        async def check(name: str, url: str) -> tuple[str, bool]:
             try:
-                resp = await client.get(f"{url}/health", timeout=3)
-                results[name] = resp.status_code == 200
+                resp = await client.get(f"{url}/health", timeout=2)
+                return name, resp.status_code == 200
             except Exception:
-                results[name] = False
+                return name, False
+
+        tasks = [check(name, url) for name, url in services.items() if url]
+        for name, ok in await asyncio.gather(*tasks):
+            results[name] = ok
     status = "ok" if all(results.values()) else "degraded"
     return {"status": status, "services": results}
 
