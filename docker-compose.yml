@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  gateway:
+    build: ./services/gateway
+    environment:
+      - PORT=8000
+      - MARTECH_URL=http://martech:8000
+    ports: ["8080:8000"]
+
+  martech:
+    build: ./services/martech
+    environment:
+      - PORT=8000
+      - DB_URL=${DB_URL:-sqlite:///./local.db}
+    ports: ["8081:8000"]
