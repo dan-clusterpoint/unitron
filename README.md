@@ -15,6 +15,10 @@ script.
 | `insight-agent` | `services/insight-agent` | Generates research notes via LLM |
 | `browse-runner` | `services/browse-runner` | Runs task scripts with Playwright |
 
+> **Warning**: `services/browse-runner` executes arbitrary Python code sent to
+> its `/run` endpoint. Only run this service in controlled, trusted
+> environments.
+
 Environment variables expected by the services include:
 
 - `PROPERTY_URL` – URL for the Property service used by the gateway

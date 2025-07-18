@@ -46,3 +46,14 @@ async def test_run_mocked(tmp_path):
         resp = client.post('/run', json={'script': script})
     assert resp.status_code == 200
     assert resp.json() == {'screenshots': ['test.png']}
+
+
+@pytest.mark.asyncio
+async def test_run_reject_import(tmp_path):
+    script = "import os"
+    with (
+        patch.object(browse_runner_app, 'async_playwright', fake_async_playwright),
+        patch.object(browse_runner_app, 'SCREENSHOT_DIR', str(tmp_path))
+    ):
+        resp = client.post('/run', json={'script': script})
+    assert resp.status_code == 400
