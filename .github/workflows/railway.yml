@@ -9,41 +9,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build gateway image
-        run: docker compose build gateway
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: unitron
           servicePath: .
-
-      - name: Build martech image
-        run: docker compose build martech
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: martech
           servicePath: services/martech
-
-      - name: Build property image
-        run: docker compose build property
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: property
           servicePath: .
-
-      - name: Build insight-agent image
-        run: docker compose build insight-agent
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
           service: insight-agent
           servicePath: services/insight-agent
-
-      - name: Build browse-runner image
-        run: docker compose build browse-runner
       - uses: railwayapp/railway-deploy@v2
         with:
           railwayToken: ${{ secrets.RAILWAY_TOKEN }}
