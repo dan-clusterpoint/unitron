@@ -5,6 +5,7 @@ services:
     environment:
       PROPERTY_URL: http://property:80
       MARTECH_URL: http://martech:80
+      N8N_URL: http://n8n:5678
     ports:
       - "8000:80"
     depends_on:
