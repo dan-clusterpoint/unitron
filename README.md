@@ -32,7 +32,7 @@ Environment variables expected by the services include:
 - `PGHOST` – optional PostgreSQL host
 - `RAILWAY_ENVIRONMENT` – automatically provided during deploy but unused by the Dockerfiles
 
-The gateway's `/health` endpoint checks each service listed above and returns a consolidated status.
+The gateway's `/health` endpoint simply returns `{"status": "ok"}` as a liveness probe. Use `/ready` to check downstream services and obtain a consolidated status.
 
 ## Quick Start (Local)
 

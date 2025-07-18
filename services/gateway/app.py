@@ -45,7 +45,14 @@ class CombinedResponse(BaseModel):
     martech: TechResponse
 
 @app.get("/health")
-async def health():
+def health():
+    """Lightweight liveness probe."""
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+async def ready():
+    """Check downstream service health."""
     services = {
         "property": PROPERTY_URL,
         "martech": MARTECH_URL,
