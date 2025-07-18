@@ -7,10 +7,21 @@ gateway_app.N8N_URL = "http://n8n"
 
 client = TestClient(gateway_app.app)
 
-def test_health():
-    resp = client.get('/health')
+@pytest.mark.asyncio
+async def test_health():
+    dummy = type('R', (object,), {'status_code': 200})()
+    with (
+        patch('httpx.AsyncClient.get', new=AsyncMock(return_value=dummy)),
+        patch('services.gateway.app.PROPERTY_URL', 'http://prop'),
+        patch('services.gateway.app.MARTECH_URL', 'http://martech'),
+        patch('services.gateway.app.INSIGHT_AGENT_URL', 'http://insight'),
+        patch('services.gateway.app.BROWSE_RUNNER_URL', 'http://browse'),
+    ):
+        resp = client.get('/health')
     assert resp.status_code == 200
-    assert resp.json() == {'status': 'ok'}
+    body = resp.json()
+    assert body['status'] == 'ok'
+    assert all(body['services'].values())
 
 
 @pytest.mark.asyncio

@@ -19,12 +19,16 @@ Environment variables expected by the services include:
 
 - `PROPERTY_URL` – URL for the Property service used by the gateway
 - `MARTECH_URL` – URL for the Martech service used by the gateway
+- `INSIGHT_AGENT_URL` – URL for the Insight Agent service used by the gateway
+- `BROWSE_RUNNER_URL` – URL for the Browse Runner service used by the gateway
 - `N8N_URL` – base URL for the n8n instance
 - `N8N_WORKFLOW_ID` – ID of the workflow to execute (default `1`)
 - `OPENAI_API_KEY` – API key for the Insight Agent service
 - `PORT` – port the service listens on (set automatically by Railway)
 - `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGHOST` – optional database settings
 - `RAILWAY_ENVIRONMENT` – automatically provided during deploy but unused by the Dockerfiles
+
+The gateway's `/health` endpoint checks each service listed above and returns a consolidated status.
 
 ## Quick Start (Local)
 
