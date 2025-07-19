@@ -5,7 +5,10 @@ import useFadeInOnView from './useFadeInOnView'
 class MockObserver {
   observe = vi.fn()
   disconnect = vi.fn()
-  constructor(public cb: IntersectionObserverCallback) {}
+  cb: IntersectionObserverCallback
+  constructor(cb: IntersectionObserverCallback) {
+    this.cb = cb
+  }
 }
 
 let instance: MockObserver
@@ -31,6 +34,6 @@ test('adds fade-in class when element intersects', () => {
   const el = container.querySelector('[data-test]') as HTMLElement
   expect(instance.observe).toHaveBeenCalledWith(el)
 
-  instance.cb([{ target: el, isIntersecting: true } as any])
+  instance.cb([{ target: el, isIntersecting: true } as any], instance as any)
   expect(el.classList.contains('fade-in')).toBe(true)
 })
