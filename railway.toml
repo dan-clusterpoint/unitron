@@ -1,18 +1,20 @@
-[project]
-name = "unitron"
+$schema = "https://railway.com/railway.schema.json"
 
-[[service]]
-name = "gateway"
-root = "services/gateway"
-healthcheck_path = "/health"
-healthcheck_timeout = 5000
-healthcheck_interval = 2000
-start_cmd = "uvicorn app:app --host 0.0.0.0 --port $PORT"
+[deploy]
+healthcheckPath    = "/health"
+healthcheckTimeout = 5000
+healthcheckInterval = 2000
 
-[[service]]
-name = "martech"
-root = "services/martech"
-healthcheck_path = "/health"
-healthcheck_timeout = 5000
-healthcheck_interval = 2000
-start_cmd = "uvicorn app:app --host 0.0.0.0 --port $PORT"
+[[services]]
+name         = "gateway"
+projectPath  = "."
+dockerfilePath = "services/gateway/Dockerfile"
+startCommand = "sh -c \"uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+instances    = 1
+
+[[services]]
+name         = "martech"
+projectPath  = "."
+dockerfilePath = "services/martech/Dockerfile"
+startCommand = "sh -c \"uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+instances    = 1
