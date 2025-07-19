@@ -1,4 +1,4 @@
-from services.martech.app import app
+from martech.app import app
 from fastapi.testclient import TestClient
 
 client = TestClient(app)

@@ -1,7 +1,7 @@
 {
     "name": "unitron",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    "postCreateCommand": "pip install -r services/gateway/requirements.txt -r services/martech/requirements.txt",
+    "postCreateCommand": "pip install poetry && poetry install",
     "customizations": {
         "vscode": {
             "settings": {

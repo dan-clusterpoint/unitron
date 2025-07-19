@@ -14,7 +14,10 @@ open http://localhost:8080/docs
 
 ## Deployment
 
-* Railway picks up the same Dockerfiles.
+* GitHub Actions installs dependencies from `pyproject.toml` and runs our test
+  suite on every push.
+* Railway auto-detects the project with Nixpacks and runs each service with the
+  same start command used locally.
 * Health-checks: `/health` = liveness; `/ready` = readiness.
 
 ## Build-stability contract 🔒
@@ -51,7 +54,7 @@ We want all contributors to share the same environment. Docker ensures Python ve
 Yes. Set `DB_URL=postgresql://user:pass@localhost/db` before running Compose. The martech service will use it instead of SQLite.
 
 **Where do I put new features?**
-Start in `services/martech` for analysis-related functions. If it’s a new API endpoint, you may mount it through `gateway` so all external traffic goes through one ingress point.
+Start in `src/martech` for analysis-related functions. If it’s a new API endpoint, you may mount it through `gateway` so all external traffic goes through one ingress point.
 
 **How do I run just one service?**
 `docker compose run --service-ports gateway` or `martech` as needed.
