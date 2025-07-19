@@ -12,7 +12,8 @@ RUN pip install poetry \
 
 # Copy source code
 COPY src/ /app/src
-ENV PYTHONPATH=/app/src
+COPY app.py /app/
+ENV PYTHONPATH=/app/src:/app
 
 # Expose port
 EXPOSE 8000
