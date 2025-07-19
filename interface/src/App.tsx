@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { apiFetch } from './api'
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -25,9 +26,7 @@ export default function App() {
 
   async function checkHealth() {
     try {
-      const res = await fetch('/ready')
-      if (!res.ok) throw new Error('status ' + res.status)
-      const data = await res.json()
+      const data = await apiFetch<{ ready: boolean }>('/ready')
       setHealth(data.ready ? 'green' : 'yellow')
     } catch {
       setHealth('red')
@@ -60,13 +59,11 @@ export default function App() {
     setResult(null)
     setLoading(true)
     try {
-      const res = await fetch('/analyze', {
+      const data = await apiFetch<AnalyzeResponse>('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       })
-      if (!res.ok) throw new Error(`${res.status}`)
-      const data: AnalyzeResponse = await res.json()
       setResult(data)
     } catch (err) {
       setError('Failed to analyze. Please try again.')
