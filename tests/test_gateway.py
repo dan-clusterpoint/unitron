@@ -1,4 +1,4 @@
-from services.gateway.app import app
+from gateway.app import app
 from fastapi.testclient import TestClient
 
 client = TestClient(app)

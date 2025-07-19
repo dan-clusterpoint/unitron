@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
-from services.shared.utils import ping
+from shared.utils import ping
 
 app = FastAPI()
 

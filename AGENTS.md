@@ -10,7 +10,12 @@ Unitron automatically reverse-engineers a prospect’s website, generates synthe
 
 *(extend as needed…)*
 
+### Persona methods
+- Crawl the prospect's domain with `httpx`.
+- Identify technologies using **python-wappalyzer**.
+- Generate persona summaries and demo flows via LLM prompts.
+
 ### Build stability philosophy
-We believe reliability starts with deterministic builds. Docker images for both services install dependencies from `requirements.txt` with no network calls after the initial dependency fetch. Health checks ensure that Railway deploys never wait more than a few seconds for readiness.
+We believe reliability starts with deterministic builds. A single Dockerfile at the repo root installs dependencies from `pyproject.toml` using Poetry with no network calls after the initial dependency fetch. Health checks ensure that Railway deploys never wait more than a few seconds for readiness.
 
 Developers are encouraged to extend the services but should preserve the quick startup time and the clean separation between gateway orchestration and martech analysis logic. Unit tests in `tests/` serve as living documentation and prevent regressions.
