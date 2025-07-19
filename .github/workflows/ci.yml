@@ -9,5 +9,5 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install poetry
-      - run: poetry install --no-dev
+      - run: poetry install --only main
       - run: poetry run bash -c 'PYTHONPATH=src pytest -q'
