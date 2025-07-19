@@ -157,22 +157,24 @@ export default function App() {
       )}
       <main className="pt-20" id="home">
         <section className="bg-white" data-observe>
-          <div className="max-w-6xl mx-auto px-6 py-16 text-center space-y-6">
-            <div>
-              <h1 className="text-4xl font-extrabold mb-4">Unitron: AI-First Workflow Analyzer</h1>
-              <p className="text-lg text-neutral leading-relaxed">
-                Reverse-engineer any domain and surface next-best actions.
-              </p>
+          <div className="max-w-6xl mx-auto px-4 py-16">
+            <div className="text-center space-y-6">
+              <div>
+                <h1 className="text-4xl font-extrabold mb-4">Unitron: AI-First Workflow Analyzer</h1>
+                <p className="text-lg text-neutral leading-relaxed">
+                  Reverse-engineer any domain and surface next-best actions.
+                </p>
+              </div>
+              <AnalyzerCard
+                id="analyzer"
+                url={url}
+                setUrl={setUrl}
+                onAnalyze={onAnalyze}
+                loading={loading}
+                error={error}
+                result={result}
+              />
             </div>
-            <AnalyzerCard
-              id="analyzer"
-              url={url}
-              setUrl={setUrl}
-              onAnalyze={onAnalyze}
-              loading={loading}
-              error={error}
-              result={result}
-            />
           </div>
         </section>
         <FeatureGrid />
@@ -297,14 +299,16 @@ function FeatureGrid() {
   ]
   return (
     <section className="bg-gray-50" data-observe>
-      <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {features.map((f) => (
-          <div key={f.title} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
-            <div className="flex justify-center">{f.icon}</div>
-            <h3 className="font-semibold text-lg">{f.title}</h3>
-            <p className="text-sm text-neutral leading-relaxed">{f.desc}</p>
-          </div>
-        ))}
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((f) => (
+            <div key={f.title} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
+              <div className="flex justify-center">{f.icon}</div>
+              <h3 className="font-semibold text-lg">{f.title}</h3>
+              <p className="text-sm text-neutral leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -318,7 +322,7 @@ function HowItWorks() {
   ]
   return (
     <section data-observe>
-      <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
         <div className="flex flex-col md:flex-row md:justify-center md:space-x-12 space-y-6 md:space-y-0">
           {steps.map((s, i) => (
@@ -392,33 +396,35 @@ function FinalCTA() {
 function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300" id="contact">
-      <div className="max-w-6xl mx-auto px-6 py-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <h3 className="font-semibold mb-2">Site</h3>
-          <ul className="space-y-1 text-sm">
-            <li><a href="#home" className="hover:text-white">Home</a></li>
-            <li><a href="/docs" className="hover:text-white">Docs</a></li>
-            <li><a href="https://github.com" className="hover:text-white">GitHub</a></li>
-            <li><a href="#contact" className="hover:text-white">Contact</a></li>
-          </ul>
+      <div className="max-w-6xl mx-auto px-4 py-16">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h3 className="font-semibold mb-2">Site</h3>
+            <ul className="space-y-1 text-sm">
+              <li><a href="#home" className="hover:text-white">Home</a></li>
+              <li><a href="/docs" className="hover:text-white">Docs</a></li>
+              <li><a href="https://github.com" className="hover:text-white">GitHub</a></li>
+              <li><a href="#contact" className="hover:text-white">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Newsletter</h3>
+            <form className="flex space-x-2">
+              <input
+                type="email"
+                placeholder="Your email"
+                aria-label="email"
+                className="flex-1 p-2 rounded text-gray-900"
+              />
+              <button type="submit" className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition">
+                Sign Up
+              </button>
+            </form>
+          </div>
         </div>
-        <div>
-          <h3 className="font-semibold mb-2">Newsletter</h3>
-          <form className="flex space-x-2">
-            <input
-              type="email"
-              placeholder="Your email"
-              aria-label="email"
-              className="flex-1 p-2 rounded text-gray-900"
-            />
-            <button type="submit" className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition">
-              Sign Up
-            </button>
-          </form>
+        <div className="text-center text-sm mt-8 border-t border-gray-700 pt-4">
+          © {new Date().getFullYear()} Unitron · Developed with ❤️ by Unitron
         </div>
-      </div>
-      <div className="text-center text-sm py-4 border-t border-gray-700">
-        © {new Date().getFullYear()} Unitron · Developed with ❤️ by Unitron
       </div>
     </footer>
   )
