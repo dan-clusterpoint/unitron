@@ -137,7 +137,7 @@ export default function App() {
               {health === 'green' ? 'Ready' : health === 'yellow' ? 'Degraded' : 'Down'}
             </span>
             <button aria-label="open menu" onClick={() => setMenuOpen(true)}>
-              <Bars3Icon className="w-6 h-6" />
+              <Bars3Icon className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function App() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 flex justify-end md:hidden">
           <div className="bg-white w-2/3 max-w-xs p-4 space-y-4">
             <button className="mb-4" aria-label="close menu" onClick={() => setMenuOpen(false)}>
-              <XMarkIcon className="w-6 h-6" />
+              <XMarkIcon className="w-5 h-5" />
             </button>
             <a href="#home" className="block py-1" onClick={() => setMenuOpen(false)}>Home</a>
             <a href="/docs" className="block py-1" onClick={() => setMenuOpen(false)}>Docs</a>
@@ -290,10 +290,10 @@ function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: An
 
 function FeatureGrid() {
   const features = [
-    { title: 'Healthchecks', desc: 'Automated readiness and liveness probes', icon: <HeartIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
-    { title: 'Property Analysis', desc: 'Reverse-engineer key site details', icon: <HomeIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
-    { title: 'Martech Analysis', desc: 'Detect marketing technologies in use', icon: <ChartBarIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
-    { title: 'Pipeline Runner', desc: 'Automate data flows end-to-end', icon: <RocketLaunchIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
+    { title: 'Healthchecks', desc: 'Automated readiness and liveness probes', icon: <HeartIcon className="w-8 h-8 md:w-12 md:h-12 text-primary" /> },
+    { title: 'Property Analysis', desc: 'Reverse-engineer key site details', icon: <HomeIcon className="w-8 h-8 md:w-12 md:h-12 text-primary" /> },
+    { title: 'Martech Analysis', desc: 'Detect marketing technologies in use', icon: <ChartBarIcon className="w-8 h-8 md:w-12 md:h-12 text-primary" /> },
+    { title: 'Pipeline Runner', desc: 'Automate data flows end-to-end', icon: <RocketLaunchIcon className="w-8 h-8 md:w-12 md:h-12 text-primary" /> },
   ]
   return (
     <section className="bg-gray-50" data-observe>
