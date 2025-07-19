@@ -11,3 +11,7 @@ jobs:
       - run: pip install poetry
       - run: poetry install --only main
       - run: poetry run bash -c 'PYTHONPATH=src pytest -q'
+      - name: Build interface image
+        run: docker build -t interface-image ./interface
+      - name: Verify npx exists
+        run: docker run --rm interface-image which npx
