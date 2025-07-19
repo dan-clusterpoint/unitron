@@ -1,7 +1,12 @@
 {
     "name": "unitron",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    "postCreateCommand": "pip install poetry && poetry install",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20"
+        }
+    },
+    "postCreateCommand": "pip install poetry && poetry install && cd interface && npm install",
     "customizations": {
         "vscode": {
             "settings": {

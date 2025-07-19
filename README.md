@@ -15,7 +15,7 @@ open http://localhost:8080/docs
 ```
 To launch the web interface:
 ```bash
-cd interface && npm run dev
+cd interface && npm install && npm run dev
 ```
 
 ### Martech analyzer service
@@ -60,7 +60,7 @@ The `docker-compose.yml` file wires them together with sensible defaults for loc
 - CI must pass flake8, mypy, and pytest before Docker images are built or published.
 
 ### Contributing
-We encourage small PRs that keep the local build fast and stable. Use the `Makefile` shortcuts for common tasks. The devcontainer ensures a consistent Python toolchain and editor setup.
+We encourage small PRs that keep the local build fast and stable. Use the `Makefile` shortcuts for common tasks. The devcontainer ensures a consistent Python and Node toolchain and editor setup.
 
 ## FAQ
 
@@ -77,7 +77,7 @@ Start in `src/martech` for analysis-related functions. If it’s a new API endpo
 `docker compose run --service-ports gateway` or `martech` as needed.
 
 **Is there a devcontainer?**
-Yes. Visual Studio Code will prompt to reopen in container, giving you a ready-to-go Python environment with our tools pre-installed.
+Yes. Visual Studio Code will prompt to reopen in container, giving you a ready-to-go Python and Node environment with our tools pre-installed.
 
 **What if I see a build error?**
 Run `make lint` and `make test` to ensure your environment passes checks. If issues persist, ensure your Docker daemon has access to network for dependency downloads during the first build.
