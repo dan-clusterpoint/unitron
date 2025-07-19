@@ -9,8 +9,11 @@
 
 @layer base {
   body {
-    @apply bg-light text-gray-800 font-sans antialiased;
+    background-color: #f8fafc;
+    color: #1f2937; /* gray-800 */
     font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1,
   h2,
@@ -26,7 +29,22 @@
 }
 
 .container {
-  @apply mx-auto px-4 sm:px-6 lg:px-8;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 @keyframes fade-in {
