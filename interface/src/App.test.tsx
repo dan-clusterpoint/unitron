@@ -10,7 +10,7 @@ global.fetch = vi.fn(() =>
     ok: true,
     json: () => Promise.resolve({ domain: 'example.com' }),
   } as Response)
-) as unknown as typeof fetch
+) as any
 
 test('renders input and calls fetch', async () => {
   global.IntersectionObserver = vi.fn(() => ({
