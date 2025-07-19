@@ -297,7 +297,7 @@ function FeatureGrid() {
   ]
   return (
     <section className="bg-gray-50" data-observe>
-      <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {features.map((f) => (
           <div key={f.title} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
             <div className="flex justify-center">{f.icon}</div>
