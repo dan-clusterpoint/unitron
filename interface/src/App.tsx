@@ -109,7 +109,7 @@ export default function App() {
       <nav
         className={`fixed w-full z-10 transition-colors duration-300 ${scrolled ? 'bg-white shadow' : 'bg-transparent'}`}
       >
-        <div className="container flex items-center justify-between py-4">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between py-4">
           <div className="font-bold text-xl">Unitron</div>
           <div className="hidden md:flex items-center space-x-6 text-sm">
             <a href="#home" className="hover:text-primary">Home</a>
@@ -126,12 +126,12 @@ export default function App() {
           </div>
           <div className="md:hidden flex items-center space-x-4">
             <span
-              className={`px-2 py-1 rounded text-xs font-medium ${
+              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                 health === 'green'
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-green-100 text-green-800'
                   : health === 'yellow'
-                  ? 'bg-yellow-500 text-white'
-                  : 'bg-red-600 text-white'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-red-100 text-red-800'
               }`}
             >
               {health === 'green' ? 'Ready' : health === 'yellow' ? 'Degraded' : 'Down'}
@@ -156,25 +156,24 @@ export default function App() {
         </div>
       )}
       <main className="pt-20" id="home">
-        <section className="py-16 bg-white" data-observe>
-          <div className="container max-w-4xl grid gap-8 lg:grid-cols-2 items-center">
+        <section className="bg-white" data-observe>
+          <div className="max-w-6xl mx-auto px-6 py-16 text-center space-y-6">
             <div>
               <h1 className="text-4xl font-extrabold mb-4">Unitron: AI-First Workflow Analyzer</h1>
-              <p className="text-lg text-neutral mb-6 leading-relaxed">Reverse-engineer any domain and surface next-best actions.</p>
+              <p className="text-lg text-neutral leading-relaxed">
+                Reverse-engineer any domain and surface next-best actions.
+              </p>
             </div>
-            <div className="flex justify-center">
-              <img src="/vite.svg" alt="Illustration" className="w-64 h-64" />
-            </div>
+            <AnalyzerCard
+              id="analyzer"
+              url={url}
+              setUrl={setUrl}
+              onAnalyze={onAnalyze}
+              loading={loading}
+              error={error}
+              result={result}
+            />
           </div>
-          <AnalyzerCard
-            id="analyzer"
-            url={url}
-            setUrl={setUrl}
-            onAnalyze={onAnalyze}
-            loading={loading}
-            error={error}
-            result={result}
-          />
         </section>
         <FeatureGrid />
         <HowItWorks />
@@ -291,14 +290,14 @@ function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: An
 
 function FeatureGrid() {
   const features = [
-    { title: 'Healthchecks', desc: 'Automated readiness and liveness probes', icon: <HeartIcon className="w-8 h-8 text-primary" /> },
-    { title: 'Property Analysis', desc: 'Reverse-engineer key site details', icon: <HomeIcon className="w-8 h-8 text-primary" /> },
-    { title: 'Martech Analysis', desc: 'Detect marketing technologies in use', icon: <ChartBarIcon className="w-8 h-8 text-primary" /> },
-    { title: 'Pipeline Runner', desc: 'Automate data flows end-to-end', icon: <RocketLaunchIcon className="w-8 h-8 text-primary" /> },
+    { title: 'Healthchecks', desc: 'Automated readiness and liveness probes', icon: <HeartIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
+    { title: 'Property Analysis', desc: 'Reverse-engineer key site details', icon: <HomeIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
+    { title: 'Martech Analysis', desc: 'Detect marketing technologies in use', icon: <ChartBarIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
+    { title: 'Pipeline Runner', desc: 'Automate data flows end-to-end', icon: <RocketLaunchIcon className="w-12 h-12 md:w-16 md:h-16 text-primary" /> },
   ]
   return (
-    <section className="py-12 bg-gray-50" data-observe>
-      <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <section className="bg-gray-50" data-observe>
+      <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {features.map((f) => (
           <div key={f.title} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
             <div className="flex justify-center">{f.icon}</div>
@@ -318,9 +317,9 @@ function HowItWorks() {
     'View results inline',
   ]
   return (
-    <section className="py-12" data-observe>
-      <div className="container">
-        <h2 className="text-2xl font-bold text-center mb-8">How It Works</h2>
+    <section data-observe>
+      <div className="max-w-6xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
         <div className="flex flex-col md:flex-row md:justify-center md:space-x-12 space-y-6 md:space-y-0">
           {steps.map((s, i) => (
             <div key={i} className="flex items-start md:flex-col md:items-center text-center">
@@ -343,8 +342,8 @@ function Testimonials() {
     { name: 'Taylor', quote: 'A must-have tool for presales teams.' },
   ]
   return (
-    <section className="py-12 bg-gray-50" data-observe>
-      <div className="container flex overflow-x-auto space-x-6">
+    <section className="bg-gray-50" data-observe>
+      <div className="max-w-6xl mx-auto px-6 py-16 flex overflow-x-auto space-x-6">
         {items.map((t) => (
           <div key={t.name} className="flex-none w-80 bg-white p-6 rounded-lg shadow">
             <div className="flex items-center space-x-4 mb-2">
@@ -362,8 +361,8 @@ function Testimonials() {
 function Integrations() {
   const items = ['S3', 'Postgres', 'n8n', 'Redis']
   return (
-    <section className="py-8" data-observe>
-      <div className="container flex flex-wrap justify-center items-center space-x-4">
+    <section data-observe>
+      <div className="max-w-6xl mx-auto px-6 py-16 flex flex-wrap justify-center items-center space-x-4">
         {items.map((i) => (
           <span key={i} className="px-4 py-2 bg-gray-100 rounded text-sm font-medium">
             {i}
@@ -376,22 +375,24 @@ function Integrations() {
 
 function FinalCTA() {
   return (
-    <section className="py-12 bg-dark text-white text-center" data-observe>
-      <h2 className="text-3xl font-bold mb-4">Start Analyzing Today</h2>
-      <button
-        onClick={() => document.getElementById('analyzer')?.scrollIntoView({ behavior: 'smooth' })}
-        className="bg-primary hover:bg-primary-dark px-6 py-3 rounded transition"
-      >
-        Get Started
-      </button>
+    <section className="bg-dark text-white" data-observe>
+      <div className="max-w-6xl mx-auto px-6 py-16 text-center">
+        <h2 className="text-3xl font-bold mb-4">Start Analyzing Today</h2>
+        <button
+          onClick={() => document.getElementById('analyzer')?.scrollIntoView({ behavior: 'smooth' })}
+          className="bg-primary hover:bg-primary-dark px-6 py-3 rounded transition"
+        >
+          Get Started
+        </button>
+      </div>
     </section>
   )
 }
 
 function Footer() {
   return (
-    <footer className="bg-gray-800 text-gray-300" id="contact">
-      <div className="container py-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+    <footer className="bg-gray-900 text-gray-300" id="contact">
+      <div className="max-w-6xl mx-auto px-6 py-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <h3 className="font-semibold mb-2">Site</h3>
           <ul className="space-y-1 text-sm">
