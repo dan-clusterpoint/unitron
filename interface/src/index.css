@@ -1,3 +1,8 @@
+:root {
+  --font-primary: 'Nunito', sans-serif;
+  --font-secondary: 'Nunito', sans-serif;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +10,15 @@
 @layer base {
   body {
     @apply bg-light text-gray-800 font-sans antialiased;
+    font-family: var(--font-primary);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-secondary);
   }
   html {
     scroll-behavior: smooth;
