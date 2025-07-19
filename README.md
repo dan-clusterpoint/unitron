@@ -13,10 +13,21 @@ docker compose up --build
 open http://localhost:8080/docs
 # SERVICE env var selects gateway (default) or martech
 ```
-To launch the web interface:
+To launch the web interface during development:
 ```bash
-cd interface && npm install && npm run dev
+cd interface && npm install && VITE_API_BASE_URL=http://localhost:8080 npm run dev
 ```
+
+### Full-stack with Docker Compose
+
+Run all services including the React interface:
+
+```bash
+docker compose --profile ui up --build
+```
+
+The `ui` profile builds the `interface` service defined in `docker-compose.yml`.
+When omitted, only the gateway and martech APIs are started.
 
 ### Martech analyzer service
 The martech service exposes three endpoints:

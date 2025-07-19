@@ -17,3 +17,16 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./local.db}
     ports:
       - "8081:8000"
+
+  interface:
+    build:
+      context: ./interface
+    environment:
+      - PORT=3000
+      - VITE_API_BASE_URL=http://gateway:8000
+    depends_on:
+      - gateway
+    ports:
+      - "5173:3000"
+    profiles:
+      - ui
