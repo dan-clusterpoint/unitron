@@ -5,16 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build --outDir build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "start": "serve build --listen $PORT"
+    "start": "node server.js"
   },
   "dependencies": {
+    "express": "^5.1.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "serve": "^14.2.4"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
