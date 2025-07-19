@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "start": "serve build --listen $PORT"
+    "start": "serve -s build -l \"${PORT:-8000}\""
   },
   "dependencies": {
     "express": "^5.1.0",
