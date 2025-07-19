@@ -62,3 +62,8 @@
   @apply opacity-0;
   animation: fade-in 0.8s forwards;
 }
+
+/* Consistent sizing for feature icons */
+.feature-icon {
+  @apply w-8 h-8 md:w-6 md:h-6 lg:w-5 lg:h-5 text-primary;
+}
