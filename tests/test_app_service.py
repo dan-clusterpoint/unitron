@@ -30,4 +30,3 @@ def test_load_martech():
     client = TestClient(module.app)
     r = client.get("/health")
     assert r.status_code == 200
-

@@ -14,6 +14,17 @@ open http://localhost:8080/docs
 # SERVICE env var selects gateway (default) or martech
 ```
 
+### Martech analyzer service
+The martech service exposes three endpoints:
+
+* `GET /health` – liveness probe.
+* `GET /ready` – returns `{"ready": true}` once the fingerprint list is loaded.
+* `POST /analyze` – body `{"url": "https://example.com", "debug": false}` returns
+  detected marketing vendors grouped into four buckets.
+
+Fingerprint definitions live in `fingerprints.yaml`. Edit this file and restart
+the service to update the vendor list.
+
 ## Deployment
 
 * GitHub Actions installs dependencies from `pyproject.toml` and runs our test

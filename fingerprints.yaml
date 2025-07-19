@@ -1,0 +1,10 @@
+core:
+  - name: Google Tag Manager
+    pattern: "googletagmanager.com"
+  - name: Google Analytics
+    pattern: "google-analytics.com"
+adjacent:
+  - name: Hotjar
+    pattern: "static.hotjar.com"
+broader: []
+competitors: []
