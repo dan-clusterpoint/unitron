@@ -22,4 +22,4 @@ HEALTHCHECK --interval=2s --timeout=2s --start-period=5s \
   CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
 # Default to gateway; override SERVICE=martech for that service
-CMD ["sh","-c","uvicorn ${SERVICE:-gateway}.app:app --host=0.0.0.0 --port $PORT"]
+CMD ["uvicorn", "app:app", "--host=0.0.0.0", "--port", "$PORT"]
