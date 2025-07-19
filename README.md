@@ -13,6 +13,10 @@ docker compose up --build
 open http://localhost:8080/docs
 # SERVICE env var selects gateway (default) or martech
 ```
+To launch the web interface:
+```bash
+cd interface && npm run dev
+```
 
 ### Martech analyzer service
 The martech service exposes three endpoints:
