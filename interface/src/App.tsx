@@ -7,6 +7,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
+import Icon from './components/Icon'
 import './index.css'
 
 type AnalyzeResponse = {
@@ -88,7 +89,7 @@ export default function App() {
       if (!res.ok) throw new Error(`${res.status}`)
       const data: AnalyzeResponse = await res.json()
       setResult(data)
-    } catch (err) {
+    } catch {
       setError('Failed to analyze. Please try again.')
       setBanner('Network error. Please retry.')
     } finally {
@@ -295,22 +296,26 @@ function FeatureGrid() {
     {
       title: 'Healthchecks',
       desc: 'Automated readiness and liveness probes',
-      icon: <HeartIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: HeartIcon,
+      extra: 'lg:scale-90 text-primary',
     },
     {
       title: 'Property Analysis',
       desc: 'Reverse-engineer key site details',
-      icon: <HomeIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: HomeIcon,
+      extra: 'lg:scale-90 text-primary',
     },
     {
       title: 'Martech Analysis',
       desc: 'Detect marketing technologies in use',
-      icon: <ChartBarIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: ChartBarIcon,
+      extra: 'lg:scale-90 text-primary',
     },
     {
       title: 'Pipeline Runner',
       desc: 'Automate data flows end-to-end',
-      icon: <RocketLaunchIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: RocketLaunchIcon,
+      extra: 'lg:scale-90 text-primary',
     },
   ]
   return (
@@ -319,7 +324,9 @@ function FeatureGrid() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((f) => (
             <div key={f.title} className="bg-white p-6 rounded-lg shadow text-center space-y-2">
-              <div className="flex justify-center">{f.icon}</div>
+              <div className="flex justify-center">
+                <Icon icon={f.icon} className={f.extra} />
+              </div>
               <h3 className="font-semibold text-lg">{f.title}</h3>
               <p className="text-sm text-neutral leading-relaxed">{f.desc}</p>
             </div>
