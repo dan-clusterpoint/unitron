@@ -295,22 +295,22 @@ function FeatureGrid() {
     {
       title: 'Healthchecks',
       desc: 'Automated readiness and liveness probes',
-      icon: <HeartIcon className="feature-icon" />,
+      icon: <HeartIcon className="w-8 h-8 md:w-6 md:h-6 text-primary" />,
     },
     {
       title: 'Property Analysis',
       desc: 'Reverse-engineer key site details',
-      icon: <HomeIcon className="feature-icon" />,
+      icon: <HomeIcon className="w-8 h-8 md:w-6 md:h-6 text-primary" />,
     },
     {
       title: 'Martech Analysis',
       desc: 'Detect marketing technologies in use',
-      icon: <ChartBarIcon className="feature-icon" />,
+      icon: <ChartBarIcon className="w-8 h-8 md:w-6 md:h-6 text-primary" />,
     },
     {
       title: 'Pipeline Runner',
       desc: 'Automate data flows end-to-end',
-      icon: <RocketLaunchIcon className="feature-icon" />,
+      icon: <RocketLaunchIcon className="w-8 h-8 md:w-6 md:h-6 text-primary" />,
     },
   ]
   return (
