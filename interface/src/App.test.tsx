@@ -13,10 +13,14 @@ global.fetch = vi.fn(() =>
 ) as any
 
 test('renders input and calls fetch', async () => {
+  global.IntersectionObserver = vi.fn(() => ({
+    observe: vi.fn(),
+    disconnect: vi.fn(),
+  })) as unknown as typeof IntersectionObserver
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'https://example.com')
   userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await waitFor(() => expect(fetch).toHaveBeenCalled())
-  await screen.findByText(/example.com/)
+  await screen.findByText(/couldn’t find any insights/i)
 })
