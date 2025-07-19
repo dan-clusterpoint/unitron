@@ -31,7 +31,7 @@ export default {
         light: '#f8fafc'
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+        sans: ['Nunito', 'ui-sans-serif', 'system-ui', 'sans-serif']
       }
     },
   },
