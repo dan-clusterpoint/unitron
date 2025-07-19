@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useFadeInOnView, useScrollPosition } from './hooks'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { apiFetch } from './api'
 import {
@@ -19,10 +20,10 @@ export default function App() {
   const [error, setError] = useState('')
   const [result, setResult] = useState<AnalyzeResponse | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
-  const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
-  const [showTop, setShowTop] = useState(false)
+  const { scrolled, showTop } = useScrollPosition()
+  useFadeInOnView()
 
   async function checkHealth() {
     try {
@@ -39,20 +40,6 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 10)
-      setShowTop(window.scrollY > 200)
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) e.target.classList.add('fade-in')
-      })
-    }, { threshold: 0.1 })
-    document.querySelectorAll('[data-observe]').forEach((el) => observer.observe(el))
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   async function onAnalyze() {
     setError('')
