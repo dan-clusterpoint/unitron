@@ -1,26 +1,27 @@
 import { HeartIcon, ChartBarIcon, HomeIcon, RocketLaunchIcon } from '@heroicons/react/24/outline'
+import FeatureIcon from './FeatureIcon'
 
 export default function FeatureGrid() {
   const features = [
     {
       title: 'Healthchecks',
       desc: 'Automated readiness and liveness probes',
-      icon: <HeartIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: <FeatureIcon Icon={HeartIcon} />,
     },
     {
       title: 'Property Analysis',
       desc: 'Reverse-engineer key site details',
-      icon: <HomeIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: <FeatureIcon Icon={HomeIcon} />,
     },
     {
       title: 'Martech Analysis',
       desc: 'Detect marketing technologies in use',
-      icon: <ChartBarIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: <FeatureIcon Icon={ChartBarIcon} />,
     },
     {
       title: 'Pipeline Runner',
       desc: 'Automate data flows end-to-end',
-      icon: <RocketLaunchIcon className="w-8 h-8 md:w-6 md:h-6 lg:scale-90 text-primary" />,
+      icon: <FeatureIcon Icon={RocketLaunchIcon} />,
     },
   ]
   return (
