@@ -99,4 +99,13 @@
     font-size: 2rem;
     margin-bottom: 1rem;
   }
+  .step {
+    @apply flex items-start text-center;
+  }
+  .step-badge {
+    @apply w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white font-semibold;
+  }
+  .step-desc {
+    @apply ml-3 text-sm font-medium text-neutral;
+  }
 }
