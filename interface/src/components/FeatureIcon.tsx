@@ -10,7 +10,7 @@ export default function FeatureIcon({ Icon, className = '' }: FeatureIconProps) 
   return (
     <Icon
       className={clsx(
-        'feature-icon text-primary transform transition-transform lg:scale-90',
+        'feature-icon text-inherit transform transition-transform lg:scale-90',
         className
       )}
     />
