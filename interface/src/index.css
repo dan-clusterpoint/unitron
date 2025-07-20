@@ -108,4 +108,25 @@
   .step-desc {
     @apply ml-3 text-sm font-medium text-neutral;
   }
+  .testimonial-card {
+    @apply bg-white rounded-lg p-6;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: box-shadow .15s;
+  }
+  .testimonial-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .avatar-initials {
+    background: var(--grey-200);
+    color: var(--text-dark);
+    font-weight: 700;
+  }
 }
