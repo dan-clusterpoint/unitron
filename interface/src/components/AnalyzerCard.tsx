@@ -91,25 +91,27 @@ export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, erro
   return (
     <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow">
       {error && <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">{error}</div>}
-      <input
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://example.com"
-        aria-label="URL to analyze"
-        className="w-full p-2 rounded border border-gray-300 mb-4"
-      />
-      <button
-        aria-label="analyze"
-        onClick={onAnalyze}
-        disabled={loading || !url}
-        className="w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white py-2 rounded transition active:scale-95"
-      >
-        {loading ? (
-          <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-        ) : (
-          'Analyze'
-        )}
-      </button>
+      <div className="hero-form">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com"
+          aria-label="URL to analyze"
+          className="flex-1 py-3 px-4 border border-gray-300 rounded-l-md placeholder-gray-500 focus:border-[var(--accent-orange)] focus:shadow-[0_0_0_3px_rgba(251,146,137,.2)] focus:outline-none"
+        />
+        <button
+          aria-label="analyze"
+          onClick={onAnalyze}
+          disabled={loading || !url}
+          className="btn-primary rounded-l-none rounded-r-md h-full min-w-[8rem] disabled:opacity-50 active:scale-95"
+        >
+          {loading ? (
+            <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+          ) : (
+            'Analyze'
+          )}
+        </button>
+      </div>
     </div>
   )
 }
