@@ -30,3 +30,11 @@ def test_load_martech():
     client = TestClient(module.app)
     r = client.get("/health")
     assert r.status_code == 200
+
+
+def test_load_property():
+    os.environ["SERVICE"] = "property"
+    module = load_app()
+    client = TestClient(module.app)
+    r = client.get("/health")
+    assert r.status_code == 200

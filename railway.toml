@@ -21,6 +21,12 @@ startCommand = "SERVICE=martech uvicorn app:app --host 0.0.0.0 --port $PORT"
 instances    = 1
 
 [[services]]
+name         = "property"
+projectPath  = "."
+startCommand = "SERVICE=property uvicorn app:app --host 0.0.0.0 --port $PORT"
+instances    = 1
+
+[[services]]
 name         = "interface"
 projectPath  = "interface"
 startCommand = "npm start"
