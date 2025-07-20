@@ -46,10 +46,10 @@ export default function App() {
     setResult(null)
     setLoading(true)
     try {
-      const data = await apiFetch<AnalyzeResponse>('/analyze', {
+      const data = await apiFetch<AnalyzeResponse>('/property/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ domain: url }),
       })
       setResult(data)
     } catch (err) {
