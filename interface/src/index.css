@@ -62,3 +62,19 @@
   @apply opacity-0;
   animation: fade-in 0.8s forwards;
 }
+
+@layer utilities {
+  .feature-icon {
+    @apply w-8 h-8;
+  }
+  @screen md {
+    .feature-icon {
+      @apply w-6 h-6;
+    }
+  }
+  @screen lg {
+    .feature-icon {
+      @apply w-5 h-5;
+    }
+  }
+}
