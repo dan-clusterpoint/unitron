@@ -6,6 +6,7 @@ services:
       - SERVICE=gateway
       - PORT=8000
       - MARTECH_URL=http://martech:8000
+      - PROPERTY_URL=http://property:8000
     ports:
       - "8080:8000"
 
