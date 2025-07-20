@@ -5,23 +5,25 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="font-semibold mb-2">Site</h3>
-            <nav className="footer-nav text-sm">
-              <a href="#home" className="hover:text-white">Home</a>
-              <a href="/docs" className="hover:text-white">Docs</a>
-              <a href="https://github.com" className="hover:text-white">GitHub</a>
-              <a href="#contact" className="hover:text-white">Contact</a>
-            </nav>
+            <ul className="space-y-1 text-sm">
+              <li><a href="#home" className="hover:text-white">Home</a></li>
+              <li><a href="/docs" className="hover:text-white">Docs</a></li>
+              <li><a href="https://github.com" className="hover:text-white">GitHub</a></li>
+              <li><a href="#contact" className="hover:text-white">Contact</a></li>
+            </ul>
           </div>
           <div>
             <h3 className="font-semibold mb-2">Newsletter</h3>
-            <form className="footer-newsletter">
+            <form className="flex space-x-2">
               <input
                 type="email"
                 placeholder="Your email"
                 aria-label="email"
-                className="flex-1"
+                className="flex-1 p-2 rounded text-gray-900"
               />
-              <button type="submit">Sign Up</button>
+              <button type="submit" className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition">
+                Sign Up
+              </button>
             </form>
           </div>
         </div>
