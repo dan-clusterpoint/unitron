@@ -22,7 +22,7 @@ export default function App() {
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
-  const { scrolled, showTop } = useScrollPosition()
+  const { showTop } = useScrollPosition()
   useFadeInOnView()
 
   async function checkHealth() {
@@ -70,42 +70,38 @@ export default function App() {
           </button>
         </div>
       )}
-      <nav
-        className={`fixed w-full z-10 transition-colors duration-300 ${scrolled ? 'bg-white shadow' : 'bg-transparent'}`}
-      >
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between py-4">
-          <div className="font-bold text-xl">Unitron</div>
-          <div className="hidden md:flex items-center space-x-6 text-sm">
-            <a href="#home" className="hover:text-primary">Home</a>
-            <a href="/docs" className="hover:text-primary">Docs</a>
-            <a href="https://github.com" className="hover:text-primary" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="#contact" className="hover:text-primary">Contact</a>
-            <button
-              aria-label="scroll to form"
-              onClick={() => document.getElementById('analyzer')?.scrollIntoView({ behavior: 'smooth' })}
-              className="ml-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition"
-            >
-              Analyze Now
-            </button>
-          </div>
-          <div className="md:hidden flex items-center space-x-4">
-            <span
-              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                health === 'green'
-                  ? 'bg-green-100 text-green-800'
-                  : health === 'yellow'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {health === 'green' ? 'Ready' : health === 'yellow' ? 'Degraded' : 'Down'}
-            </span>
-            <button aria-label="open menu" onClick={() => setMenuOpen(true)}>
-              <Bars3Icon className="w-5 h-5" />
-            </button>
-          </div>
+      <header className="sticky top-0 z-[1000] bg-white p-4 md:px-8 flex items-center justify-between">
+        <div className="font-bold text-xl">Unitron</div>
+        <nav className="hidden md:flex items-center text-sm">
+          <a href="#home" className="mx-3 font-semibold text-dark hover:text-accent">Home</a>
+          <a href="/docs" className="mx-3 font-semibold text-dark hover:text-accent">Docs</a>
+          <a href="https://github.com" className="mx-3 font-semibold text-dark hover:text-accent" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="#contact" className="mx-3 font-semibold text-dark hover:text-accent">Contact</a>
+          <button
+            aria-label="scroll to form"
+            onClick={() => document.getElementById('analyzer')?.scrollIntoView({ behavior: 'smooth' })}
+            className="btn-primary"
+          >
+            Analyze Now
+          </button>
+        </nav>
+        <div className="md:hidden flex items-center space-x-4">
+          <span
+            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              health === 'green'
+                ? 'bg-green-100 text-green-800'
+                : health === 'yellow'
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {health === 'green' ? 'Ready' : health === 'yellow' ? 'Degraded' : 'Down'}
+          </span>
+          <button aria-label="open menu" onClick={() => setMenuOpen(true)}>
+            <Bars3Icon className="w-5 h-5" />
+          </button>
         </div>
-      </nav>
+      </header>
       {menuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 flex justify-end md:hidden">
           <div className="bg-white w-2/3 max-w-xs p-4 space-y-4">
