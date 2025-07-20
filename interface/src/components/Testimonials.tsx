@@ -6,7 +6,7 @@ export default function Testimonials() {
   ]
   return (
     <section className="bg-gray-50" data-observe>
-      <div className="max-w-6xl mx-auto px-6 py-16 flex overflow-x-auto space-x-6">
+      <div className="max-w-6xl mx-auto px-6 py-16 flex overflow-x-auto space-x-6 md:justify-center">
         {items.map((t) => {
           const initials = t.name
             .split(/\s+/)
