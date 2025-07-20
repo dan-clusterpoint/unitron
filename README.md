@@ -9,7 +9,9 @@
 ```bash
 # local dev
 docker compose up --build
-# each container runs `uvicorn app:app`
+# gateway -> http://localhost:8080
+# martech -> http://localhost:8081
+# property -> http://localhost:8082
 open http://localhost:8080/docs
 # SERVICE env var selects gateway (default), martech, or property
 ```
@@ -17,6 +19,7 @@ To launch the web interface during development:
 ```bash
 cd interface && npm install && VITE_API_BASE_URL=http://localhost:8080 npm run dev
 ```
+The `VITE_API_BASE_URL` variable should match the gateway address.
 
 ### Full-stack with Docker Compose
 
@@ -27,7 +30,8 @@ docker compose --profile ui up --build
 ```
 
 The `ui` profile builds the `interface` service defined in `docker-compose.yml`.
-When omitted, only the gateway and martech APIs are started.
+When omitted, the gateway, martech, and property APIs run without the frontend.
+The interface reads the `VITE_API_BASE_URL` variable to reach the gateway (default `http://localhost:8080`).
 
 ### Martech analyzer service
 The martech service exposes three endpoints:
@@ -55,14 +59,14 @@ the service to update the vendor list.
 3. CI blocks merges if lint/type/test fail.
 
 ## Architecture overview
-Unitron is composed of two lightweight FastAPI services: **gateway** and **martech**. The gateway acts as the entrypoint and orchestrator. The martech service performs analysis and persona generation.
+Unitron is composed of three lightweight FastAPI services: **gateway**, **martech**, and **property**. The gateway acts as the entrypoint and orchestrator. The martech service performs analysis and persona generation, while the property service verifies domain ownership via DNS lookups.
 
 The `docker-compose.yml` file wires them together with sensible defaults for local development. No external databases are required; an in-memory SQLite URL is the default for the martech component. Contributors may swap in Postgres or S3 simply by exporting `DB_URL` or other environment variables.
 
 ### Local dev loops
 1. Clone the repo.
 2. Run `docker compose up --build`.
-3. Watch the logs for both services to report `Uvicorn running` within two seconds.
+3. Watch the logs for all services to report `Uvicorn running` within two seconds.
 4. Navigate to `http://localhost:8080/docs` for API docs.
 
 ### Reliability principles
