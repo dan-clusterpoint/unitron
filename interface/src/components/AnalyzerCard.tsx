@@ -1,13 +1,7 @@
 export type AnalyzeResponse = {
-  domain: string
-  confidence?: number
-  notes?: string
-  martech?: {
-    core?: string[]
-    adjacent?: string[]
-    broader?: string[]
-    competitors?: string[]
-  }
+  domains: string[]
+  confidence: number
+  notes: string[]
 }
 
 export type AnalyzerProps = {
@@ -33,47 +27,21 @@ function renderList(items?: string[]) {
 
 export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: AnalyzerProps) {
   if (result) {
-    const empty =
-      !result.martech?.core?.length &&
-      !result.martech?.adjacent?.length &&
-      !result.martech?.broader?.length &&
-      !result.martech?.competitors?.length
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
-        {empty ? (
-          <p>We couldn’t find any insights for that domain.</p>
-        ) : (
-          <>
-            <div className="bg-gray-50 p-4 rounded mb-4">
-              <h3 className="font-medium">Properties</h3>
-              <p>Domain: {result.domain}</p>
-              <p>Confidence: {result.confidence ?? 'N/A'}</p>
-              <p>Notes: {result.notes || <span className="italic">None</span>}</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded">
-              <h3 className="font-medium mb-2">Martech</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium">Core</h4>
-                  {renderList(result.martech?.core)}
-                </div>
-                <div>
-                  <h4 className="font-medium">Adjacent</h4>
-                  {renderList(result.martech?.adjacent)}
-                </div>
-                <div>
-                  <h4 className="font-medium">Broader</h4>
-                  {renderList(result.martech?.broader)}
-                </div>
-                <div>
-                  <h4 className="font-medium">Competitors</h4>
-                  {renderList(result.martech?.competitors)}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        <div className="bg-gray-50 p-4 rounded mb-4">
+          <h3 className="font-medium">Domains</h3>
+          {renderList(result.domains)}
+        </div>
+        <div className="bg-gray-50 p-4 rounded mb-4">
+          <h3 className="font-medium">Confidence</h3>
+          <p>{result.confidence}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded">
+          <h3 className="font-medium mb-2">Notes</h3>
+          {renderList(result.notes)}
+        </div>
       </div>
     )
   }

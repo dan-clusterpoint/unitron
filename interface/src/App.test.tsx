@@ -14,9 +14,13 @@ beforeEach(() => {
 
 test('shows loading spinner and displays result', async () => {
   server.use(
-    http.post('/analyze', async () => {
+    http.post('/property/analyze', async () => {
       await new Promise((r) => setTimeout(r, 1000))
-      return Response.json({ domain: 'example.com', martech: { core: ['Tech1'] } })
+      return Response.json({
+        domains: ['example.com'],
+        confidence: 1,
+        notes: [],
+      })
     })
   )
   render(<App />)
@@ -26,11 +30,11 @@ test('shows loading spinner and displays result', async () => {
   await waitFor(() =>
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
-  await screen.findByText('Tech1')
+  await screen.findByText('example.com')
 })
 
 test('shows error banner when request fails', async () => {
-  server.use(http.post('/analyze', () => new Response(null, { status: 500 })))
+  server.use(http.post('/property/analyze', () => new Response(null, { status: 500 })))
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'https://example.com')

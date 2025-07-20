@@ -33,8 +33,9 @@ test('displays error message', () => {
 })
 
 const result = {
-  domain: 'example.com',
-  martech: { core: ['Tech1'] },
+  domains: ['example.com'],
+  confidence: 1,
+  notes: ['note'],
 }
 
 test('renders result lists', () => {
@@ -49,5 +50,5 @@ test('renders result lists', () => {
       result={result}
     />,
   )
-  expect(screen.getByText('Tech1')).toBeInTheDocument()
+  expect(screen.getByText('example.com')).toBeInTheDocument()
 })
