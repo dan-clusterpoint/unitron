@@ -136,30 +136,4 @@
     @apply px-8 py-4 text-lg shadow-lg;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
-
-  .footer-nav,
-  .footer-newsletter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-  }
-  .footer-nav a {
-    color: var(--grey-400);
-  }
-  .footer-nav a:hover,
-  .footer-nav a:focus {
-    color: var(--grey-200);
-  }
-  .footer-newsletter input {
-    background: #fff;
-    border: 1px solid var(--grey-400);
-    border-radius: 6px 0 0 6px;
-    padding: 0.5rem;
-  }
-  .footer-newsletter button {
-    border-radius: 0 6px 6px 0;
-    background: var(--accent-orange);
-    color: #fff;
-  }
 }
