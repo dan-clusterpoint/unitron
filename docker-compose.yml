@@ -18,6 +18,14 @@ services:
     ports:
       - "8081:8000"
 
+  property:
+    build: .
+    environment:
+      - SERVICE=property
+      - PORT=8000
+    ports:
+      - "8082:8000"
+
   interface:
     build:
       context: ./interface

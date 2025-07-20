@@ -11,7 +11,7 @@
 docker compose up --build
 # each container runs `uvicorn app:app`
 open http://localhost:8080/docs
-# SERVICE env var selects gateway (default) or martech
+# SERVICE env var selects gateway (default), martech, or property
 ```
 To launch the web interface during development:
 ```bash

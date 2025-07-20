@@ -4,7 +4,8 @@ version = "0.1.0"
 packages = [
     { include = "gateway", from = "src" },
     { include = "martech", from = "src" },
-    { include = "shared", from = "src" }
+    { include = "shared", from = "src" },
+    { include = "property", from = "src" }
 ]
 
 [tool.poetry.dependencies]
