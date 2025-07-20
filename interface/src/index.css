@@ -129,4 +129,17 @@
     color: var(--text-dark);
     font-weight: 700;
   }
+  .tag-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--grey-300);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    margin: 0.25rem;
+    transition: background 0.15s;
+  }
+  .tag-pill:hover {
+    background: var(--grey-100);
+    border-color: var(--grey-400);
+  }
 }
