@@ -129,4 +129,11 @@
     color: var(--text-dark);
     font-weight: 700;
   }
+  .cta-section {
+    @apply bg-gradient-to-r from-secondary to-primary py-16 text-center;
+  }
+  .cta-section .btn-primary {
+    @apply px-8 py-4 text-lg shadow-lg;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
 }
