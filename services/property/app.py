@@ -51,5 +51,9 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     confidence = len(resolved) / len(results)
 
     return JSONResponse(
-        {"domains": resolved, "confidence": round(confidence, 2), "notes": notes}
+        {
+            "domains": resolved,
+            "confidence": round(confidence, 2),
+            "notes": notes,
+        }
     )
