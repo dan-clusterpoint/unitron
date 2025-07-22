@@ -5,7 +5,7 @@ import { http } from 'msw'
 
 export const server = setupServer(
   http.get('/ready', () => Response.json({ ready: true })),
-  http.post('/property/analyze', () =>
+  http.post('/analyze', () =>
     Response.json({
       domains: ['example.com'],
       confidence: 1,

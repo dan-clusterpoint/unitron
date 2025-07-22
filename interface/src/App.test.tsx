@@ -14,7 +14,7 @@ beforeEach(() => {
 
 test('shows loading spinner and displays result', async () => {
   server.use(
-    http.post('/property/analyze', async () => {
+    http.post('/analyze', async () => {
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json({
         domains: ['example.com'],
@@ -34,7 +34,7 @@ test('shows loading spinner and displays result', async () => {
 })
 
 test('shows error banner when request fails', async () => {
-  server.use(http.post('/property/analyze', () => new Response(null, { status: 500 })))
+  server.use(http.post('/analyze', () => new Response(null, { status: 500 })))
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'https://example.com')
