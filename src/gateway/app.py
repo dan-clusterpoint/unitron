@@ -90,10 +90,11 @@ async def _post_with_retry(url: str, data: dict, service: str) -> dict:
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
     record_failure(service)
+    status = 502
     if isinstance(last_exc, HTTPException):
-        raise last_exc
+        status = last_exc.status_code
     raise HTTPException(
-        status_code=502,
+        status_code=status,
         detail=f"{service} service unavailable",
     )
 

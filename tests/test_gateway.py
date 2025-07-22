@@ -115,3 +115,19 @@ def test_metrics_endpoint(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert "martech" in data and "property" in data
+
+
+def test_analyze_error_detail_mentions_service(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "martech" in str(request.url):
+            return httpx.Response(500)
+        if "property" in str(request.url):
+            return httpx.Response(200, json={"domains": ["example.com"]})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": "https://example.com"})
+    assert r.status_code == 502
+    assert r.json()["detail"] == "martech service unavailable"
