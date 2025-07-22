@@ -77,8 +77,8 @@ def test_analyze_success(monkeypatch):
     r = client.post("/analyze", json={"url": "https://example.com"})
     assert r.status_code == 200
     data = r.json()
-    assert data["domains"] == ["example.com"]
-    assert data["core"] == ["GA"]
+    assert data["property"]["domains"] == ["example.com"]
+    assert data["martech"]["core"] == ["GA"]
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["martech"]["success"] >= 1
@@ -115,4 +115,3 @@ def test_metrics_endpoint(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert "martech" in data and "property" in data
-

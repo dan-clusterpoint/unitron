@@ -41,7 +41,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `GET /health` – liveness probe.
 * `GET /ready` – checks that downstream services are healthy.
 * `GET /metrics` – optional stats about service calls.
-* `POST /analyze` – body `{"url": "https://example.com"}` returns combined results from martech and property.
+* `POST /analyze` – body `{"url": "https://example.com"}` returns:
+  `{"property": {...}, "martech": {...}}`.
 
 `MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
 
