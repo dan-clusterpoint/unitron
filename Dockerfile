@@ -1,6 +1,7 @@
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+ENV PORT=8000
 
 WORKDIR /app
 COPY pyproject.toml poetry.lock* /app/
@@ -25,4 +26,4 @@ HEALTHCHECK --interval=2s --timeout=2s --start-period=5s \
 
 # Default to gateway; override SERVICE=martech for that service
 # Use a shell to expand $PORT so Railway can inject the port number
-CMD ["sh", "-c", "uvicorn app:app --host=0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
