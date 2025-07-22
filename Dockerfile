@@ -15,6 +15,7 @@ RUN pip install poetry \
 COPY src/ /app/src
 COPY services/ /app/services
 COPY app.py /app/
+COPY fingerprints.yaml /app/
 ENV PYTHONPATH=/app/src:/app/services:/app
 
 # Expose port
