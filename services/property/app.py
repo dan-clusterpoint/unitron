@@ -1,14 +1,26 @@
 from __future__ import annotations
 
+import os
 import re
 import socket
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
 DOMAIN_RE = re.compile(r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 
 app = FastAPI()
+
+# Allow web interface to call this API from another origin during development
+origins = [os.getenv("VITE_API_BASE_URL", "*")]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class AnalyzeRequest(BaseModel):
