@@ -55,3 +55,41 @@ def test_ready_returns_false_when_unhealthy(monkeypatch):
     r = client.get("/ready")
     assert r.status_code == 200
     assert r.json()["ready"] is False
+
+
+def test_analyze_success(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "martech" in str(request.url):
+            return httpx.Response(200, json={"core": ["GA"]})
+        if "property" in str(request.url):
+            return httpx.Response(200, json={"domains": ["example.com"]})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": "https://example.com"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["domains"] == ["example.com"]
+    assert data["core"] == ["GA"]
+
+
+def test_analyze_failure_increments_metrics(monkeypatch):
+    calls = {"count": 0}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "property" in str(request.url):
+            calls["count"] += 1
+            return httpx.Response(500)
+        return httpx.Response(200, json={"core": []})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    before = gateway_app.metrics["property"]["failures"]
+    r = client.post("/analyze", json={"url": "https://bad.com"})
+    assert r.status_code == 502
+    assert gateway_app.metrics["property"]["failures"] == before + 1
+    assert calls["count"] >= 2
+
