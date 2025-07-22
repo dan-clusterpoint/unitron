@@ -14,6 +14,7 @@ docker compose up --build
 # property -> http://localhost:8082
 open http://localhost:8080/docs
 # SERVICE env var selects gateway (default), martech, or property
+# MARTECH_URL and PROPERTY_URL control where the gateway proxies requests
 ```
 To launch the web interface during development:
 ```bash
@@ -29,9 +30,20 @@ Run all services including the React interface:
 docker compose --profile ui up --build
 ```
 
+
 The `ui` profile builds the `interface` service defined in `docker-compose.yml`.
 When omitted, the gateway, martech, and property APIs run without the frontend.
 The interface reads the `VITE_API_BASE_URL` variable to reach the gateway (default `http://localhost:8080`).
+
+### Gateway service
+The gateway orchestrates the other APIs. Key endpoints:
+
+* `GET /health` – liveness probe.
+* `GET /ready` – checks that downstream services are healthy.
+* `GET /metrics` – optional stats about service calls.
+* `POST /analyze` – body `{"url": "https://example.com"}` returns combined results from martech and property.
+
+`MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
 
 ### Martech analyzer service
 The martech service exposes three endpoints:
