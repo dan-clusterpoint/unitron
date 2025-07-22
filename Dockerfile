@@ -24,4 +24,5 @@ HEALTHCHECK --interval=2s --timeout=2s --start-period=5s \
   CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
 # Default to gateway; override SERVICE=martech for that service
-CMD ["uvicorn", "app:app", "--host=0.0.0.0", "--port", "$PORT"]
+# Use a shell to expand $PORT so Railway can inject the port number
+CMD ["sh", "-c", "uvicorn app:app --host=0.0.0.0 --port ${PORT:-8000}"]
