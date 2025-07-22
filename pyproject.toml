@@ -16,7 +16,7 @@ from = "src"
 
 [[tool.poetry.packages]]
 include = "property"
-from = "src"
+from = "services"
 
 [tool.poetry.dependencies]
 python = "^3.11"
