@@ -22,7 +22,7 @@ instances    = 1
 
 [[services]]
 name         = "property"
-projectPath  = "."
+projectPath  = "services/property"
 startCommand = "SERVICE=property uvicorn app:app --host 0.0.0.0 --port $PORT"
 instances    = 1
 
