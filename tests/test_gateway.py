@@ -24,10 +24,10 @@ def _set_mock_transport(monkeypatch, handler: httpx.MockTransport) -> None:
 
 def test_ready_waits_for_both_services(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
-        if "martech" in str(request.url):
+        if request.url.path == "/ready" and "martech" in str(request.url):
             await asyncio.sleep(0.1)
             return httpx.Response(200)
-        if "property" in str(request.url):
+        if request.url.path == "/ready" and "property" in str(request.url):
             await asyncio.sleep(0.2)
             return httpx.Response(200)
         return httpx.Response(404)
@@ -49,9 +49,11 @@ def test_ready_waits_for_both_services(monkeypatch):
 
 def test_ready_returns_false_when_unhealthy(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
-        if "martech" in str(request.url):
+        if request.url.path == "/ready" and "martech" in str(request.url):
             return httpx.Response(503)
-        return httpx.Response(200)
+        if request.url.path == "/ready" and "property" in str(request.url):
+            return httpx.Response(200)
+        return httpx.Response(404)
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)

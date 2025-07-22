@@ -66,8 +66,9 @@ async def metrics_endpoint() -> JSONResponse:
 
 @app.get('/ready')
 async def ready() -> JSONResponse:
-    martech_task = _get_with_retry(f"{MARTECH_URL}/health", "martech")
-    property_task = _get_with_retry(f"{PROPERTY_URL}/health", "property")
+    """Check readiness of downstream services."""
+    martech_task = _get_with_retry(f"{MARTECH_URL}/ready", "martech")
+    property_task = _get_with_retry(f"{PROPERTY_URL}/ready", "property")
     ok_martech, ok_property = await asyncio.gather(martech_task, property_task)
     return JSONResponse({'ready': ok_martech and ok_property})
 
