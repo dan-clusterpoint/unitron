@@ -10,6 +10,12 @@ def test_health():
     assert r.status_code == 200
 
 
+def test_ready():
+    r = client.get("/ready")
+    assert r.status_code == 200
+    assert r.json() == {"ready": True}
+
+
 def test_analyze_success():
     r = client.post("/analyze", json={"domain": "example.com"})
     assert r.status_code == 200

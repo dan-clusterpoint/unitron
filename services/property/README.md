@@ -1,8 +1,9 @@
 # Property Analyzer Service
 
-The property service verifies DNS for a target domain. It exposes two endpoints:
+The property service verifies DNS for a target domain. It exposes three endpoints:
 
 - `GET /health` – liveness probe returning `{ "status": "ok" }`.
+- `GET /ready` – readiness probe returning `{ "ready": true }`.
 - `POST /analyze` – body `{ "domain": "example.com" }` returns JSON with
   `domains`, `confidence`, and `notes`.
 

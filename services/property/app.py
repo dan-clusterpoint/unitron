@@ -27,6 +27,10 @@ class AnalyzeRequest(BaseModel):
     domain: str
 
 
+class ReadyResponse(BaseModel):
+    ready: bool
+
+
 def _lookup(host: str) -> list:
     try:
         return socket.getaddrinfo(host, None, flags=socket.AI_CANONNAME)
@@ -37,6 +41,11 @@ def _lookup(host: str) -> list:
 @app.get("/health")
 async def health() -> JSONResponse:
     return JSONResponse({"status": "ok"})
+
+
+@app.get("/ready", response_model=ReadyResponse)
+async def ready() -> ReadyResponse:
+    return ReadyResponse(ready=True)
 
 
 @app.post("/analyze")
