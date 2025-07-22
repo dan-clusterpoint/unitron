@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -10,6 +11,7 @@ import httpx
 import yaml  # type: ignore
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
@@ -18,6 +20,16 @@ FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
 CACHE_TTL = 15 * 60  # 15 minutes
 
 app = FastAPI()
+
+# Allow calls from the UI hosted on a different origin during development
+origins = [os.getenv("VITE_API_BASE_URL", "*")]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Global state populated on startup
 fingerprints: Dict[str, List[Dict[str, str]]] | None = None
