@@ -22,13 +22,17 @@ metrics = {
 
 
 def record_success(service: str, duration: float) -> None:
-    data = metrics.setdefault(service, {"success": 0, "failure": 0, "duration": 0.0})
+    data = metrics.setdefault(
+        service, {"success": 0, "failure": 0, "duration": 0.0}
+    )
     data["success"] += 1
     data["duration"] += duration
 
 
 def record_failure(service: str) -> None:
-    data = metrics.setdefault(service, {"success": 0, "failure": 0, "duration": 0.0})
+    data = metrics.setdefault(
+        service, {"success": 0, "failure": 0, "duration": 0.0}
+    )
     data["failure"] += 1
 
 
@@ -39,7 +43,6 @@ class AnalyzeRequest(BaseModel):
 
 async def _get_with_retry(url: str, service: str) -> bool:
     """GET ``url`` with one retry, recording metrics."""
-    last_exc: Exception | None = None
     for _ in range(2):
         start = time.perf_counter()
         try:
@@ -48,8 +51,8 @@ async def _get_with_retry(url: str, service: str) -> bool:
             resp.raise_for_status()
             record_success(service, time.perf_counter() - start)
             return True
-        except Exception as exc:  # noqa: BLE001
-            last_exc = exc
+        except Exception:  # noqa: BLE001
+            pass
     record_failure(service)
     return False
 
@@ -89,7 +92,10 @@ async def _post_with_retry(url: str, data: dict, service: str) -> dict:
     record_failure(service)
     if isinstance(last_exc, HTTPException):
         raise last_exc
-    raise HTTPException(status_code=502, detail=f"{service} service unavailable")
+    raise HTTPException(
+        status_code=502,
+        detail=f"{service} service unavailable",
+    )
 
 
 @app.post("/analyze")
@@ -109,6 +115,11 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
         "property",
     )
 
-    martech_data, property_data = await asyncio.gather(martech_task, property_task)
-    result = {**martech_data, **property_data}
+    martech_data, property_data = await asyncio.gather(
+        martech_task, property_task
+    )
+    result = {
+        "property": property_data,
+        "martech": martech_data,
+    }
     return JSONResponse(result)
