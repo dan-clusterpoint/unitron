@@ -42,6 +42,10 @@ def test_ready_waits_for_both_services(monkeypatch):
     assert r.json()["ready"] is True
     assert duration < 0.25  # should take about max(delay)
 
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["martech"]["success"] >= 1
+    assert metrics_data["property"]["success"] >= 1
+
 
 def test_ready_returns_false_when_unhealthy(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -74,6 +78,10 @@ def test_analyze_success(monkeypatch):
     assert data["domains"] == ["example.com"]
     assert data["core"] == ["GA"]
 
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["martech"]["success"] >= 1
+    assert metrics_data["property"]["success"] >= 1
+
 
 def test_analyze_failure_increments_metrics(monkeypatch):
     calls = {"count": 0}
@@ -87,9 +95,22 @@ def test_analyze_failure_increments_metrics(monkeypatch):
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
-    before = gateway_app.metrics["property"]["failures"]
+    before = gateway_app.metrics["property"]["failure"]
     r = client.post("/analyze", json={"url": "https://bad.com"})
     assert r.status_code == 502
-    assert gateway_app.metrics["property"]["failures"] == before + 1
+    assert gateway_app.metrics["property"]["failure"] == before + 1
     assert calls["count"] >= 2
+
+
+def test_metrics_endpoint(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.get("/metrics")
+    assert r.status_code == 200
+    data = r.json()
+    assert "martech" in data and "property" in data
 
