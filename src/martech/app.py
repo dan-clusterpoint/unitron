@@ -78,8 +78,12 @@ async def _extract_scripts(client: httpx.AsyncClient, html: str) -> Set[str]:
 
 
 async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
-    proxy = os.getenv("OUTBOUND_HTTP_PROXY")
-    async with httpx.AsyncClient(timeout=10, proxy=proxy) as client:
+    proxy = (
+        os.getenv("OUTBOUND_HTTP_PROXY")
+        or os.getenv("HTTP_PROXY")
+        or os.getenv("HTTPS_PROXY")
+    )
+    async with httpx.AsyncClient(timeout=10, proxies=proxy) as client:
         html = await _fetch(client, url)
         scripts = await _extract_scripts(client, html)
     result: Dict[str, List[str]] = {k: [] for k in fingerprints or {}}
