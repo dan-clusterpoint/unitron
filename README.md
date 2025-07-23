@@ -57,6 +57,9 @@ The martech service exposes three endpoints:
 Fingerprint definitions live in `fingerprints.yaml`. Edit this file and restart
 the service to update the vendor list.
 
+If outbound HTTP access must go through a proxy, set `OUTBOUND_HTTP_PROXY` to
+the proxy URL. The compose file includes an example value for local testing.
+
 ## Deployment
 
 * GitHub Actions installs dependencies from `pyproject.toml` and runs our test
