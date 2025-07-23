@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from martech.app import app
 import os
+import httpx
 
 client = TestClient(app)
 
@@ -66,3 +67,15 @@ def test_options_analyze():
         },
     )
     assert r.status_code == 200
+
+
+def test_analyze_handles_request_error(monkeypatch):
+    client.get('/ready')
+    def boom(*args, **kwargs):
+        req = httpx.Request("GET", "http://example.com")
+        raise httpx.RequestError("fail", request=req)
+
+    monkeypatch.setattr("martech.app.analyze_url", boom)
+    resp = client.post("/analyze", json={"url": "http://example.com"})
+    assert resp.status_code == 503
+    assert resp.json() == {"detail": "martech service unavailable"}
