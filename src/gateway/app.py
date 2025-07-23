@@ -16,24 +16,31 @@ PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
 
 # In-memory metrics for service calls
 metrics = {
-    "martech": {"success": 0, "failure": 0, "duration": 0.0},
-    "property": {"success": 0, "failure": 0, "duration": 0.0},
+    "martech": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
+    "property": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
 }
 
 
-def record_success(service: str, duration: float) -> None:
+def record_success(service: str, duration: float, status_code: int) -> None:
     data = metrics.setdefault(
-        service, {"success": 0, "failure": 0, "duration": 0.0}
+        service,
+        {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     )
     data["success"] += 1
     data["duration"] += duration
+    codes = data.setdefault("codes", {})
+    codes[str(status_code)] = codes.get(str(status_code), 0) + 1
 
 
-def record_failure(service: str) -> None:
+def record_failure(service: str, status_code: int | None = None) -> None:
     data = metrics.setdefault(
-        service, {"success": 0, "failure": 0, "duration": 0.0}
+        service,
+        {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     )
     data["failure"] += 1
+    if status_code is not None:
+        codes = data.setdefault("codes", {})
+        codes[str(status_code)] = codes.get(str(status_code), 0) + 1
 
 
 class AnalyzeRequest(BaseModel):
@@ -43,17 +50,20 @@ class AnalyzeRequest(BaseModel):
 
 async def _get_with_retry(url: str, service: str) -> bool:
     """GET ``url`` with one retry, recording metrics."""
+    last_code: int | None = None
     for _ in range(2):
         start = time.perf_counter()
         try:
             async with httpx.AsyncClient(timeout=2) as client:
                 resp = await client.get(url)
             resp.raise_for_status()
-            record_success(service, time.perf_counter() - start)
+            record_success(service, time.perf_counter() - start, resp.status_code)
             return True
+        except httpx.HTTPStatusError as exc:
+            last_code = exc.response.status_code
         except Exception:  # noqa: BLE001
             pass
-    record_failure(service)
+    record_failure(service, last_code)
     return False
 
 
@@ -79,17 +89,21 @@ async def ready() -> JSONResponse:
 async def _post_with_retry(url: str, data: dict, service: str) -> dict:
     """POST ``data`` to ``url`` with one retry on failure."""
     last_exc: Exception | None = None
+    last_code: int | None = None
     for attempt in range(2):
         start = time.perf_counter()
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 resp = await client.post(url, json=data)
             resp.raise_for_status()
-            record_success(service, time.perf_counter() - start)
+            record_success(service, time.perf_counter() - start, resp.status_code)
             return resp.json()
+        except httpx.HTTPStatusError as exc:  # noqa: BLE001
+            last_exc = exc
+            last_code = exc.response.status_code
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
-    record_failure(service)
+    record_failure(service, last_code)
     status = 502
     if isinstance(last_exc, HTTPException):
         status = last_exc.status_code
