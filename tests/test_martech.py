@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from fastapi.testclient import TestClient
 
 from martech.app import app
+import os
 
 client = TestClient(app)
 
@@ -41,6 +42,10 @@ def test_ready_and_analyze():
         ready = client.get('/ready')
         assert ready.status_code == 200
         assert ready.json()['ready'] is True
+
+        os.environ['OUTBOUND_HTTP_PROXY'] = ''
+        os.environ['HTTP_PROXY'] = ''
+        os.environ['HTTPS_PROXY'] = ''
 
         resp = client.post(
             '/analyze', json={'url': f'http://localhost:{port}/'}
