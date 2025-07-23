@@ -7,9 +7,12 @@ export const server = setupServer(
   http.get('/ready', () => Response.json({ ready: true })),
   http.post('/analyze', () =>
     Response.json({
-      domains: ['example.com'],
-      confidence: 1,
-      notes: ['all good'],
+      property: {
+        domains: ['example.com'],
+        confidence: 1,
+        notes: ['all good'],
+      },
+      martech: { core: ['GTM'] },
     }),
   ),
 )

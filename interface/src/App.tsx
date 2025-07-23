@@ -54,7 +54,11 @@ export default function App() {
       setResult(data)
     } catch (err) {
       setError('Failed to analyze. Please try again.')
-      setBanner('Network error. Please retry.')
+      if (err instanceof Error && err.message) {
+        setBanner(err.message)
+      } else {
+        setBanner('Network error. Please retry.')
+      }
     } finally {
       setLoading(false)
     }
