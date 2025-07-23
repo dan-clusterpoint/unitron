@@ -45,6 +45,10 @@ def test_ready_waits_for_both_services(monkeypatch):
     metrics_data = client.get("/metrics").json()
     assert metrics_data["martech"]["success"] >= 1
     assert metrics_data["property"]["success"] >= 1
+    assert metrics_data["martech"]["codes"]["200"] >= 1
+    assert metrics_data["property"]["codes"]["200"] >= 1
+    assert metrics_data["martech"]["codes"]["200"] >= 1
+    assert metrics_data["property"]["codes"]["200"] >= 1
 
 
 def test_ready_returns_false_when_unhealthy(monkeypatch):
@@ -98,9 +102,11 @@ def test_analyze_failure_increments_metrics(monkeypatch):
     _set_mock_transport(monkeypatch, transport)
 
     before = gateway_app.metrics["property"]["failure"]
+    before_code = gateway_app.metrics["property"]["codes"].get("500", 0)
     r = client.post("/analyze", json={"url": "https://bad.com"})
     assert r.status_code == 502
     assert gateway_app.metrics["property"]["failure"] == before + 1
+    assert gateway_app.metrics["property"]["codes"].get("500", 0) == before_code + 1
     assert calls["count"] >= 2
 
 
