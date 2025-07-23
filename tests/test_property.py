@@ -26,3 +26,14 @@ def test_analyze_success():
 def test_analyze_failure():
     r = client.post("/analyze", json={"domain": "invalid"})
     assert r.status_code == 400
+
+
+def test_options_analyze():
+    r = client.options(
+        "/analyze",
+        headers={
+            "Origin": "http://example.com",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert r.status_code == 200
