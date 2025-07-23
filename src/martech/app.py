@@ -6,6 +6,8 @@ import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Set
+import asyncio
+import logging
 
 import httpx
 import yaml  # type: ignore
@@ -138,6 +140,12 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     if fresh and entry is not None:
         result = entry["data"]
     else:
-        result = await analyze_url(url, debug=bool(req.debug))
+        try:
+            result = await analyze_url(url, debug=bool(req.debug))
+        except (httpx.RequestError, asyncio.TimeoutError):
+            logging.exception("failed analyzing URL")
+            return JSONResponse(
+                {"detail": "martech service unavailable"}, status_code=503
+            )
         cache[url] = {"time": now, "data": result}
     return JSONResponse(result)
