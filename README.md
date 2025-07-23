@@ -90,6 +90,20 @@ The `docker-compose.yml` file wires them together with sensible defaults for loc
 ### Contributing
 We encourage small PRs that keep the local build fast and stable. Use the `Makefile` shortcuts for common tasks. The devcontainer ensures a consistent Python and Node toolchain and editor setup.
 
+## Testing
+Run the automated checks with:
+
+```bash
+make lint
+make test
+```
+
+To verify that the gateway service is reachable, export `GATEWAY_URL` and execute:
+
+```bash
+GATEWAY_URL=http://localhost:8080 ./test-gateway.sh
+```
+
 ## FAQ
 
 **Why Docker instead of running Python directly?**
