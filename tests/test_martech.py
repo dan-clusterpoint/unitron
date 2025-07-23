@@ -79,3 +79,36 @@ def test_analyze_handles_request_error(monkeypatch):
     resp = client.post("/analyze", json={"url": "http://example.com"})
     assert resp.status_code == 503
     assert resp.json() == {"detail": "martech service unavailable"}
+
+
+def _set_mock_client(monkeypatch, handler: httpx.MockTransport) -> None:
+    class DummyClient(httpx.AsyncClient):
+        def __init__(self, *args, **kwargs):
+            super().__init__(transport=handler, *args, **kwargs)
+
+    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+
+
+def test_diagnose_success(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_client(monkeypatch, transport)
+
+    r = client.get("/diagnose")
+    assert r.status_code == 200
+    assert r.json() == {"success": True}
+
+
+def test_diagnose_failure(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.RequestError("fail", request=request)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_client(monkeypatch, transport)
+
+    r = client.get("/diagnose")
+    assert r.status_code == 200
+    data = r.json()
+    assert "error" in data

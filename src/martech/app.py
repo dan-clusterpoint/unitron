@@ -84,8 +84,9 @@ async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
         os.getenv("OUTBOUND_HTTP_PROXY")
         or os.getenv("HTTP_PROXY")
         or os.getenv("HTTPS_PROXY")
+        or None
     )
-    async with httpx.AsyncClient(timeout=10, proxies=proxy) as client:
+    async with httpx.AsyncClient(timeout=10, proxy=proxy) as client:
         html = await _fetch(client, url)
         scripts = await _extract_scripts(client, html)
     result: Dict[str, List[str]] = {k: [] for k in fingerprints or {}}
@@ -149,3 +150,20 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             )
         cache[url] = {"time": now, "data": result}
     return JSONResponse(result)
+
+
+@app.get("/diagnose")
+async def diagnose() -> JSONResponse:
+    """Check outbound connectivity by fetching https://example.com."""
+    proxy = (
+        os.getenv("OUTBOUND_HTTP_PROXY")
+        or os.getenv("HTTP_PROXY")
+        or os.getenv("HTTPS_PROXY")
+        or None
+    )
+    try:
+        async with httpx.AsyncClient(timeout=5, proxy=proxy) as client:
+            await client.get("https://example.com")
+    except Exception as exc:  # noqa: BLE001
+        return JSONResponse({"error": str(exc)})
+    return JSONResponse({"success": True})
