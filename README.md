@@ -47,10 +47,11 @@ The gateway orchestrates the other APIs. Key endpoints:
 `MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
 
 ### Martech analyzer service
-The martech service exposes three endpoints:
+The martech service exposes four endpoints:
 
 * `GET /health` – liveness probe.
 * `GET /ready` – returns `{"ready": true}` once the fingerprint list is loaded.
+* `GET /diagnose` – checks outbound connectivity.
 * `POST /analyze` – body `{"url": "https://example.com", "debug": false}` returns
   detected marketing vendors grouped into four buckets.
 
