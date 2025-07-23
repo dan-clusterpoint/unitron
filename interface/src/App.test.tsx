@@ -17,9 +17,12 @@ test('shows loading spinner and displays result', async () => {
     http.post('/analyze', async () => {
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json({
-        domains: ['example.com'],
-        confidence: 1,
-        notes: [],
+        property: {
+          domains: ['example.com'],
+          confidence: 1,
+          notes: [],
+        },
+        martech: { core: ['GTM'] },
       })
     })
   )
@@ -31,6 +34,7 @@ test('shows loading spinner and displays result', async () => {
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
   await screen.findByText('example.com')
+  await screen.findByText('GTM')
 })
 
 test('shows error banner when request fails', async () => {
@@ -40,9 +44,9 @@ test('shows error banner when request fails', async () => {
   await userEvent.type(input, 'https://example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await screen.findByText('Failed to analyze. Please try again.')
-  screen.getByText('Network error. Please retry.')
+  screen.getByText('HTTP 500')
   await userEvent.click(screen.getByRole('button', { name: /dismiss/i }))
   await waitFor(() =>
-    expect(screen.queryByText('Network error. Please retry.')).not.toBeInTheDocument(),
+    expect(screen.queryByText('HTTP 500')).not.toBeInTheDocument(),
   )
 })

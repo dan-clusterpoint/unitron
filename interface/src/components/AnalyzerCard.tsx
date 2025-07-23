@@ -1,7 +1,10 @@
 export type AnalyzeResponse = {
-  domains: string[]
-  confidence: number
-  notes: string[]
+  property: {
+    domains: string[]
+    confidence: number
+    notes: string[]
+  }
+  martech: Record<string, string[]>
 }
 
 export type AnalyzerProps = {
@@ -27,20 +30,34 @@ function renderList(items?: string[]) {
 
 export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: AnalyzerProps) {
   if (result) {
+    const { property, martech } = result
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
         <div className="bg-gray-50 p-4 rounded mb-4">
           <h3 className="font-medium">Domains</h3>
-          {renderList(result.domains)}
+          {renderList(property.domains)}
         </div>
         <div className="bg-gray-50 p-4 rounded mb-4">
           <h3 className="font-medium">Confidence</h3>
-          <p>{result.confidence}</p>
+          <p>{property.confidence}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded mb-4">
+          <h3 className="font-medium mb-2">Notes</h3>
+          {renderList(property.notes)}
         </div>
         <div className="bg-gray-50 p-4 rounded">
-          <h3 className="font-medium mb-2">Notes</h3>
-          {renderList(result.notes)}
+          <h3 className="font-medium mb-2">Martech Vendors</h3>
+          {Object.keys(martech).length === 0 ? (
+            <p className="italic">Nothing detected</p>
+          ) : (
+            Object.entries(martech).map(([bucket, vendors]) => (
+              <div key={bucket} className="mb-2">
+                <h4 className="font-medium capitalize">{bucket}</h4>
+                {renderList(vendors)}
+              </div>
+            ))
+          )}
         </div>
       </div>
     )
