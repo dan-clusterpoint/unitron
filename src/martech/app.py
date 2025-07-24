@@ -43,6 +43,10 @@ class AnalyzeRequest(BaseModel):
     debug: bool | None = False
 
 
+class ReadyResponse(BaseModel):
+    ready: bool
+
+
 def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
     if not path.exists():
         raise FileNotFoundError(path)
@@ -118,15 +122,15 @@ async def health() -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
-@app.get("/ready")
-async def ready() -> JSONResponse:
+@app.get("/ready", response_model=ReadyResponse)
+async def ready() -> ReadyResponse:
     global fingerprints
     if fingerprints is None:
         try:
             fingerprints = _load_fingerprints(FINGERPRINT_PATH)
         except Exception:
             fingerprints = None
-    return JSONResponse({"ready": fingerprints is not None})
+    return ReadyResponse(ready=fingerprints is not None)
 
 
 @app.post("/analyze")
