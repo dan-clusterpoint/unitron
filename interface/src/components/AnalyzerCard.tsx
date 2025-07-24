@@ -1,3 +1,6 @@
+import PropertyResults from './PropertyResults'
+import MartechResults from './MartechResults'
+
 export type AnalyzeResult = {
   property: {
     domains: string[]
@@ -18,17 +21,6 @@ export type AnalyzerProps = {
   result: AnalyzeResult | null
 }
 
-function renderList(items?: string[]) {
-  if (!items || items.length === 0) return <p className="italic">Nothing detected</p>
-  return (
-    <ul className="list-disc list-inside space-y-1">
-      {items.map((i) => (
-        <li key={i}>{i}</li>
-      ))}
-    </ul>
-  )
-}
-
 export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: AnalyzerProps) {
   if (result) {
     const { property, martech, degraded } = result
@@ -40,37 +32,8 @@ export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, erro
             Partial results shown due to degraded analysis.
           </div>
         )}
-        {property && (
-          <>
-            <div className="bg-gray-50 p-4 rounded mb-4">
-              <h3 className="font-medium">Domains</h3>
-              {renderList(property.domains)}
-            </div>
-            <div className="bg-gray-50 p-4 rounded mb-4">
-              <h3 className="font-medium">Confidence</h3>
-              <p>{property.confidence}</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded mb-4">
-              <h3 className="font-medium mb-2">Notes</h3>
-              {renderList(property.notes)}
-            </div>
-          </>
-        )}
-        {martech && (
-          <div className="bg-gray-50 p-4 rounded">
-            <h3 className="font-medium mb-2">Martech Vendors</h3>
-            {Object.keys(martech).length === 0 ? (
-              <p className="italic">Nothing detected</p>
-            ) : (
-              Object.entries(martech).map(([bucket, vendors]) => (
-                <div key={bucket} className="mb-2">
-                  <h4 className="font-medium capitalize">{bucket}</h4>
-                  {renderList(vendors)}
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        {property && <PropertyResults property={property} />}
+        {martech && <MartechResults martech={martech} />}
       </div>
     )
   }
