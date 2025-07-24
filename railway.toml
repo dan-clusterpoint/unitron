@@ -1,7 +1,7 @@
 schema = "https://railway.com/railway.schema.json"
 
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
 
 [deploy]
 healthcheckPath     = "/health"
@@ -21,10 +21,10 @@ startCommand = "sh -c \"SERVICE=martech uvicorn app:app --host 0.0.0.0 --port ${
 instances    = 1
 
 [[services]]
-name         = "property"
-projectPath  = "services/property"
-startCommand = "sh -c \"SERVICE=property uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
-instances    = 1
+name           = "property"
+projectPath    = "."
+dockerfilePath = "services/property/Dockerfile"
+instances      = 1
 
 [[services]]
 name         = "interface"
