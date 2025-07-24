@@ -2,11 +2,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
+SRC = ROOT / "services"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from shared.utils import normalize_url  # noqa: E402
+from services.shared.utils import normalize_url  # noqa: E402
 
 
 def test_normalize_url_adds_scheme():

@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from fastapi.testclient import TestClient
 
-from martech.app import app
+from services.martech.app import app
 import os
 import httpx
 
@@ -76,7 +76,7 @@ def test_analyze_handles_request_error(monkeypatch):
         req = httpx.Request("GET", "http://example.com")
         raise httpx.RequestError("fail", request=req)
 
-    monkeypatch.setattr("martech.app.analyze_url", boom)
+    monkeypatch.setattr("services.martech.app.analyze_url", boom)
     resp = client.post("/analyze", json={"url": "http://example.com"})
     assert resp.status_code == 503
     assert resp.json() == {"detail": "martech service unavailable"}
@@ -91,7 +91,7 @@ def _set_mock_client(
                 hook(kwargs)
             super().__init__(transport=handler, *args, **kwargs)
 
-    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
 
 
 def _set_stub_client(monkeypatch, hook) -> None:
@@ -109,7 +109,7 @@ def _set_stub_client(monkeypatch, hook) -> None:
             request = httpx.Request("GET", url)
             return httpx.Response(200, text="<html></html>", request=request)
 
-    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
 
 
 def test_diagnose_success(monkeypatch):
@@ -187,7 +187,7 @@ def test_diagnose_mocked_asyncclient_success(monkeypatch):
             request = httpx.Request("GET", url)
             return httpx.Response(200, request=request)
 
-    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
 
     r = client.get("/diagnose")
     assert r.status_code == 200
@@ -209,7 +209,7 @@ def test_diagnose_mocked_asyncclient_failure(monkeypatch):
             req = httpx.Request("GET", url)
             raise httpx.RequestError("fail", request=req)
 
-    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
 
     r = client.get("/diagnose")
     assert r.status_code == 200

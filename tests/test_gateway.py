@@ -5,7 +5,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-import gateway.app as gateway_app
+import services.gateway.app as gateway_app
 
 client = TestClient(gateway_app.app)
 
