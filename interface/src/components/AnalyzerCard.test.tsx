@@ -59,3 +59,18 @@ test('renders result lists', () => {
   expect(screen.getByText('example.com')).toBeInTheDocument()
   expect(screen.getByText('GTM')).toBeInTheDocument()
 })
+
+test('shows degraded banner', () => {
+  render(
+    <AnalyzerCard
+      id="a"
+      url="foo"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, degraded: true }}
+    />,
+  )
+  expect(screen.getByText(/partial results/i)).toBeInTheDocument()
+})

@@ -14,6 +14,6 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   try {
     return (await res.json()) as T
   } catch {
-    throw new Error('Invalid JSON response')
+    throw new Error('Invalid response')
   }
 }
