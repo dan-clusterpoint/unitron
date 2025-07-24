@@ -6,7 +6,7 @@ ENV PORT=8000
 WORKDIR /app
 
 # This Dockerfile expects the repository root as the build context.
-COPY requirements.txt ./requirements.txt
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source after installing dependencies
