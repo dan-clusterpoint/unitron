@@ -16,10 +16,9 @@ services:
       - SERVICE=martech
       - PORT=8000
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./local.db}
-      # Example local proxy configuration
-      - HTTP_PROXY=http://localhost:3128
-      - HTTPS_PROXY=http://localhost:3128
-      - OUTBOUND_HTTP_PROXY=http://localhost:3128
+      - OUTBOUND_HTTP_PROXY=${OUTBOUND_HTTP_PROXY:-}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
     ports:
       - "8081:8000"
 
