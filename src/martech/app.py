@@ -43,6 +43,11 @@ class AnalyzeRequest(BaseModel):
     debug: bool | None = False
 
 
+class DiagnoseResponse(BaseModel):
+    success: bool
+    error: str | None = None
+
+
 class ReadyResponse(BaseModel):
     ready: bool
 
@@ -162,8 +167,8 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     return JSONResponse(result)
 
 
-@app.get("/diagnose")
-async def diagnose() -> JSONResponse:
+@app.get("/diagnose", response_model=DiagnoseResponse, tags=["Service"])
+async def diagnose() -> DiagnoseResponse:
     """Check outbound connectivity by fetching https://example.com."""
     proxy = (
         os.getenv("OUTBOUND_HTTP_PROXY")
@@ -181,5 +186,5 @@ async def diagnose() -> JSONResponse:
         async with httpx.AsyncClient(**client_opts) as client:
             await client.get("https://example.com")
     except Exception as exc:  # noqa: BLE001
-        return JSONResponse({"error": str(exc)})
-    return JSONResponse({"success": True})
+        return DiagnoseResponse(success=False, error=str(exc))
+    return DiagnoseResponse(success=True)
