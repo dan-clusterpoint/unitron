@@ -97,6 +97,8 @@ def _set_mock_client(
 def _set_stub_client(monkeypatch, hook) -> None:
     class DummyClient:
         def __init__(self, *args, **kwargs):
+            pass
+        def __init__(self, *args, **kwargs):
             hook(kwargs)
 
         async def __aenter__(self):
@@ -170,3 +172,44 @@ def test_analyze_uses_proxy(monkeypatch):
         "http://": "http://proxy.local",
         "https://": "http://proxy.local",
     }
+
+def test_diagnose_mocked_asyncclient_success(monkeypatch):
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def get(self, url):
+            request = httpx.Request("GET", url)
+            return httpx.Response(200, request=request)
+
+    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+
+    r = client.get("/diagnose")
+    assert r.status_code == 200
+    assert r.json() == {"success": True, "error": None}
+
+
+def test_diagnose_mocked_asyncclient_failure(monkeypatch):
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def get(self, url):
+            req = httpx.Request("GET", url)
+            raise httpx.RequestError("fail", request=req)
+
+    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+
+    r = client.get("/diagnose")
+    assert r.status_code == 200
+    assert r.json() == {"success": False, "error": "fail"}
