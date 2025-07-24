@@ -22,6 +22,10 @@ cd interface && npm install && VITE_API_BASE_URL=http://localhost:8080 npm run d
 ```
 The `VITE_API_BASE_URL` variable should match the gateway address.
 
+Set `UI_ORIGIN` to the domain where the frontend is served so the backend will
+allow cross-origin requests. For a local Vite dev server this is typically
+`http://localhost:5173`.
+
 ### Full-stack with Docker Compose
 
 Run all services including the React interface:
@@ -41,6 +45,12 @@ The React interface must be compiled with `VITE_API_BASE_URL` pointing at the
 gateway. Running `docker compose --profile ui up --build` now forwards this
 variable automatically so the baked-in API endpoint matches the running
 services.
+
+### Cross-origin requests
+
+All backend services read `UI_ORIGIN` to decide which frontend domain may make
+requests. Set this to `http://localhost:5173` during local development or to the
+full production URL of your deployed interface.
 
 ### Gateway service
 The gateway orchestrates the other APIs. Key endpoints:

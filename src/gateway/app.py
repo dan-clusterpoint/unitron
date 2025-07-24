@@ -13,7 +13,9 @@ from starlette.responses import JSONResponse
 app = FastAPI()
 
 # Allow calls from the UI hosted on a different origin during development
-origins = [os.getenv("VITE_API_BASE_URL", "*")]
+# UI_ORIGIN should contain the frontend domain
+# (e.g. http://localhost:5173)
+origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
