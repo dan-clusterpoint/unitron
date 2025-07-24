@@ -20,6 +20,7 @@ Run this service locally via Docker Compose or by setting `SERVICE=property` and
 The `Dockerfile` in this directory assumes the build context is the repository root.
 This lets paths such as `services/property/requirements.txt` resolve correctly.
 If you instead set the context to `services/property`, remove the `services/property/` prefix from the `COPY` instructions.
+Railway builds this service from the repository root (`projectPath = "."` in `railway.toml`), so the existing `COPY` paths are valid.
 
 The gateway aggregates this DNS check with martech analysis. Send
 `POST /analyze` to the gateway with `{ "url": "https://example.com" }`
