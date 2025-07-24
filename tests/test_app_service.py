@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from services.gateway.app import app as gateway_app
 from services.martech.app import app as martech_app
-from property.app import app as property_app
+from services.property.app import app as property_app
 
 
 def test_load_gateway():

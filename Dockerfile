@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ /app/src
 COPY services/ /app/services
 COPY fingerprints.yaml /app/
-ENV PYTHONPATH=/app/src:/app/services:/app
+ENV PYTHONPATH=/app/services:/app
 
 # Expose port
 EXPOSE 8000
