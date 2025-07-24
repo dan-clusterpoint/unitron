@@ -39,7 +39,10 @@ def test_ready_waits_for_both_services(monkeypatch):
     r = client.get("/ready")
     duration = time.perf_counter() - start
     assert r.status_code == 200
-    assert r.json()["ready"] is True
+    data = r.json()
+    assert data["ready"] is True
+    assert data["martech"] == "ok"
+    assert data["property"] == "ok"
     assert duration < 0.25  # should take about max(delay)
 
     metrics_data = client.get("/metrics").json()
@@ -64,7 +67,10 @@ def test_ready_returns_false_when_unhealthy(monkeypatch):
 
     r = client.get("/ready")
     assert r.status_code == 200
-    assert r.json()["ready"] is False
+    data = r.json()
+    assert data["ready"] is False
+    assert data["martech"] == "degraded"
+    assert data["property"] == "ok"
 
 
 def test_analyze_success(monkeypatch):
@@ -83,6 +89,7 @@ def test_analyze_success(monkeypatch):
     data = r.json()
     assert data["property"]["domains"] == ["example.com"]
     assert data["martech"]["core"] == ["GA"]
+    assert data["degraded"] is False
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["martech"]["success"] >= 1
@@ -106,8 +113,33 @@ def test_analyze_failure_increments_metrics(monkeypatch):
     r = client.post("/analyze", json={"url": "https://bad.com"})
     assert r.status_code == 502
     assert gateway_app.metrics["property"]["failure"] == before + 1
-    assert gateway_app.metrics["property"]["codes"].get("500", 0) == before_code + 1
+    assert (
+        gateway_app.metrics["property"]["codes"].get("500", 0)
+        == before_code + 1
+    )
     assert calls["count"] >= 2
+
+
+def test_analyze_degraded_when_service_unready(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if (
+            "martech" in str(request.url)
+            and request.url.path == "/analyze"
+        ):
+            return httpx.Response(503)
+        if "property" in str(request.url):
+            return httpx.Response(200, json={"domains": ["example.com"]})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": "https://example.com"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["degraded"] is True
+    assert data["property"]["domains"] == ["example.com"]
+    assert data["martech"] is None
 
 
 def test_metrics_endpoint(monkeypatch):

@@ -2,6 +2,7 @@ import os
 import asyncio
 import time
 from urllib.parse import urlparse
+from typing import Any, Dict
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -15,7 +16,7 @@ MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
 PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
 
 # In-memory metrics for service calls
-metrics = {
+metrics: Dict[str, Dict[str, Any]] = {
     "martech": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "property": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
 }
@@ -57,7 +58,8 @@ async def _get_with_retry(url: str, service: str) -> bool:
             async with httpx.AsyncClient(timeout=2) as client:
                 resp = await client.get(url)
             resp.raise_for_status()
-            record_success(service, time.perf_counter() - start, resp.status_code)
+            duration = time.perf_counter() - start
+            record_success(service, duration, resp.status_code)
             return True
         except httpx.HTTPStatusError as exc:
             last_code = exc.response.status_code
@@ -83,11 +85,23 @@ async def ready() -> JSONResponse:
     martech_task = _get_with_retry(f"{MARTECH_URL}/ready", "martech")
     property_task = _get_with_retry(f"{PROPERTY_URL}/ready", "property")
     ok_martech, ok_property = await asyncio.gather(martech_task, property_task)
-    return JSONResponse({'ready': ok_martech and ok_property})
+    return JSONResponse(
+        {
+            "ready": ok_martech and ok_property,
+            "martech": "ok" if ok_martech else "degraded",
+            "property": "ok" if ok_property else "degraded",
+        }
+    )
 
 
-async def _post_with_retry(url: str, data: dict, service: str) -> dict:
-    """POST ``data`` to ``url`` with one retry on failure."""
+async def _post_with_retry(
+    url: str, data: dict, service: str
+) -> tuple[dict | None, bool]:
+    """POST ``data`` to ``url`` with one retry on failure.
+
+    Returns a tuple of ``(response_json, degraded)``. ``degraded`` is ``True``
+    when the service reports a 503 status code, indicating it is not ready.
+    """
     last_exc: Exception | None = None
     last_code: int | None = None
     for attempt in range(2):
@@ -96,14 +110,19 @@ async def _post_with_retry(url: str, data: dict, service: str) -> dict:
             async with httpx.AsyncClient(timeout=5) as client:
                 resp = await client.post(url, json=data)
             resp.raise_for_status()
-            record_success(service, time.perf_counter() - start, resp.status_code)
-            return resp.json()
+            duration = time.perf_counter() - start
+            record_success(service, duration, resp.status_code)
+            return resp.json(), False
         except httpx.HTTPStatusError as exc:  # noqa: BLE001
             last_exc = exc
             last_code = exc.response.status_code
+            if exc.response.status_code == 503:
+                break
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
     record_failure(service, last_code)
+    if isinstance(last_exc, httpx.HTTPStatusError) and last_code == 503:
+        return None, True
     status = 502
     if isinstance(last_exc, HTTPException):
         status = last_exc.status_code
@@ -130,11 +149,16 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
         "property",
     )
 
-    martech_data, property_data = await asyncio.gather(
-        martech_task, property_task
+    martech_res, property_res = await asyncio.gather(
+        martech_task,
+        property_task,
     )
+    martech_data, martech_degraded = martech_res
+    property_data, property_degraded = property_res
+
     result = {
         "property": property_data,
         "martech": martech_data,
+        "degraded": martech_degraded or property_degraded,
     }
     return JSONResponse(result)
