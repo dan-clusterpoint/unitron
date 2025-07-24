@@ -13,7 +13,9 @@ DOMAIN_RE = re.compile(r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 app = FastAPI()
 
 # Allow web interface to call this API from another origin during development
-origins = [os.getenv("VITE_API_BASE_URL", "*")]
+# UI_ORIGIN should contain the frontend domain
+# (e.g. http://localhost:5173)
+origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
