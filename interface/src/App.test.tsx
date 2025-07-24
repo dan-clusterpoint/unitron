@@ -23,6 +23,7 @@ test('shows loading spinner and displays result', async () => {
           notes: [],
         },
         martech: { core: ['GTM'] },
+        degraded: false,
       })
     })
   )

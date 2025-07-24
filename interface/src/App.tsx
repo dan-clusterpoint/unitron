@@ -10,7 +10,7 @@ import {
   Integrations,
   FinalCTA,
   Footer,
-  type AnalyzeResponse,
+  type AnalyzeResult,
 } from './components'
 import './index.css'
 
@@ -18,7 +18,7 @@ export default function App() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [result, setResult] = useState<AnalyzeResponse | null>(null)
+  const [result, setResult] = useState<AnalyzeResult | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
@@ -46,7 +46,7 @@ export default function App() {
     setResult(null)
     setLoading(true)
     try {
-      const data = await apiFetch<AnalyzeResponse>('/analyze', {
+      const data = await apiFetch<AnalyzeResult>('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),

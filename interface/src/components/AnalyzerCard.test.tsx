@@ -41,6 +41,7 @@ const result = {
   martech: {
     core: ['GTM'],
   },
+  degraded: false,
 }
 
 test('renders result lists', () => {
