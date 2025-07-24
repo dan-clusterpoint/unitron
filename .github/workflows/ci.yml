@@ -13,5 +13,7 @@ jobs:
       - run: poetry run bash -c 'PYTHONPATH=src:services pytest -q'
       - name: Build interface image
         run: docker build -t interface-image ./interface
+      - name: Build property image
+        run: docker build -t property-image -f services/property/Dockerfile .
       - name: Verify npx exists
         run: docker run --rm interface-image which npx
