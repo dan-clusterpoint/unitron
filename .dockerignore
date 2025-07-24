@@ -1,0 +1,26 @@
+# Exclude git and CI files
+.git
+.github
+
+# Compiled Python
+__pycache__/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Test and development artifacts
+.tox
+tests/
+
+# Node modules from the frontend
+interface/node_modules/
+
+# Other unneeded files
+Dockerfile
+devcontainer.json
+*.md
+*.yaml
+!fingerprints.yaml
+*.yml
+*.toml
