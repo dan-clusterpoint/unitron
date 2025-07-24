@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useFadeInOnView, useScrollPosition } from './hooks'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { apiFetch, normalizeUrl } from './api'
+import { apiFetch } from './api'
+import { normalizeUrl } from './utils'
 import {
   AnalyzerCard,
   FeatureGrid,
