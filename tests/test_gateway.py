@@ -179,7 +179,9 @@ def test_analyze_error_detail_mentions_service(monkeypatch):
         ("www.foo.org/", "https://www.foo.org", "www.foo.org"),
     ],
 )
-def test_analyze_normalizes_url(monkeypatch, input_url, expected_url, expected_domain):
+def test_analyze_normalizes_url(
+    monkeypatch, input_url, expected_url, expected_domain
+):
     captured: dict[str, dict] = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:

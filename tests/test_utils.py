@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from shared.utils import normalize_url
+from shared.utils import normalize_url  # noqa: E402
 
 
 def test_normalize_url_adds_scheme():
