@@ -4,6 +4,7 @@ import { vi, test, expect, beforeEach } from 'vitest'
 import { server } from './setupTests'
 import { http } from 'msw'
 import App from './App'
+import { type AnalyzeResult } from './components'
 
 beforeEach(() => {
   global.IntersectionObserver = vi.fn(() => ({
@@ -13,18 +14,19 @@ beforeEach(() => {
 })
 
 test('shows loading spinner and displays result', async () => {
+  const full: AnalyzeResult = {
+    property: {
+      domains: ['example.com'],
+      confidence: 1,
+      notes: [],
+    },
+    martech: { core: ['GTM'] },
+    degraded: false,
+  }
   server.use(
     http.post('/analyze', async () => {
       await new Promise((r) => setTimeout(r, 1000))
-      return Response.json({
-        property: {
-          domains: ['example.com'],
-          confidence: 1,
-          notes: [],
-        },
-        martech: { core: ['GTM'] },
-        degraded: false,
-      })
+      return Response.json(full)
     })
   )
   render(<App />)
@@ -50,4 +52,25 @@ test('shows error banner when request fails', async () => {
   await waitFor(() =>
     expect(screen.queryByText('HTTP 500')).not.toBeInTheDocument(),
   )
+})
+
+test('shows degraded banner when martech is null', async () => {
+  const partial: AnalyzeResult = {
+    property: {
+      domains: ['partial.com'],
+      confidence: 0.5,
+      notes: [],
+    },
+    martech: null,
+    degraded: true,
+  }
+  server.use(
+    http.post('/analyze', () => Response.json(partial))
+  )
+  render(<App />)
+  const input = screen.getByPlaceholderText('https://example.com')
+  await userEvent.type(input, 'https://partial.com')
+  await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
+  await screen.findByText('partial.com')
+  await screen.findByText(/partial results/i)
 })
