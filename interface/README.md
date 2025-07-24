@@ -4,11 +4,16 @@ A minimal web interface to interact with the Unitron backend services.
 
 ## Development
 
+Copy `.env.example` to `.env` and edit the value if you want to point the
+interface at a different API endpoint.
+
 ```bash
 # install dependencies
 npm install
+# copy environment template
+cp .env.example .env
 # start dev server
-VITE_API_BASE_URL=http://localhost:8080 npm run dev
+npm run dev
 ```
 
 Open `http://localhost:5173` in your browser and start analyzing URLs.
@@ -18,9 +23,11 @@ Open `http://localhost:5173` in your browser and start analyzing URLs.
 ```bash
 # create optimized production build
 npm run build
-# serve the static files
-VITE_API_BASE_URL=http://localhost:8080 npm start
+# ensure .env points at your API
+npm start
 ```
 
-The `VITE_API_BASE_URL` variable tells the frontend where the API is running. By
-default the Docker setup exposes the gateway at `http://localhost:8080`.
+The `VITE_API_BASE_URL` value in `.env` tells the frontend where the API is
+running. The template points to the production deployment at
+`https://unitron-production.up.railway.app`. For local development use
+`http://localhost:8080`.
