@@ -17,6 +17,10 @@ curl -X POST http://localhost:8082/analyze \
 
 Run this service locally via Docker Compose or by setting `SERVICE=property` and executing `uvicorn app:app`.
 
+The `Dockerfile` in this directory assumes the build context is the repository root.
+This lets paths such as `services/property/requirements.txt` resolve correctly.
+If you instead set the context to `services/property`, remove the `services/property/` prefix from the `COPY` instructions.
+
 The gateway aggregates this DNS check with martech analysis. Send
 `POST /analyze` to the gateway with `{ "url": "https://example.com" }`
 for combined results. The gateway respects `MARTECH_URL` and `PROPERTY_URL`
