@@ -6,10 +6,21 @@ from typing import Any, Dict
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
 app = FastAPI()
+
+# Allow calls from the UI hosted on a different origin during development
+origins = [os.getenv("VITE_API_BASE_URL", "*")]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Default service URLs used in local docker-compose
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
