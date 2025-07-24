@@ -81,10 +81,30 @@ def test_analyze_handles_request_error(monkeypatch):
     assert resp.json() == {"detail": "martech service unavailable"}
 
 
-def _set_mock_client(monkeypatch, handler: httpx.MockTransport) -> None:
+def _set_mock_client(monkeypatch, handler: httpx.MockTransport, hook=None) -> None:
     class DummyClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
+            if hook is not None:
+                hook(kwargs)
             super().__init__(transport=handler, *args, **kwargs)
+
+    monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
+
+
+def _set_stub_client(monkeypatch, hook) -> None:
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            hook(kwargs)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def get(self, url):
+            request = httpx.Request("GET", url)
+            return httpx.Response(200, text="<html></html>", request=request)
 
     monkeypatch.setattr("martech.app.httpx.AsyncClient", DummyClient)
 
@@ -112,3 +132,33 @@ def test_diagnose_failure(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert "error" in data
+
+
+def test_proxy_usage(monkeypatch):
+    captured = {}
+
+    def hook(kwargs: dict) -> None:
+        captured["proxies"] = kwargs.get("proxies")
+
+    _set_stub_client(monkeypatch, hook)
+    monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
+
+    r = client.get("/diagnose")
+    assert r.status_code == 200
+    assert captured["proxies"] == "http://proxy.local"
+
+
+def test_analyze_uses_proxy(monkeypatch):
+    client.get("/ready")
+
+    captured = {}
+
+    def hook(kwargs: dict) -> None:
+        captured["proxies"] = kwargs.get("proxies")
+
+    _set_stub_client(monkeypatch, hook)
+    monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
+
+    r = client.post("/analyze", json={"url": "http://example.com"})
+    assert r.status_code == 200
+    assert captured["proxies"] == "http://proxy.local"
