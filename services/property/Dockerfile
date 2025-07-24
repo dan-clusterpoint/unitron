@@ -3,12 +3,13 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 ENV PORT=8000
 
+ARG SERVICE_PATH=services/property
+
 WORKDIR /app
 
 # This Dockerfile expects the repository root as the build context.
-# If you build from `services/property`, remove the `services/property/` prefix
-# from COPY instructions.
-COPY services/property/requirements.txt ./requirements.txt
+# Set the SERVICE_PATH build arg to '.' when building from `services/property`.
+COPY ${SERVICE_PATH}/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source after installing dependencies
