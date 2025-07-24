@@ -92,7 +92,7 @@ the **Variables** tab for the `martech` service.
 ## Build-stability contract 🔒
 
 1. Zero network calls in `Dockerfile`.
-2. `uvicorn app:app` **must start < 2 s** locally and on Railway.
+2. `uvicorn services.gateway.app:app` **must start < 2 s** locally and on Railway.
 3. CI blocks merges if lint/type/test fail.
 
 ## Architecture overview

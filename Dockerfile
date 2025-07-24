@@ -12,7 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code
 COPY src/ /app/src
 COPY services/ /app/services
-COPY app.py /app/
 COPY fingerprints.yaml /app/
 ENV PYTHONPATH=/app/src:/app/services:/app
 
@@ -25,4 +24,4 @@ HEALTHCHECK --interval=2s --timeout=2s --start-period=5s \
 
 # Default to gateway; override SERVICE=martech for that service
 # Use a shell to expand $PORT so Railway can inject the port number
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn services.${SERVICE:-gateway}.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
