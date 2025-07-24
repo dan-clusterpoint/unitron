@@ -97,8 +97,6 @@ def _set_mock_client(
 def _set_stub_client(monkeypatch, hook) -> None:
     class DummyClient:
         def __init__(self, *args, **kwargs):
-            pass
-        def __init__(self, *args, **kwargs):
             hook(kwargs)
 
         async def __aenter__(self):
@@ -173,10 +171,12 @@ def test_analyze_uses_proxy(monkeypatch):
         "https://": "http://proxy.local",
     }
 
+
 def test_diagnose_mocked_asyncclient_success(monkeypatch):
     class DummyClient:
         def __init__(self, *args, **kwargs):
             pass
+
         async def __aenter__(self):
             return self
 
@@ -198,6 +198,7 @@ def test_diagnose_mocked_asyncclient_failure(monkeypatch):
     class DummyClient:
         def __init__(self, *args, **kwargs):
             pass
+
         async def __aenter__(self):
             return self
 
