@@ -1,7 +1,11 @@
 version: "3.9"
 services:
   gateway:
-    build: .
+    build:
+      context: .
+      dockerfile: services/python.Dockerfile
+      args:
+        SERVICE: gateway
     environment:
       - SERVICE=gateway
       - PORT=8000
@@ -12,7 +16,11 @@ services:
       - "8080:8000"
 
   martech:
-    build: .
+    build:
+      context: .
+      dockerfile: services/python.Dockerfile
+      args:
+        SERVICE: martech
     environment:
       - SERVICE=martech
       - PORT=8000
@@ -27,7 +35,9 @@ services:
   property:
     build:
       context: .
-      dockerfile: services/property/Dockerfile
+      dockerfile: services/python.Dockerfile
+      args:
+        SERVICE: property
     environment:
       - SERVICE=property
       - PORT=8000
