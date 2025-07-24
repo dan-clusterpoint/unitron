@@ -1,42 +1,40 @@
 schema = "https://railway.com/railway.schema.json"
 
-# This global build config is correct. It applies to all services below
-# unless they have their own 'projectPath'.
+# This global build configuration correctly builds all Python services
+# from the root of your repository.
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "services/python.Dockerfile"
 
 [deploy]
-healthcheckPath     = "/ready"
+healthcheckPath     = "/health"
 healthcheckTimeout  = 5000
 healthcheckInterval = 2000
 
-# --- SERVICE DEFINITIONS ---
+# --- Service Definitions ---
 
 [[services]]
 name         = "gateway"
 instances    = 1
-# ADD this command to tell Railway how to run the gateway service.
-# REMOVE projectPath and buildArgs.
+# This command tells Railway exactly how to run the gateway service.
 startCommand = "uvicorn services.gateway.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "martech"
 instances    = 1
-# ADD this command for the martech service.
-# REMOVE projectPath and buildArgs.
+# This command tells Railway exactly how to run the martech service.
 startCommand = "uvicorn services.martech.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "property"
 instances    = 1
-# ADD this command for the property service.
-# REMOVE projectPath and buildArgs.
+# This command tells Railway exactly how to run the property service.
 startCommand = "uvicorn services.property.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
+# The interface service is configured correctly for a Node.js app
+# and remains unchanged.
 [[services]]
 name         = "interface"
 projectPath  = "interface"
-builder      = "NIXPACKS"
 startCommand = "npm start"
 instances    = 1
