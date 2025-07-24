@@ -17,10 +17,15 @@ curl -X POST http://localhost:8082/analyze \
 
 Run this service locally via Docker Compose or by setting `SERVICE=property` and executing `uvicorn app:app`.
 
-The `Dockerfile` in this directory assumes the build context is the repository root.
-This lets paths such as `services/property/requirements.txt` resolve correctly.
-If you instead set the context to `services/property`, remove the `services/property/` prefix from the `COPY` instructions.
-Railway builds this service from the repository root (`projectPath = "."` in `railway.toml`), so the existing `COPY` paths are valid.
+The `Dockerfile` works with either the repository root or `services/property` as the build context.
+It defines a `SERVICE_PATH` build argument (default `services/property`) used in `COPY` instructions.
+When building from within `services/property`, override this argument:
+
+```bash
+docker build --build-arg SERVICE_PATH=. .
+```
+
+Railway builds this service from the repository root (`projectPath = "."` in `railway.toml`), so no override is needed there.
 
 The gateway aggregates this DNS check with martech analysis. Send
 `POST /analyze` to the gateway with `{ "url": "https://example.com" }`
