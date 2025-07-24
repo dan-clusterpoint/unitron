@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-import re
+from urllib.parse import urlparse
 import socket
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from shared.utils import normalize_url
 from starlette.responses import JSONResponse
 
-DOMAIN_RE = re.compile(r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 
 app = FastAPI()
 
@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 
-class AnalyzeRequest(BaseModel):
+class RawAnalyzeRequest(BaseModel):
     domain: str
 
 
@@ -51,13 +51,20 @@ async def ready() -> ReadyResponse:
 
 
 @app.post("/analyze")
-async def analyze(req: AnalyzeRequest) -> JSONResponse:
-    domain = req.domain.strip().lower()
-    if not DOMAIN_RE.fullmatch(domain):
+async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
+    try:
+        clean_url = normalize_url(req.domain)
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="Invalid domain")
+    domain = urlparse(clean_url).hostname
+    if not domain:
         raise HTTPException(status_code=400, detail="Invalid domain")
 
+    domain = domain.lower()
     bare = domain
-    www = f"www.{domain}"
+    if domain.startswith("www."):
+        bare = domain[4:]
+    www = f"www.{bare}"
     results = {bare: _lookup(bare), www: _lookup(www)}
 
     resolved = [d for d, info in results.items() if info]
