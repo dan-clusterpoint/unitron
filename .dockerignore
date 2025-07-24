@@ -17,10 +17,15 @@ tests/
 interface/node_modules/
 
 # Other unneeded files
-Dockerfile
 devcontainer.json
 *.md
 *.yaml
 !fingerprints.yaml
 *.yml
+!requirements.txt
+!**/requirements.txt
+!services/**/Dockerfile
 *.toml
+!railway.toml
+!pyproject.toml
+!services/python.Dockerfile
