@@ -24,14 +24,16 @@ test('shows loading spinner and displays result', async () => {
     degraded: false,
   }
   server.use(
-    http.post('/analyze', async () => {
+    http.post('/analyze', async ({ request }) => {
+      const body = await request.json()
+      expect(body).toEqual({ url: 'https://example.com' })
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json(full)
     })
   )
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
-  await userEvent.type(input, 'https://example.com')
+  await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await waitFor(() =>
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
@@ -41,10 +43,16 @@ test('shows loading spinner and displays result', async () => {
 })
 
 test('shows error banner when request fails', async () => {
-  server.use(http.post('/analyze', () => new Response(null, { status: 500 })))
+  server.use(
+    http.post('/analyze', async ({ request }) => {
+      const body = await request.json()
+      expect(body).toEqual({ url: 'https://example.com' })
+      return new Response(null, { status: 500 })
+    })
+  )
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
-  await userEvent.type(input, 'https://example.com')
+  await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await screen.findByText('Failed to analyze. Please try again.')
   screen.getByText('HTTP 500')
@@ -65,11 +73,15 @@ test('shows degraded banner when martech is null', async () => {
     degraded: true,
   }
   server.use(
-    http.post('/analyze', () => Response.json(partial))
+    http.post('/analyze', async ({ request }) => {
+      const body = await request.json()
+      expect(body).toEqual({ url: 'https://partial.com' })
+      return Response.json(partial)
+    })
   )
   render(<App />)
   const input = screen.getByPlaceholderText('https://example.com')
-  await userEvent.type(input, 'https://partial.com')
+  await userEvent.type(input, 'partial.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await screen.findByText('partial.com')
   await screen.findByText(/partial results/i)
