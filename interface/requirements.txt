@@ -1,6 +1,5 @@
-# requirements.txt (place at repo root)
-# Unified dependencies for all Python services (gateway, property, martech)
-# Using this single file lets Docker COPY ./requirements.txt no matter the build context.
+# Uses the repository root requirements.txt so Docker COPY always works
+# for any service build context.
 
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
