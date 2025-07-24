@@ -43,7 +43,7 @@ async def health() -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
-@app.get("/ready", response_model=ReadyResponse)
+@app.get("/ready", response_model=ReadyResponse, tags=["Service"])
 async def ready() -> ReadyResponse:
     return ReadyResponse(ready=True)
 
