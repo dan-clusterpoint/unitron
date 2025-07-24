@@ -2,6 +2,11 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 
+# Accept API base URL at build time so the frontend can be compiled with the
+# correct endpoint baked in.
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Install dependencies
 COPY package.json package-lock.json ./
 # Clean up stray cache folder if present
