@@ -5,16 +5,19 @@ ENV PORT=8000
 
 WORKDIR /app
 
-# Install dependencies from root project
-COPY pyproject.toml poetry.lock* /app/
+# Copy the entire repository so paths resolve correctly even when the build
+# context is ``services/property``.
+COPY ../.. /app
+ENV PYTHONPATH=/app
+
+# Install dependencies from the project files that were copied in the previous
+# step.
 RUN pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-root
 
-# Copy the property service and shared modules
-COPY src/shared /app/shared
-COPY services/property /app/property
-ENV PYTHONPATH=/app
+# Optionally list files for troubleshooting
+RUN ls -R /app
 
 EXPOSE 8000
 
