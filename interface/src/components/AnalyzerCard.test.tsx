@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { test, expect } from 'vitest'
-import AnalyzerCard from './AnalyzerCard'
+import AnalyzerCard, { type AnalyzeResult } from './AnalyzerCard'
 
 test('shows spinner when loading', () => {
   const { container } = render(
@@ -32,7 +32,7 @@ test('displays error message', () => {
   expect(screen.getByText('oops')).toBeInTheDocument()
 })
 
-const result = {
+const result: AnalyzeResult = {
   property: {
     domains: ['example.com'],
     confidence: 1,
