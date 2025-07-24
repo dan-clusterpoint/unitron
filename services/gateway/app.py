@@ -4,7 +4,7 @@ import time
 from urllib.parse import urlparse
 from typing import Any, Dict
 
-from shared.utils import normalize_url
+from services.shared.utils import normalize_url
 
 import httpx
 from fastapi import FastAPI, HTTPException

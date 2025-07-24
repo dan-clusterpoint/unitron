@@ -6,7 +6,7 @@ import socket
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from shared.utils import normalize_url
+from services.shared.utils import normalize_url
 from starlette.responses import JSONResponse
 
 

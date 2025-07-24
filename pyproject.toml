@@ -3,16 +3,16 @@ name = "unitron"
 version = "0.1.0"
 
 [[tool.poetry.packages]]
-include = "gateway"
-from = "src"
+include = "services/gateway"
+from = "."
 
 [[tool.poetry.packages]]
-include = "martech"
-from = "src"
+include = "services/martech"
+from = "."
 
 [[tool.poetry.packages]]
-include = "shared"
-from = "src"
+include = "services/shared"
+from = "."
 
 [[tool.poetry.packages]]
 include = "property"
