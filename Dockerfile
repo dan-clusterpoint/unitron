@@ -4,12 +4,10 @@ ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 ENV PORT=8000
 
 WORKDIR /app
-COPY pyproject.toml poetry.lock* /app/
+COPY services/gateway/requirements.txt ./requirements.txt
 
 # Install dependencies
-RUN pip install poetry \
-  && poetry config virtualenvs.create false \
-  && poetry install --only main --no-root
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY src/ /app/src
