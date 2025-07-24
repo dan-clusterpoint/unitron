@@ -121,7 +121,7 @@ def test_diagnose_success(monkeypatch):
 
     r = client.get("/diagnose")
     assert r.status_code == 200
-    assert r.json() == {"success": True}
+    assert r.json() == {"success": True, "error": None}
 
 
 def test_diagnose_failure(monkeypatch):
@@ -133,8 +133,7 @@ def test_diagnose_failure(monkeypatch):
 
     r = client.get("/diagnose")
     assert r.status_code == 200
-    data = r.json()
-    assert "error" in data
+    assert r.json() == {"success": False, "error": "fail"}
 
 
 def test_proxy_usage(monkeypatch):
