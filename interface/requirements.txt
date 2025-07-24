@@ -1,0 +1,3 @@
+# This file exists solely to satisfy deployment systems expecting
+# a requirements.txt for every service. The Interface service is
+# built with Node, so it has no Python dependencies.
