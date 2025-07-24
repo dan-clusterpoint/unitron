@@ -7,18 +7,15 @@ WORKDIR /app
 
 # Copy the entire repository so paths resolve correctly even when the build
 # context is ``services/property``.
-COPY ../.. /app
+COPY services/property/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source after installing dependencies
+COPY . /app
 ENV PYTHONPATH=/app
 
-# Install dependencies from the project files that were copied in the previous
-# step.
-RUN pip install --no-cache-dir poetry==1.7.1 \
-    && poetry config virtualenvs.create false \
-    && poetry install --only main --no-root
-
-# Optionally list files for troubleshooting
-RUN ls -R /app
-
 EXPOSE 8000
+HEALTHCHECK --interval=2s --timeout=2s --start-period=5s \
+  CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
 CMD ["sh", "-c", "uvicorn property.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
