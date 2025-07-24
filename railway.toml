@@ -12,13 +12,13 @@ healthcheckInterval = 2000
 [[services]]
 name         = "gateway"
 projectPath  = "."
-startCommand = "sh -c \"SERVICE=gateway uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+startCommand = "sh -c \"uvicorn services.gateway.app:app --host 0.0.0.0 --port ${PORT:-8000}\""
 instances    = 1
 
 [[services]]
 name         = "martech"
 projectPath  = "."
-startCommand = "sh -c \"SERVICE=martech uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}\""
+startCommand = "sh -c \"uvicorn services.martech.app:app --host 0.0.0.0 --port ${PORT:-8000}\""
 instances    = 1
 
 [[services]]

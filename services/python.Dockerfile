@@ -20,7 +20,6 @@ RUN if [ -f /tmp/requirements.txt ]; then \
 # Copy application code
 COPY src/ /app/src
 COPY services/ /app/services
-COPY app.py /app/
 COPY fingerprints.yaml /app/
 
 EXPOSE ${PORT}

@@ -15,7 +15,7 @@ curl -X POST http://localhost:8082/analyze \
   -d '{"domain": "example.com"}'
 ```
 
-Run this service locally via Docker Compose or by setting `SERVICE=property` and executing `uvicorn app:app`.
+Run this service locally via Docker Compose or by executing `uvicorn property.app:app`.
 
 The `Dockerfile` expects the repository root as the build context. It copies the shared
 `requirements.txt` before installing dependencies and then adds the service code.
