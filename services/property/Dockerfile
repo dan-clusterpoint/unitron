@@ -5,15 +5,17 @@ ENV PORT=8000
 
 WORKDIR /app
 
-# Install dependencies
-COPY pyproject.toml poetry.lock* ./
+# Install dependencies from root project
+COPY pyproject.toml poetry.lock* /app/
 RUN pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-root
 
-# Copy application code
-COPY . /app
+# Copy the property service and shared modules
+COPY src/shared /app/shared
+COPY services/property /app/property
+ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn property.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

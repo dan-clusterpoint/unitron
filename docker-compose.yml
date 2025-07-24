@@ -26,7 +26,8 @@ services:
 
   property:
     build:
-      context: ./services/property
+      context: .
+      dockerfile: services/property/Dockerfile
     environment:
       - SERVICE=property
       - PORT=8000
