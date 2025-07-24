@@ -1,21 +1,23 @@
 
-
 def ping() -> bool:
     return True
 
 
 def normalize_url(url: str) -> str:
-    """Normalize a URL by adding scheme and normalizing case/slashes."""
-    import re
+    """Return a cleaned version of ``url``.
+
+    The hostname is lower‑cased and any trailing slash is removed. If no scheme
+    is present ``https://`` is assumed.
+    """
     from urllib.parse import urlparse, urlunparse
 
     cleaned = url.strip()
-    if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", cleaned):
+    if "://" not in cleaned:
         cleaned = "https://" + cleaned
 
     parsed = urlparse(cleaned)
-    scheme = parsed.scheme
+    scheme = parsed.scheme or "https"
     netloc = parsed.netloc.lower()
     path = parsed.path.rstrip("/")
-    normalized = urlunparse((scheme, netloc, path, "", "", ""))
-    return normalized
+
+    return urlunparse((scheme, netloc, path, "", "", ""))
