@@ -4,10 +4,12 @@ import time
 from urllib.parse import urlparse
 from typing import Any, Dict
 
+from shared.utils import normalize_url
+
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 from starlette.responses import JSONResponse
 
 app = FastAPI()
@@ -60,6 +62,13 @@ def record_failure(service: str, status_code: int | None = None) -> None:
 class AnalyzeRequest(BaseModel):
     url: str
     debug: bool | None = False
+
+    @root_validator(pre=True)
+    def _allow_domain(cls, values: dict) -> dict:  # noqa: D401
+        """Allow legacy ``domain`` field as alias for ``url``."""
+        if "url" not in values and "domain" in values:
+            values["url"] = values.pop("domain")
+        return values
 
 
 async def _get_with_retry(url: str, service: str) -> bool:
@@ -147,13 +156,14 @@ async def _post_with_retry(
 
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest) -> JSONResponse:
-    domain = urlparse(req.url).hostname
+    clean_url = normalize_url(req.url)
+    domain = urlparse(clean_url).hostname
     if not domain:
         raise HTTPException(status_code=400, detail="Invalid URL")
 
     martech_task = _post_with_retry(
         f"{MARTECH_URL}/analyze",
-        {"url": req.url, "debug": req.debug},
+        {"url": clean_url, "debug": req.debug},
         "martech",
     )
     property_task = _post_with_retry(
