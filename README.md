@@ -131,3 +131,15 @@ Yes. Visual Studio Code will prompt to reopen in container, giving you a ready-t
 Run `make lint` and `make test` to ensure your environment passes checks. If issues persist, ensure your Docker daemon has access to network for dependency downloads during the first build.
 
 Happy hacking!
+
+### Proxy & Connectivity
+Set a proxy for outbound HTTP traffic if needed:
+
+```bash
+export OUTBOUND_HTTP_PROXY="http://my-proxy:3128"
+```
+
+Use `GET /diagnose` to verify that the service can reach the internet.
+Successful example response: `{"success": true}`.
+On failure it returns `{"success": false, "error": "..."}`.
+
