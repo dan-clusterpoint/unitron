@@ -25,6 +25,7 @@ Open `http://localhost:5173` in your browser and start analyzing URLs.
 npm run build
 # ensure .env points at your API
 npm start
+# start script uses `serve -s build` to host the static files
 ```
 
 The `VITE_API_BASE_URL` value in `.env` tells the frontend where the API is
