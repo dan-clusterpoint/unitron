@@ -5,8 +5,9 @@ ENV PORT=8000
 
 WORKDIR /app
 
-# Copy the entire repository so paths resolve correctly even when the build
-# context is ``services/property``.
+# This Dockerfile expects the repository root as the build context.
+# If you build from `services/property`, remove the `services/property/` prefix
+# from COPY instructions.
 COPY services/property/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
