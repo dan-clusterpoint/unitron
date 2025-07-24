@@ -31,10 +31,15 @@ function renderList(items?: string[]) {
 
 export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: AnalyzerProps) {
   if (result) {
-    const { property, martech } = result
+    const { property, martech, degraded } = result
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
+        {degraded && (
+          <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
+            Partial results shown due to degraded analysis.
+          </div>
+        )}
         {property && (
           <>
             <div className="bg-gray-50 p-4 rounded mb-4">
