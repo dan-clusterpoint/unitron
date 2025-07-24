@@ -2,6 +2,7 @@ import asyncio
 import time
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 import gateway.app as gateway_app
@@ -169,3 +170,33 @@ def test_analyze_error_detail_mentions_service(monkeypatch):
     r = client.post("/analyze", json={"url": "https://example.com"})
     assert r.status_code == 502
     assert r.json()["detail"] == "martech service unavailable"
+
+
+@pytest.mark.parametrize(
+    "input_url,expected_url,expected_domain",
+    [
+        ("example.com", "https://example.com", "example.com"),
+        ("www.foo.org/", "https://www.foo.org", "www.foo.org"),
+    ],
+)
+def test_analyze_normalizes_url(monkeypatch, input_url, expected_url, expected_domain):
+    captured: dict[str, dict] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        if "martech" in str(request.url):
+            captured["martech"] = json.loads(request.content.decode())
+            return httpx.Response(200, json={})
+        if "property" in str(request.url):
+            captured["property"] = json.loads(request.content.decode())
+            return httpx.Response(200, json={"domains": [expected_domain]})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": input_url})
+    assert r.status_code == 200
+    assert captured["martech"]["url"] == expected_url
+    assert captured["property"]["domain"] == expected_domain
