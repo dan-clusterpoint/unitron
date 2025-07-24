@@ -12,9 +12,7 @@
     "start": "serve -s build -l \"${PORT:-8000}\""
   },
   "dependencies": {
-    "@heroicons/react": "^2.0.18",
-    "express": "^5.1.0",
-    "react": "^19.1.0",
+    "@heroicons/react": "^2.0.18",    "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "serve": "^14.2.4",
     "clsx": "^1.2.1"
