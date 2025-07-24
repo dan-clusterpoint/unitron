@@ -3,7 +3,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: services/python.Dockerfile
+      dockerfile: Dockerfile
       args:
         SERVICE: gateway
     environment:
@@ -18,7 +18,7 @@ services:
   martech:
     build:
       context: .
-      dockerfile: services/python.Dockerfile
+      dockerfile: Dockerfile
       args:
         SERVICE: martech
     environment:
@@ -35,7 +35,7 @@ services:
   property:
     build:
       context: .
-      dockerfile: services/python.Dockerfile
+      dockerfile: Dockerfile
       args:
         SERVICE: property
     environment:

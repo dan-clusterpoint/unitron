@@ -4,7 +4,7 @@ schema = "https://railway.com/railway.schema.json"
 # from the root of your repository.
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "services/python.Dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath     = "/health"
