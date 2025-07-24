@@ -71,6 +71,7 @@ def test_options_analyze():
 
 def test_analyze_handles_request_error(monkeypatch):
     client.get('/ready')
+
     def boom(*args, **kwargs):
         req = httpx.Request("GET", "http://example.com")
         raise httpx.RequestError("fail", request=req)
@@ -81,7 +82,9 @@ def test_analyze_handles_request_error(monkeypatch):
     assert resp.json() == {"detail": "martech service unavailable"}
 
 
-def _set_mock_client(monkeypatch, handler: httpx.MockTransport, hook=None) -> None:
+def _set_mock_client(
+    monkeypatch, handler: httpx.MockTransport, hook=None
+) -> None:
     class DummyClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
             if hook is not None:
