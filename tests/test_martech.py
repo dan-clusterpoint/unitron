@@ -42,7 +42,7 @@ def test_ready_and_analyze():
     try:
         ready = client.get('/ready')
         assert ready.status_code == 200
-        assert ready.json()['ready'] is True
+        assert ready.json() == {'ready': True}
 
         os.environ['OUTBOUND_HTTP_PROXY'] = ''
         os.environ['HTTP_PROXY'] = ''
