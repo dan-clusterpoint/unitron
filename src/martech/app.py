@@ -92,7 +92,10 @@ async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
     )
     client_opts: Dict[str, Any] = {"timeout": 10}
     if proxy:
-        client_opts["proxies"] = proxy
+        client_opts["proxies"] = {
+            "http://": proxy,
+            "https://": proxy,
+        }
     async with httpx.AsyncClient(**client_opts) as client:
         html = await _fetch(client, url)
         scripts = await _extract_scripts(client, html)
@@ -170,7 +173,10 @@ async def diagnose() -> JSONResponse:
     )
     client_opts: Dict[str, Any] = {"timeout": 5}
     if proxy:
-        client_opts["proxies"] = proxy
+        client_opts["proxies"] = {
+            "http://": proxy,
+            "https://": proxy,
+        }
     try:
         async with httpx.AsyncClient(**client_opts) as client:
             await client.get("https://example.com")

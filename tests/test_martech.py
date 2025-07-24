@@ -148,7 +148,10 @@ def test_proxy_usage(monkeypatch):
 
     r = client.get("/diagnose")
     assert r.status_code == 200
-    assert captured["proxies"] == "http://proxy.local"
+    assert captured["proxies"] == {
+        "http://": "http://proxy.local",
+        "https://": "http://proxy.local",
+    }
 
 
 def test_analyze_uses_proxy(monkeypatch):
@@ -164,4 +167,7 @@ def test_analyze_uses_proxy(monkeypatch):
 
     r = client.post("/analyze", json={"url": "http://example.com"})
     assert r.status_code == 200
-    assert captured["proxies"] == "http://proxy.local"
+    assert captured["proxies"] == {
+        "http://": "http://proxy.local",
+        "https://": "http://proxy.local",
+    }
