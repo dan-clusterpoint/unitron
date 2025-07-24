@@ -1,3 +1,19 @@
-# This file exists solely to satisfy deployment systems expecting
-# a requirements.txt for every service. The Interface service is
-# built with Node, so it has no Python dependencies.
+# requirements.txt (place at repo root)
+# Unified dependencies for all Python services (gateway, property, martech)
+# Using this single file lets Docker COPY ./requirements.txt no matter the build context.
+
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+httpx==0.27.0
+pydantic==2.7.1
+pydantic-settings==2.3.4
+python-dotenv==1.0.1
+beautifulsoup4==4.12.3
+lxml==5.2.2
+tldextract==5.1.2
+pyyaml==6.0.1
+orjson==3.10.6
+aiofiles==23.2.1
+uvloop==0.19.0
+async-timeout==4.0.3
+requests==2.32.3
