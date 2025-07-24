@@ -24,6 +24,7 @@ instances    = 1
 [[services]]
 name           = "property"
 instances      = 1
+projectPath    = "."
 
 [[services]]
 name         = "interface"
