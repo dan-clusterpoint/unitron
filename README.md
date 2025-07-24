@@ -38,6 +38,7 @@ docker compose --profile ui up --build
 The `ui` profile builds the `interface` service defined in `docker-compose.yml`.
 When omitted, the gateway, martech, and property APIs run without the frontend.
 The interface reads the `VITE_API_BASE_URL` variable to reach the gateway (default `http://localhost:8080`).
+Running `docker compose --profile ui up` sets this variable automatically so the frontend talks to the locally exposed gateway on port 8080.
 
 ### Frontend build variable
 
