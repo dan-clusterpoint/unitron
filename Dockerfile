@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 ENV PORT=8000
 
 WORKDIR /app
-COPY services/gateway/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
