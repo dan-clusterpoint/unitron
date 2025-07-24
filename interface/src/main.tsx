@@ -1,3 +1,9 @@
+// Build-time sanity check for API base URL
+console.log(
+  '🛠 BUILD VITE_API_BASE_URL →',
+  import.meta.env.VITE_API_BASE_URL,
+)
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
