@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useFadeInOnView, useScrollPosition } from './hooks'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { apiFetch } from './api'
+import { apiFetch, normalizeUrl } from './api'
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -46,10 +46,11 @@ export default function App() {
     setResult(null)
     setLoading(true)
     try {
+      const clean = normalizeUrl(url)
       const data = await apiFetch<AnalyzeResult>('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: clean }),
       })
       setResult(data)
     } catch (err) {
