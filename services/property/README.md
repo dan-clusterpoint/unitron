@@ -17,10 +17,10 @@ curl -X POST http://localhost:8082/analyze \
 
 Run this service locally via Docker Compose or by executing `uvicorn property.app:app`.
 
-The `Dockerfile` expects the repository root as the build context. It copies the shared
-`requirements.txt` before installing dependencies and then adds the service code.
-Railway builds this service from the repository root (`projectPath = "."` in `railway.toml`),
-so no special build arguments are needed.
+All Python APIs build from `services/python.Dockerfile` with the repository root as the
+context. Set the `SERVICE` build argument to `property` (Docker Compose handles this) and
+the container will start `services.property.app`. The Dockerfile defines a healthcheck that
+queries `/health` by default.
 
 The gateway aggregates this DNS check with martech analysis. Send
 `POST /analyze` to the gateway with `{ "url": "https://example.com" }`
