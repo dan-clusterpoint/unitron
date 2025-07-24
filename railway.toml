@@ -1,5 +1,7 @@
 schema = "https://railway.com/railway.schema.json"
 
+# This global build config is correct. It applies to all services below
+# unless they have their own 'projectPath'.
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "services/python.Dockerfile"
@@ -9,33 +11,32 @@ healthcheckPath     = "/health"
 healthcheckTimeout  = 5000
 healthcheckInterval = 2000
 
+# --- SERVICE DEFINITIONS ---
+
 [[services]]
 name         = "gateway"
-projectPath  = "."
 instances    = 1
-healthcheckPath = "/health"
-[services.buildArgs]
-SERVICE = "gateway"
+# ADD this command to tell Railway how to run the gateway service.
+# REMOVE projectPath and buildArgs.
+startCommand = "uvicorn services.gateway.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "martech"
-projectPath  = "."
 instances    = 1
-healthcheckPath = "/health"
-[services.buildArgs]
-SERVICE = "martech"
+# ADD this command for the martech service.
+# REMOVE projectPath and buildArgs.
+startCommand = "uvicorn services.martech.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
-name           = "property"
-instances      = 1
-projectPath    = "."
-healthcheckPath = "/health"
-[services.buildArgs]
-SERVICE = "property"
+name         = "property"
+instances    = 1
+# ADD this command for the property service.
+# REMOVE projectPath and buildArgs.
+startCommand = "uvicorn services.property.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "interface"
+# This service is correct because it's not a Python service and needs its own path.
 projectPath  = "interface"
 startCommand = "npm start"
 instances    = 1
-healthcheckPath = "/health"
