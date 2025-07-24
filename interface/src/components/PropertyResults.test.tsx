@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { test, expect } from 'vitest'
+import { test } from 'vitest'
 import PropertyResults from './PropertyResults'
 
 const property = {
