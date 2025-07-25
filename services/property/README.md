@@ -16,6 +16,8 @@ curl -X POST http://localhost:8082/analyze \
 ```
 
 Run this service locally via Docker Compose or by executing `uvicorn services.property.app:app`.
+Ensure that you run the command from the repository root or set `PYTHONPATH=$PWD/services:$PWD`
+so the `services` package can be resolved.
 
 All Python APIs build from the `Dockerfile` at the repository root with the
 repository root as the context. Set the `SERVICE` build argument to `property`
