@@ -201,4 +201,5 @@ def test_analyze_normalizes_url(
     r = client.post("/analyze", json={"url": input_url})
     assert r.status_code == 200
     assert captured["martech"]["url"] == expected_url
+    assert captured["martech"]["force"] is False
     assert captured["property"]["domain"] == expected_domain

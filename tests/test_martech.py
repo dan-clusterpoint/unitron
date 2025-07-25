@@ -290,3 +290,25 @@ async def test_extract_scripts_parses_gtm(monkeypatch):
     assert "https://www.googletagmanager.com/gtm.js" in urls
     assert "https://cdn.example.com/inner.js" in urls
     assert inline == []
+
+
+def test_force_bypasses_cache(monkeypatch):
+    calls = {"count": 0}
+
+    async def fake_analyze_url(url: str, debug: bool = False, headless: bool = False):
+        calls["count"] += 1
+        return {"core": {"GA": {"confidence": 1.0, "evidence": {}}}}
+
+    monkeypatch.setattr("services.martech.app.analyze_url", fake_analyze_url)
+
+    r1 = client.post("/analyze", json={"url": "http://a.com"})
+    assert r1.status_code == 200
+    assert calls["count"] == 1
+
+    r2 = client.post("/analyze", json={"url": "http://a.com"})
+    assert r2.status_code == 200
+    assert calls["count"] == 1
+
+    r3 = client.post("/analyze", json={"url": "http://a.com", "force": True})
+    assert r3.status_code == 200
+    assert calls["count"] == 2

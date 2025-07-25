@@ -44,6 +44,7 @@ class AnalyzeRequest(BaseModel):
     url: str
     debug: bool | None = False
     headless: bool | None = False
+    force: bool | None = False
 
 
 class DiagnoseResponse(BaseModel):
@@ -220,7 +221,7 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
         and isinstance(entry.get("time"), float)
         and now - entry["time"] < CACHE_TTL
     )
-    if fresh and entry is not None:
+    if fresh and entry is not None and not req.force:
         result = entry["data"]
     else:
         try:

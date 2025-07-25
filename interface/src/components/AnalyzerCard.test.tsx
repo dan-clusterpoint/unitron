@@ -11,6 +11,8 @@ test('shows spinner when loading', () => {
       onAnalyze={() => {}}
       headless={false}
       setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
       loading={true}
       error=""
       result={null}
@@ -28,6 +30,8 @@ test('displays error message', () => {
       onAnalyze={() => {}}
       headless={false}
       setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
       loading={false}
       error="oops"
       result={null}
@@ -57,6 +61,8 @@ test('renders result lists', () => {
       onAnalyze={() => {}}
       headless={false}
       setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
       loading={false}
       error=""
       result={result}
@@ -75,6 +81,8 @@ test('shows degraded banner', () => {
       onAnalyze={() => {}}
       headless={false}
       setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
       loading={false}
       error=""
       result={{ ...result, degraded: true }}
