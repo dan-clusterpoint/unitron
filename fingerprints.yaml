@@ -2,6 +2,8 @@ core:
   - name: Google Analytics
     hosts:
       - "google-analytics\\.com"
+      - "googletagmanager\\.com"
+      - "www\\.googletagmanager\\.com"
     scripts:
       - "ga\\("
     cookies:
@@ -28,6 +30,9 @@ core:
   - name: Mixpanel
     hosts:
       - "mxpnl\\.com"
+      - "cdn\\.mxpnl\\.com"
+      - "mixpanel\\.com"
+      - "api\\.mixpanel\\.com"
     scripts:
       - "mixpanel\\.init"
     cookies:
@@ -36,6 +41,8 @@ core:
     hosts:
       - "amplitude\\.com"
       - "api\\.amplitude\\.com"
+      - "cdn\\.amplitude\\.com"
+      - "analytics\\.amplitude\\.com"
     scripts:
       - "amplitude\\.getInstance"
     cookies:

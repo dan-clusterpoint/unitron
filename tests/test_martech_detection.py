@@ -37,6 +37,14 @@ def random_page():
     return html, {}
 
 
+@pytest.fixture
+def ga_gtm_url():
+    html = (
+        "<script src='https://www.googletagmanager.com/gtag/js?id=G-XYZ'></script>"
+    )
+    return html, {}
+
+
 def test_detect_vendors_true_positive(segment_full):
     html, cookies = segment_full
     vendors = detect_vendors(html, cookies, [])
@@ -57,3 +65,11 @@ def test_detect_vendors_false_positive(random_page):
     html, cookies = random_page
     vendors = detect_vendors(html, cookies, [])
     assert vendors == {}
+
+
+def test_detect_ga_via_gtm(ga_gtm_url):
+    html, cookies = ga_gtm_url
+    vendors = detect_vendors(html, cookies, [])
+    ga = vendors["core"]["Google Analytics"]
+    assert pytest.approx(0.36, abs=0.01) == ga["confidence"]
+    assert len(ga["evidence"]["hosts"]) == 2
