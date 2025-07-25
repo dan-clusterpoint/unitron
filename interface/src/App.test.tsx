@@ -26,7 +26,7 @@ test('shows loading spinner and displays result', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://example.com', headless: false })
+      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false })
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json(full)
     })
@@ -46,7 +46,7 @@ test('shows error banner when request fails', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://example.com', headless: false })
+      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false })
       return new Response(null, { status: 500 })
     })
   )
@@ -75,7 +75,7 @@ test('shows degraded banner when martech is null', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://partial.com', headless: false })
+      expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false })
       return Response.json(partial)
     })
   )

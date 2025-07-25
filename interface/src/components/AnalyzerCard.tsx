@@ -18,6 +18,8 @@ export type AnalyzerProps = {
   onAnalyze: () => void
   headless: boolean
   setHeadless: (v: boolean) => void
+  force: boolean
+  setForce: (v: boolean) => void
   loading: boolean
   error: string
   result: AnalyzeResult | null
@@ -30,6 +32,8 @@ export default function AnalyzerCard({
   onAnalyze,
   headless,
   setHeadless,
+  force,
+  setForce,
   loading,
   error,
   result,
@@ -92,6 +96,15 @@ export default function AnalyzerCard({
           className="mr-2"
         />
         Enable deep scan
+      </label>
+      <label className="flex items-center mt-2 text-sm">
+        <input
+          type="checkbox"
+          checked={force}
+          onChange={(e) => setForce(e.target.checked)}
+          className="mr-2"
+        />
+        Force refresh
       </label>
     </div>
   )
