@@ -1,10 +1,10 @@
 schema = "https://railway.com/railway.schema.json"
 
-# This global build configuration correctly builds all Python services
-# from the root of your repository.
+# This global build configuration is correct. It tells Railway to use
+# the Dockerfile at the root for all services, unless overridden.
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "docker/python.Dockerfile"
+dockerfilePath = "Dockerfile.python"
 
 [deploy]
 healthcheckPath     = "/health"
@@ -16,20 +16,24 @@ healthcheckInterval = 2000
 [[services]]
 name         = "gateway"
 instances    = 1
-env = { SERVICE = "gateway" }
+# This command tells Railway how to RUN the gateway service after it's built.
+# There is no projectPath, so it uses the global build settings.
+startCommand = "uvicorn services.gateway.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "martech"
 instances    = 1
-env = { SERVICE = "martech" }
+# This command tells Railway how to RUN the martech service.
+startCommand = "uvicorn services.martech.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "property"
 instances    = 1
-env = { SERVICE = "property" }
+# This command tells Railway how to RUN the property service.
+startCommand = "uvicorn services.property.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
-# The interface service is configured correctly for a Node.js app
-# and remains unchanged.
+# The interface service is correct. Its projectPath overrides the global
+# build, which is what you want for a separate Node.js app.
 [[services]]
 name         = "interface"
 projectPath  = "interface"
