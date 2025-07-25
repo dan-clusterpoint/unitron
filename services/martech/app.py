@@ -73,7 +73,7 @@ async def _fetch(
 
 
 async def _extract_scripts(
-    client: httpx.AsyncClient, html: str
+    client: httpx.AsyncClient | None, html: str
 ) -> tuple[Set[str], List[str]]:
     soup = BeautifulSoup(html, "html.parser")
     urls: Set[str] = set()
@@ -82,14 +82,13 @@ async def _extract_scripts(
         src = tag.get("src")
         if src:
             urls.add(src)
-            if "googletagmanager.com/gtm.js" in src:
+            if "googletagmanager.com/gtm.js" in src and client is not None:
                 try:
                     gtm_html, _ = await _fetch(client, src)
-                    found_urls, found_inline = await _extract_scripts(
-                        client, gtm_html
-                    )
-                    urls.update(found_urls)
-                    inline.extend(found_inline)
+                    import re
+
+                    matches = re.findall(r"https?://[^\"']+\.js", gtm_html)
+                    urls.update(matches)
                 except Exception:
                     pass
         else:
