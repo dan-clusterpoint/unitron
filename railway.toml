@@ -1,7 +1,8 @@
 schema = "https://railway.com/railway.schema.json"
 
-# This global build configuration is correct. It tells Railway to use
-# the Dockerfile at the root for all services, unless overridden.
+# This global build configuration tells Railway to use the shared Python
+# Dockerfile for all services, unless overridden.
+
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile.python"
