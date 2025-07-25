@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Set, Sequence
+from typing import Any, Dict, List, Set
 import asyncio
 import logging
 
 import httpx
-from typing import Iterable
 import yaml  # type: ignore
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
@@ -65,14 +63,18 @@ def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
         return json.load(f)
 
 
-async def _fetch(client: httpx.AsyncClient, url: str) -> tuple[str, dict[str, str]]:
+async def _fetch(
+    client: httpx.AsyncClient, url: str
+) -> tuple[str, dict[str, str]]:
     r = await client.get(url, follow_redirects=True)
     r.raise_for_status()
     cookies = {k: v for k, v in r.cookies.items()}
     return r.text, cookies
 
 
-async def _extract_scripts(client: httpx.AsyncClient, html: str) -> tuple[Set[str], List[str]]:
+async def _extract_scripts(
+    client: httpx.AsyncClient, html: str
+) -> tuple[Set[str], List[str]]:
     soup = BeautifulSoup(html, "html.parser")
     urls: Set[str] = set()
     inline: List[str] = []
@@ -83,7 +85,9 @@ async def _extract_scripts(client: httpx.AsyncClient, html: str) -> tuple[Set[st
             if "googletagmanager.com/gtm.js" in src:
                 try:
                     gtm_html, _ = await _fetch(client, src)
-                    found_urls, found_inline = await _extract_scripts(client, gtm_html)
+                    found_urls, found_inline = await _extract_scripts(
+                        client, gtm_html
+                    )
                     urls.update(found_urls)
                     inline.extend(found_inline)
                 except Exception:
@@ -141,7 +145,9 @@ def _collect_resource_hints(html: str) -> Set[str]:
     return urls
 
 
-async def analyze_url(url: str, debug: bool = False, headless: bool = False) -> Dict[str, object]:
+async def analyze_url(
+    url: str, debug: bool = False, headless: bool = False
+) -> Dict[str, object]:
     proxy = (
         os.getenv("OUTBOUND_HTTP_PROXY")
         or os.getenv("HTTP_PROXY")
@@ -225,31 +231,25 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
                 {"detail": "martech service unavailable"}, status_code=503
             )
         cache[url] = {"time": now, "data": result}
-    return JSONResponse(result)
+
+    final_result: Dict[str, Any]
+    if req.debug:
+        final_result = result
+    else:
+        final_result = {
+            bucket: list(info.keys()) for bucket, info in result.items()
+        }
+
+    return JSONResponse(final_result)
 
 
 @app.get("/fingerprints")
-async def fingerprints_endpoint(url: str, debug: bool | None = False) -> JSONResponse:
+async def fingerprints_endpoint() -> JSONResponse:
+    """Return the loaded marketing vendor fingerprints."""
     if fingerprints is None:
         raise HTTPException(status_code=503, detail="Service not ready")
-    proxy = (
-        os.getenv("OUTBOUND_HTTP_PROXY")
-        or os.getenv("HTTP_PROXY")
-        or os.getenv("HTTPS_PROXY")
-        or None
-    )
-    client_opts: Dict[str, Any] = {"timeout": 10}
-    if proxy:
-        client_opts["proxies"] = {
-            "http://": proxy,
-            "https://": proxy,
-        }
-    async with httpx.AsyncClient(**client_opts) as client:
-        html, resp_cookies = await _fetch(client, url)
-    vendors = detect_vendors(html, resp_cookies)
-    if not debug:
-        vendors = {bucket: list(info.keys()) for bucket, info in vendors.items()}
-    return JSONResponse(vendors)
+
+    return JSONResponse(fingerprints)
 
 
 @app.get("/diagnose", response_model=DiagnoseResponse, tags=["Service"])

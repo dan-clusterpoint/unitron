@@ -77,7 +77,10 @@ The martech service exposes four endpoints:
 * `GET /ready` – returns `{"ready": true}` once the fingerprint list is loaded.
 * `GET /diagnose` – checks outbound connectivity.
 * `POST /analyze` – body `{"url": "https://example.com", "debug": false}` returns
-  detected marketing vendors grouped into four buckets.
+  detected marketing vendors grouped into four buckets. When `debug=true` the
+  response includes detection evidence for each vendor.
+* `GET /fingerprints` – returns the loaded fingerprint definitions. Useful for
+  verifying the vendor list in `fingerprints.yaml`.
 
 Fingerprint definitions live in `fingerprints.yaml`. Edit this file and restart
 the service to update the vendor list.
