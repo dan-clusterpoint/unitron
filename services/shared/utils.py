@@ -1,4 +1,7 @@
 
+from typing import Sequence
+
+
 def ping() -> bool:
     return True
 
@@ -23,9 +26,6 @@ def normalize_url(url: str) -> str:
     return urlunparse((scheme, netloc, path, "", "", ""))
 
 
-from typing import Iterable, Sequence
-
-
 def detect_vendors(
     html: str,
     cookies: dict[str, str],
@@ -33,12 +33,12 @@ def detect_vendors(
 ) -> dict[str, dict]:
     """Return detected analytics vendors with confidence scores and evidence.
 
-    ``urls`` is an optional collection of additional resource URLs (script src,
-    image sources, resource hints, etc.) that should be considered when matching
-    vendor host fingerprints.
+    ``urls`` is an optional collection of additional resource URLs (script
+    sources, image URLs, resource hints, etc.) that should be considered when
+    matching vendor host fingerprints.
     """
     import re
-    import yaml
+    import yaml  # type: ignore
     from pathlib import Path
     from bs4 import BeautifulSoup
 
@@ -50,7 +50,11 @@ def detect_vendors(
     srcs = [tag.get("src", "") for tag in soup.find_all("script")]
     if urls:
         srcs.extend(urls)
-    inline = [tag.string or "" for tag in soup.find_all("script") if not tag.get("src")]
+    inline = [
+        tag.string or ""
+        for tag in soup.find_all("script")
+        if not tag.get("src")
+    ]
 
     results: dict[str, dict] = {}
     for bucket, vendors in fingerprints.items():
@@ -58,7 +62,11 @@ def detect_vendors(
         for vendor in vendors:
             score = 0
             max_score = 0
-            evidence = {"hosts": [], "scripts": [], "cookies": []}
+            evidence: dict[str, list[str]] = {
+                "hosts": [],
+                "scripts": [],
+                "cookies": [],
+            }
 
             hosts = [re.compile(h, re.I) for h in vendor.get("hosts", [])]
             max_score += len(hosts) * 2

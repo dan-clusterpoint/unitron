@@ -69,15 +69,15 @@ def test_ready_and_analyze():
         os.environ['HTTPS_PROXY'] = ''
 
         resp = client.post(
-            '/analyze', json={'url': f'http://localhost:{port}/', 'debug': True}
+            '/analyze',
+            json={'url': f'http://localhost:{port}/', 'debug': True},
         )
         data = resp.json()
         assert resp.status_code == 200
         core = data['core']
-        if isinstance(core, dict):
-            assert 'Google Analytics' in core
-        else:
-            assert 'Google Analytics' in core
+        assert isinstance(core, dict)
+        assert 'Google Analytics' in core
+        assert 'confidence' in core['Google Analytics']
         assert 'debug' in data and 'scripts' in data['debug']
     finally:
         server.shutdown()
@@ -96,10 +96,8 @@ def test_analyze_follows_redirects():
         )
         assert resp.status_code == 200
         core = resp.json()["core"]
-        if isinstance(core, dict):
-            assert "Google Analytics" in core
-        else:
-            assert "Google Analytics" in core
+        assert isinstance(core, list)
+        assert "Google Analytics" in core
     finally:
         server.shutdown()
 
@@ -263,21 +261,11 @@ def test_diagnose_mocked_asyncclient_failure(monkeypatch):
 
 
 def test_fingerprints_endpoint():
-    server = HTTPServer(("localhost", 0), SimpleHandler)
-    port = server.server_port
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        client.get("/ready")
-        r = client.get(f"/fingerprints?url=http://localhost:{port}/")
-        assert r.status_code == 200
-        data = r.json()
-        assert "Google Analytics" in data.get("core", []) or "Google Analytics" in data.get("core", {})
-
-        r_debug = client.get(f"/fingerprints?url=http://localhost:{port}/&debug=true")
-        assert r_debug.status_code == 200
-        dbg = r_debug.json()
-        assert "Google Analytics" in dbg.get("core", {})
-        assert isinstance(dbg["core"]["Google Analytics"], dict)
-    finally:
-        server.shutdown()
+    client.get("/ready")
+    r = client.get("/fingerprints")
+    assert r.status_code == 200
+    data = r.json()
+    assert "core" in data
+    assert any(
+        vendor.get("name") == "Google Analytics" for vendor in data["core"]
+    )

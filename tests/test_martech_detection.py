@@ -57,4 +57,3 @@ def test_detect_vendors_false_positive(random_page):
     html, cookies = random_page
     vendors = detect_vendors(html, cookies, [])
     assert vendors == {}
-
