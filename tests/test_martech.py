@@ -69,7 +69,7 @@ def test_ready_and_analyze():
         os.environ['HTTPS_PROXY'] = ''
 
         resp = client.post(
-            '/analyze', json={'url': f'http://localhost:{port}/'}
+            '/analyze', json={'url': f'http://localhost:{port}/', 'debug': True}
         )
         data = resp.json()
         assert resp.status_code == 200
@@ -78,6 +78,7 @@ def test_ready_and_analyze():
             assert 'Google Analytics' in core
         else:
             assert 'Google Analytics' in core
+        assert 'debug' in data and 'scripts' in data['debug']
     finally:
         server.shutdown()
 
