@@ -28,4 +28,3 @@ devcontainer.json
 *.toml
 !railway.toml
 !pyproject.toml
-!services/python.Dockerfile
