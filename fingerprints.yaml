@@ -8,6 +8,8 @@ core:
       - "ga\\("
       - "gtag\\("
       - "window\\.dataLayer"
+      - "G-[A-Z0-9]+"
+      - "UA-[0-9A-Z-]+"
     cookies:
       - "_ga"
       - "_gid"
@@ -50,15 +52,27 @@ core:
       - "amplitude\\.getInstance"
     cookies:
       - "amp_"
-adjacent:
-  - name: Hotjar
+  - name: HubSpot
     hosts:
-      - "hotjar\\.com"
-      - "static\\.hotjar\\.com"
+      - "hubspot\\.com"
+      - "js\\.hs-analytics\\.net"
     scripts:
-      - "_hjSettings"
-    cookies:
-      - "_hjSession"
-      - "_hjIncludedInSessionSample"
+      - "_hsq.push"
+  - name: Meta Pixel
+    hosts:
+      - "connect\\.facebook\\.net.*fbevents\\.js"
+    scripts:
+      - "fbq\\('init'"
+adjacent:
+    - name: Hotjar
+      hosts:
+        - "hotjar\\.com"
+        - "static\\.hotjar\\.com"
+      scripts:
+        - "_hjSettings"
+        - "window\\.hotjar"
+      cookies:
+        - "_hjSession"
+        - "_hjIncludedInSessionSample"
 broader: []
 competitors: []

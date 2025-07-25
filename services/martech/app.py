@@ -91,12 +91,17 @@ async def _extract_scripts(
             urls.add(src)
             if client is not None:
                 try:
-                    full_src = src if (src.startswith("http")) else urljoin(base_url or "", src)
+                    if src.startswith("http"):
+                        full_src = src
+                    else:
+                        full_src = urljoin(base_url or "", src)
                     script_text, _ = await _fetch(client, full_src)
                     external.append(script_text)
                     if "googletagmanager.com/gtm.js" in src:
                         import re
-                        matches = re.findall(r"https?://[^\"']+\.js", script_text)
+                        matches = re.findall(
+                            r"https?://[^\"']+\.js", script_text
+                        )
                         urls.update(matches)
                 except Exception:
                     external.append("")
