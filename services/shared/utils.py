@@ -31,12 +31,15 @@ def detect_vendors(
     cookies: dict[str, str],
     urls: Sequence[str] | None = None,
     fingerprints: dict[str, list[dict]] | None = None,
+    script_bodies: Sequence[str] | None = None,
 ) -> dict[str, dict]:
     """Return detected analytics vendors with confidence scores and evidence.
 
     ``urls`` is an optional collection of additional resource URLs (script
     sources, image URLs, resource hints, etc.) that should be considered when
-    matching vendor host fingerprints.
+    matching vendor host fingerprints. ``script_bodies`` may contain additional
+    JavaScript text (e.g. from externally hosted scripts) which will be matched
+    against script patterns.
     """
     import re
     import yaml  # type: ignore
@@ -57,6 +60,8 @@ def detect_vendors(
         for tag in soup.find_all("script")
         if not tag.get("src")
     ]
+    if script_bodies:
+        inline.extend(script_bodies)
 
     results: dict[str, dict] = {}
     for bucket, vendors in fingerprints.items():

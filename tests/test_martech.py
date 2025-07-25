@@ -286,20 +286,24 @@ def test_fingerprints_debug():
 async def test_extract_scripts_parses_gtm(monkeypatch):
     html = "<script src='https://www.googletagmanager.com/gtm.js'></script>"
 
+    js_content = (
+        "var s=document.createElement('script');"
+        "s.src=\"https://cdn.example.com/inner.js\";"
+    )
+
     async def fake_fetch(_client, _url):
-        js = (
-            "var s=document.createElement('script');"
-            "s.src=\"https://cdn.example.com/inner.js\";"
-        )
-        return js, {}
+        return js_content, {}
 
     monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
 
     dummy_client = object()
-    urls, inline = await _extract_scripts(dummy_client, html)
+    urls, inline, external = await _extract_scripts(
+        dummy_client, html, base_url="http://example.com"
+    )
     assert "https://www.googletagmanager.com/gtm.js" in urls
     assert "https://cdn.example.com/inner.js" in urls
     assert inline == []
+    assert external == [js_content]
 
 
 def test_force_bypasses_cache(monkeypatch):
@@ -326,3 +330,47 @@ def test_force_bypasses_cache(monkeypatch):
     r3 = client.post("/analyze", json={"url": "http://a.com", "force": True})
     assert r3.status_code == 200
     assert calls["count"] == 2
+
+
+def _start_local_server(script_map):
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):  # type: ignore[override]
+            path = self.path
+            if path in script_map:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(script_map[path].encode())
+            else:
+                html = "".join(
+                    f"<script src='{p}'></script>" for p in script_map.keys()
+                )
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(html.encode())
+
+    server = HTTPServer(("localhost", 0), Handler)
+    port = server.server_port
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    return server, port
+
+
+def test_local_scripts_detected(monkeypatch):
+    server, port = _start_local_server(
+        {
+            "/ga.js": "ga('create','UA-1','auto');",
+            "/segment.js": "analytics.load('XYZ');",
+        }
+    )
+    try:
+        monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "")
+        monkeypatch.setenv("HTTP_PROXY", "")
+        monkeypatch.setenv("HTTPS_PROXY", "")
+        client.get("/ready")
+        resp = client.post("/analyze", json={"url": f"http://localhost:{port}/"})
+        assert resp.status_code == 200
+        data = resp.json()["core"]
+        assert "Google Analytics" in data
+        assert "Segment" in data
+    finally:
+        server.shutdown()
