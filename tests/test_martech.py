@@ -367,7 +367,10 @@ def test_local_scripts_detected(monkeypatch):
         monkeypatch.setenv("HTTP_PROXY", "")
         monkeypatch.setenv("HTTPS_PROXY", "")
         client.get("/ready")
-        resp = client.post("/analyze", json={"url": f"http://localhost:{port}/"})
+        resp = client.post(
+            "/analyze",
+            json={"url": f"http://localhost:{port}/"},
+        )
         assert resp.status_code == 200
         data = resp.json()["core"]
         assert "Google Analytics" in data

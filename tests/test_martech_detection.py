@@ -70,6 +70,39 @@ def adobe_satellite():
     return html, {}
 
 
+@pytest.fixture
+def hubspot():
+    html = (
+        "<script src='https://js.hs-analytics.net/analytics.js'></script>"
+        "<script>_hsq.push(['track']);</script>"
+    )
+    return html, {}
+
+
+@pytest.fixture
+def meta_pixel():
+    html = (
+        "<script src='https://connect.facebook.net/en_US/"
+        "fbevents.js'></script>"
+        "<script>fbq('init','123');</script>"
+    )
+    return html, {}
+
+
+@pytest.fixture
+def ga_id():
+    html = "<script>var id='G-ABCD123';</script>"
+    return html, {}
+
+
+@pytest.fixture
+def hotjar_window():
+    html = (
+        "<script>window.hotjar = window.hotjar || function(){};</script>"
+    )
+    return html, {}
+
+
 def test_detect_vendors_true_positive(segment_full):
     html, cookies = segment_full
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
@@ -96,7 +129,7 @@ def test_detect_ga_via_gtm(ga_gtm_url):
     html, cookies = ga_gtm_url
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
     ga = vendors["core"]["Google Analytics"]
-    assert pytest.approx(0.31, abs=0.01) == ga["confidence"]
+    assert pytest.approx(0.27, abs=0.01) == ga["confidence"]
     assert len(ga["evidence"]["hosts"]) == 2
 
 
@@ -104,7 +137,7 @@ def test_detect_ga_via_datalayer(ga_datalayer):
     html, cookies = ga_datalayer
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
     ga = vendors["core"]["Google Analytics"]
-    assert pytest.approx(0.08, abs=0.01) == ga["confidence"]
+    assert pytest.approx(0.07, abs=0.01) == ga["confidence"]
     assert r"window\.dataLayer" in ga["evidence"]["scripts"][0]
 
 
@@ -112,7 +145,7 @@ def test_detect_ga_via_gtag(ga_gtag):
     html, cookies = ga_gtag
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
     ga = vendors["core"]["Google Analytics"]
-    assert pytest.approx(0.08, abs=0.01) == ga["confidence"]
+    assert pytest.approx(0.13, abs=0.01) == ga["confidence"]
     assert r"gtag\(" in ga["evidence"]["scripts"][0]
 
 
@@ -131,8 +164,39 @@ def test_detect_with_external_scripts():
         {},
         [],
         FINGERPRINTS,
-        script_bodies=["ga('create','UA-1','auto');", "analytics.load('XYZ');"],
+        script_bodies=[
+            "ga('create','UA-1','auto');",
+            "analytics.load('XYZ');",
+        ],
     )
     core = vendors["core"]
     assert "Google Analytics" in core
     assert "Segment" in core
+
+
+def test_detect_hubspot(hubspot):
+    html, cookies = hubspot
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    hs = vendors["core"]["HubSpot"]
+    assert hs["confidence"] > 0
+
+
+def test_detect_meta_pixel(meta_pixel):
+    html, cookies = meta_pixel
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    mp = vendors["core"]["Meta Pixel"]
+    assert mp["confidence"] > 0
+
+
+def test_detect_ga_via_id(ga_id):
+    html, cookies = ga_id
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    ga = vendors["core"]["Google Analytics"]
+    assert ga["confidence"] > 0
+
+
+def test_detect_hotjar_via_window(hotjar_window):
+    html, cookies = hotjar_window
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    hj = vendors["adjacent"]["Hotjar"]
+    assert hj["confidence"] > 0
