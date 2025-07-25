@@ -295,7 +295,11 @@ async def test_extract_scripts_parses_gtm(monkeypatch):
 def test_force_bypasses_cache(monkeypatch):
     calls = {"count": 0}
 
-    async def fake_analyze_url(url: str, debug: bool = False, headless: bool = False):
+    async def fake_analyze_url(
+        url: str,
+        debug: bool = False,
+        headless: bool = False,
+    ):
         calls["count"] += 1
         return {"core": {"GA": {"confidence": 1.0, "evidence": {}}}}
 
