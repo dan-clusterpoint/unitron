@@ -9,6 +9,8 @@ test('shows spinner when loading', () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
       loading={true}
       error=""
       result={null}
@@ -24,6 +26,8 @@ test('displays error message', () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
       loading={false}
       error="oops"
       result={null}
@@ -51,6 +55,8 @@ test('renders result lists', () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
       loading={false}
       error=""
       result={result}
@@ -67,6 +73,8 @@ test('shows degraded banner', () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
       loading={false}
       error=""
       result={{ ...result, degraded: true }}

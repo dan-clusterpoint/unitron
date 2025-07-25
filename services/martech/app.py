@@ -43,6 +43,7 @@ cache: Dict[str, Dict[str, Any]] = {}
 class AnalyzeRequest(BaseModel):
     url: str
     debug: bool | None = False
+    headless: bool | None = False
 
 
 class DiagnoseResponse(BaseModel):
@@ -223,7 +224,9 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
         result = entry["data"]
     else:
         try:
-            result = await analyze_url(url, debug=bool(req.debug))
+            result = await analyze_url(
+                url, debug=bool(req.debug), headless=bool(req.headless)
+            )
         except (httpx.RequestError, asyncio.TimeoutError):
             logging.exception("failed analyzing URL")
             return JSONResponse(

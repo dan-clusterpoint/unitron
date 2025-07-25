@@ -23,6 +23,7 @@ export default function App() {
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
+  const [headless, setHeadless] = useState(false)
   const { showTop } = useScrollPosition()
   useFadeInOnView()
 
@@ -51,7 +52,7 @@ export default function App() {
       const data = await apiFetch<AnalyzeResult>('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: clean }),
+        body: JSON.stringify({ url: clean, headless }),
       })
       setResult(data)
     } catch (err) {
@@ -136,6 +137,8 @@ export default function App() {
                 url={url}
                 setUrl={setUrl}
                 onAnalyze={onAnalyze}
+                headless={headless}
+                setHeadless={setHeadless}
                 loading={loading}
                 error={error}
                 result={result}

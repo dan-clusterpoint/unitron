@@ -62,6 +62,7 @@ def record_failure(service: str, status_code: int | None = None) -> None:
 class AnalyzeRequest(BaseModel):
     url: str
     debug: bool | None = False
+    headless: bool | None = False
 
     @root_validator(pre=True)
     def _allow_domain(cls, values: dict) -> dict:  # noqa: D401
@@ -163,7 +164,7 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
 
     martech_task = _post_with_retry(
         f"{MARTECH_URL}/analyze",
-        {"url": clean_url, "debug": req.debug},
+        {"url": clean_url, "debug": req.debug, "headless": req.headless},
         "martech",
     )
     property_task = _post_with_retry(

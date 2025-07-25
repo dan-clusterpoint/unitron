@@ -16,12 +16,24 @@ export type AnalyzerProps = {
   url: string
   setUrl: (v: string) => void
   onAnalyze: () => void
+  headless: boolean
+  setHeadless: (v: boolean) => void
   loading: boolean
   error: string
   result: AnalyzeResult | null
 }
 
-export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, error, result }: AnalyzerProps) {
+export default function AnalyzerCard({
+  id,
+  url,
+  setUrl,
+  onAnalyze,
+  headless,
+  setHeadless,
+  loading,
+  error,
+  result,
+}: AnalyzerProps) {
   if (result) {
     const { property, martech, degraded } = result
     return (
@@ -72,6 +84,15 @@ export default function AnalyzerCard({ id, url, setUrl, onAnalyze, loading, erro
           )}
         </button>
       </div>
+      <label className="flex items-center mt-4 text-sm">
+        <input
+          type="checkbox"
+          checked={headless}
+          onChange={(e) => setHeadless(e.target.checked)}
+          className="mr-2"
+        />
+        Enable deep scan
+      </label>
     </div>
   )
 }

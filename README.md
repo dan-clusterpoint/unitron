@@ -65,7 +65,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `GET /health` – liveness probe.
 * `GET /ready` – checks that downstream services are healthy.
 * `GET /metrics` – optional stats about service calls.
-* `POST /analyze` – body `{"url": "https://example.com"}` returns:
+* `POST /analyze` – body `{"url": "https://example.com", "headless": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 
 `MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
@@ -76,9 +76,10 @@ The martech service exposes four endpoints:
 * `GET /health` – liveness probe.
 * `GET /ready` – returns `{"ready": true}` once the fingerprint list is loaded.
 * `GET /diagnose` – checks outbound connectivity.
-* `POST /analyze` – body `{"url": "https://example.com", "debug": false}` returns
+* `POST /analyze` – body `{"url": "https://example.com", "debug": false, "headless": false}` returns
   detected marketing vendors grouped into four buckets. When `debug=true` the
-  response includes detection evidence for each vendor.
+  response includes detection evidence for each vendor. Set `headless=true` to
+  allow a deeper crawl using a headless browser.
 * `GET /fingerprints` – returns the loaded fingerprint definitions. Useful for
   verifying the vendor list in `fingerprints.yaml`.
 
