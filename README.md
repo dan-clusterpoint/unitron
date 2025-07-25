@@ -81,8 +81,9 @@ The martech service exposes four endpoints:
   response includes detection evidence for each vendor. Set `headless=true` to
   allow a deeper crawl using a headless browser. Pass `force=true` to bypass the
   in-memory cache and refresh the analysis immediately.
-* `GET /fingerprints` – returns the loaded fingerprint definitions. Useful for
-  verifying the vendor list in `fingerprints.yaml`.
+* `GET /fingerprints` – returns the loaded fingerprint definitions. Append
+  `?debug=true` to run detection on a sample page and show which evidence types
+  triggered for each vendor.
 
 Fingerprint definitions live in `fingerprints.yaml`. Edit this file and restart
 the service to update the vendor list.

@@ -272,6 +272,16 @@ def test_fingerprints_endpoint():
     )
 
 
+def test_fingerprints_debug():
+    client.get("/ready")
+    r = client.get("/fingerprints?debug=true")
+    assert r.status_code == 200
+    data = r.json()
+    assert "core" in data
+    assert set(data["core"]["Google Analytics"]) == {"hosts", "scripts"}
+    assert set(data["core"]["Segment"]) == {"hosts", "scripts"}
+
+
 @pytest.mark.asyncio
 async def test_extract_scripts_parses_gtm(monkeypatch):
     html = "<script src='https://www.googletagmanager.com/gtm.js'></script>"

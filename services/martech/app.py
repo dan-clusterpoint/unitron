@@ -247,10 +247,29 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
 
 
 @app.get("/fingerprints")
-async def fingerprints_endpoint() -> JSONResponse:
-    """Return the loaded marketing vendor fingerprints."""
+async def fingerprints_endpoint(debug: bool | None = False) -> JSONResponse:
+    """Return fingerprint definitions or sample detection results."""
     if fingerprints is None:
         raise HTTPException(status_code=503, detail="Service not ready")
+
+    if debug:
+        sample_html = (
+            "<script src='https://www.google-analytics.com/analytics.js'>"
+            "</script>"
+            "<script src='https://cdn.segment.com/analytics.js'></script>"
+            "<script>analytics.load('XYZ');"
+            "ga('create','UA-XYZ','auto');</script>"
+        )
+        detected = detect_vendors(sample_html, {}, [], fingerprints)
+        result: Dict[str, Dict[str, list[str]]] = {}
+        for bucket, vendors in detected.items():
+            bucket_out: Dict[str, list[str]] = {}
+            for name, info in vendors.items():
+                evid = info.get("evidence", {})
+                bucket_out[name] = [k for k, v in evid.items() if v]
+            if bucket_out:
+                result[bucket] = bucket_out
+        return JSONResponse(result)
 
     return JSONResponse(fingerprints)
 
