@@ -33,12 +33,9 @@ class ReadyResponse(BaseModel):
     ready: bool
 
 
-def _lookup(host: str) -> list[str]:
-    """Resolve host to a list of unique IP addresses."""
+def _lookup(host: str) -> list:
     try:
-        results = socket.getaddrinfo(host, None, flags=socket.AI_CANONNAME)
-        addrs = {str(info[4][0]) for info in results}
-        return sorted(addrs)
+        return socket.getaddrinfo(host, None, flags=socket.AI_CANONNAME)
     except socket.gaierror:
         return []
 
@@ -75,10 +72,9 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Domain unresolved")
 
     notes = []
-    for host, addrs in results.items():
-        if addrs:
-            addr_list = ", ".join(addrs)
-            notes.append(f"{host} resolved to: {addr_list}")
+    for host, info in results.items():
+        if info:
+            notes.append(f"{host} resolved to {len(info)} records")
         else:
             notes.append(f"{host} did not resolve")
 
