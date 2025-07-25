@@ -16,6 +16,6 @@ Unitron automatically reverse-engineers a prospect’s website, generates synthe
 - Generate persona summaries and demo flows via LLM prompts.
 
 ### Build stability philosophy
-We believe reliability starts with deterministic builds. A single Dockerfile at the repo root installs dependencies from `pyproject.toml` using Poetry with no network calls after the initial dependency fetch. Health checks ensure that Railway deploys never wait more than a few seconds for readiness.
+We believe reliability starts with deterministic builds. A single Dockerfile (`docker/python.Dockerfile`) installs dependencies from `pyproject.toml` using Poetry with no network calls after the initial dependency fetch. Health checks ensure that Railway deploys never wait more than a few seconds for readiness. Uvicorn is launched via `ops/entrypoint.sh` which validates imports before starting the selected service.
 
 Developers are encouraged to extend the services but should preserve the quick startup time and the clean separation between gateway orchestration and martech analysis logic. Unit tests in `tests/` serve as living documentation and prevent regressions.
