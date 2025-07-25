@@ -64,7 +64,7 @@ def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
 
 
 async def _fetch(client: httpx.AsyncClient, url: str) -> str:
-    r = await client.get(url)
+    r = await client.get(url, follow_redirects=True)
     r.raise_for_status()
     return r.text
 
