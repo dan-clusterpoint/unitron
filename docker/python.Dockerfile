@@ -11,7 +11,8 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-root --no-interaction
+    poetry install --no-root --no-interaction && \
+    playwright install --with-deps
 
 # 2. Copy entire repo
 COPY . /app
