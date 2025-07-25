@@ -170,7 +170,7 @@ async def analyze_url(
             resource_urls.update(_collect_resource_hints(headless_html))
 
     all_urls = list(script_urls | resource_urls)
-    vendors = detect_vendors(html, resp_cookies, all_urls)
+    vendors = detect_vendors(html, resp_cookies, all_urls, fingerprints)
     response: Dict[str, Any] = vendors
     if debug:
         response["debug"] = {

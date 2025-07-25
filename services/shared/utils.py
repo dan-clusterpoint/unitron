@@ -30,6 +30,7 @@ def detect_vendors(
     html: str,
     cookies: dict[str, str],
     urls: Sequence[str] | None = None,
+    fingerprints: dict[str, list[dict]] | None = None,
 ) -> dict[str, dict]:
     """Return detected analytics vendors with confidence scores and evidence.
 
@@ -42,9 +43,10 @@ def detect_vendors(
     from pathlib import Path
     from bs4 import BeautifulSoup
 
-    fp_path = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
-    with open(fp_path) as f:
-        fingerprints = yaml.safe_load(f)
+    if fingerprints is None:
+        fp_path = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
+        with open(fp_path) as f:
+            fingerprints = yaml.safe_load(f)
 
     soup = BeautifulSoup(html, "html.parser")
     srcs = [tag.get("src", "") for tag in soup.find_all("script")]
