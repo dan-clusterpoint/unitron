@@ -14,6 +14,6 @@ jobs:
       - name: Build interface image
         run: docker build -t interface-image ./interface
       - name: Build property image
-        run: docker build -t property-image -f services/property/Dockerfile .
+        run: docker build -t property-image -f Dockerfile .
       - name: Verify npx exists
         run: docker run --rm interface-image which npx

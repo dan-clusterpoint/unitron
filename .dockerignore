@@ -24,8 +24,6 @@ devcontainer.json
 *.yml
 !requirements.txt
 !**/requirements.txt
-!services/**/Dockerfile
 *.toml
 !railway.toml
 !pyproject.toml
-!services/python.Dockerfile

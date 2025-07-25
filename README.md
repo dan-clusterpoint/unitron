@@ -13,13 +13,14 @@ docker compose up --build
 # martech -> http://localhost:8081
 # property -> http://localhost:8082
 open http://localhost:8080/docs
-# Compose passes `SERVICE` so `services/python.Dockerfile` starts the correct FastAPI app
+# Compose passes `SERVICE` so the root `Dockerfile` starts the correct FastAPI app
 # MARTECH_URL and PROPERTY_URL control where the gateway proxies requests
 ```
 
-All Python APIs build from `services/python.Dockerfile`. The `SERVICE` build
-argument selects which module to run, and the healthcheck hits `/health` by
-default. Docker Compose passes this argument automatically for each service.
+All Python APIs build from the `Dockerfile` at the repository root. The
+`SERVICE` build argument selects which module to run, and the healthcheck hits
+`/health` by default. Docker Compose passes this argument automatically for each
+service.
 
 To launch the web interface during development:
 ```bash
