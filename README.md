@@ -13,14 +13,14 @@ docker compose up --build
 # martech -> http://localhost:8081
 # property -> http://localhost:8082
 open http://localhost:8080/docs
-# Compose passes `SERVICE` so the root `Dockerfile` starts the correct FastAPI app
+# Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
 # MARTECH_URL and PROPERTY_URL control where the gateway proxies requests
 ```
 
-All Python APIs build from the `Dockerfile` at the repository root. The
-`SERVICE` build argument selects which module to run, and the healthcheck hits
-`/health` by default. Docker Compose passes this argument automatically for each
-service.
+All Python APIs build from `docker/python.Dockerfile`. The `SERVICE` environment
+variable selects which module to run and `ops/entrypoint.sh` validates imports
+before starting Uvicorn. Health checks hit `/health` by default. Docker Compose
+passes this variable automatically for each service.
 
 To launch the web interface during development:
 ```bash
@@ -97,7 +97,7 @@ the **Variables** tab for the `martech` service.
 
 ## Build-stability contract 🔒
 
-1. Zero network calls in `Dockerfile`.
+1. Zero network calls in `docker/python.Dockerfile`.
 2. `uvicorn services.gateway.app:app` **must start < 2 s** locally and on Railway.
 3. CI blocks merges if lint/type/test fail.
 
@@ -112,8 +112,8 @@ The `docker-compose.yml` file wires them together with sensible defaults for loc
 3. Watch the logs for all services to report `Uvicorn running` within two seconds.
 4. Navigate to `http://localhost:8080/docs` for API docs.
 
-### Reliability principles
-- All Dockerfiles copy only local files and never reach out to the internet during build.
+-### Reliability principles
+- The single Dockerfile (`docker/python.Dockerfile`) copies only local files and never reaches out to the internet during build.
 - Health checks for Railway and Compose are identical so behaviour matches across environments.
 - CI must pass flake8, mypy, and pytest before Docker images are built or published.
 
