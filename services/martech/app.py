@@ -75,29 +75,36 @@ async def _fetch(
 
 
 async def _extract_scripts(
-    client: httpx.AsyncClient | None, html: str
-) -> tuple[Set[str], List[str]]:
+    client: httpx.AsyncClient | None,
+    html: str,
+    base_url: str | None = None,
+) -> tuple[Set[str], List[str], List[str]]:
     soup = BeautifulSoup(html, "html.parser")
     urls: Set[str] = set()
     inline: List[str] = []
+    external: List[str] = []
+    from urllib.parse import urljoin
+
     for tag in soup.find_all("script"):
         src = tag.get("src")
         if src:
             urls.add(src)
-            if "googletagmanager.com/gtm.js" in src and client is not None:
+            if client is not None:
                 try:
-                    gtm_html, _ = await _fetch(client, src)
-                    import re
-
-                    matches = re.findall(r"https?://[^\"']+\.js", gtm_html)
-                    urls.update(matches)
+                    full_src = src if (src.startswith("http")) else urljoin(base_url or "", src)
+                    script_text, _ = await _fetch(client, full_src)
+                    external.append(script_text)
+                    if "googletagmanager.com/gtm.js" in src:
+                        import re
+                        matches = re.findall(r"https?://[^\"']+\.js", script_text)
+                        urls.update(matches)
                 except Exception:
-                    pass
+                    external.append("")
         else:
             text = tag.string
             if text:
                 inline.append(text)
-    return urls, inline
+    return urls, inline, external
 
 
 async def _headless_request(url: str) -> str:
@@ -163,7 +170,9 @@ async def analyze_url(
         }
     async with httpx.AsyncClient(**client_opts) as client:
         html, resp_cookies = await _fetch(client, url)
-        script_urls, inline = await _extract_scripts(client, html)
+        script_urls, inline, external = await _extract_scripts(
+            client, html, base_url=url
+        )
 
     resource_urls: Set[str] = set()
     if headless:
@@ -172,12 +181,14 @@ async def analyze_url(
             resource_urls.update(_collect_resource_hints(headless_html))
 
     all_urls = list(script_urls | resource_urls)
-    vendors = detect_vendors(html, resp_cookies, all_urls, fingerprints)
+    vendors = detect_vendors(
+        html, resp_cookies, all_urls, fingerprints, script_bodies=external
+    )
     response: Dict[str, Any] = vendors
     if debug:
         response["debug"] = {
             "scripts": all_urls,
-            "inline_count": len(inline),
+            "inline_count": len(inline) + len(external),
             "html_size": len(html),
             "cookies": resp_cookies,
         }

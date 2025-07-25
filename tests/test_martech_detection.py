@@ -108,3 +108,17 @@ def test_detect_adobe_via_satellite(adobe_satellite):
     adobe = vendors["core"]["Adobe Analytics"]
     assert pytest.approx(0.10, abs=0.01) == adobe["confidence"]
     assert r"window\._satellite" in adobe["evidence"]["scripts"][0]
+
+
+def test_detect_with_external_scripts():
+    html = "<script src='/ga.js'></script><script src='/seg.js'></script>"
+    vendors = detect_vendors(
+        html,
+        {},
+        [],
+        FINGERPRINTS,
+        script_bodies=["ga('create','UA-1','auto');", "analytics.load('XYZ');"],
+    )
+    core = vendors["core"]
+    assert "Google Analytics" in core
+    assert "Segment" in core
