@@ -5,11 +5,12 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Set, Sequence
 import asyncio
 import logging
 
 import httpx
+from typing import Iterable
 import yaml  # type: ignore
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
@@ -94,7 +95,53 @@ async def _extract_scripts(client: httpx.AsyncClient, html: str) -> tuple[Set[st
     return urls, inline
 
 
-async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
+async def _headless_request(url: str) -> str:
+    """Fetch ``url`` using Playwright with JavaScript disabled."""
+    try:
+        from playwright.async_api import async_playwright
+    except Exception:
+        return ""
+
+    try:
+        async with async_playwright() as pw:
+            browser = await pw.firefox.launch(headless=True)
+            context = await browser.new_context(java_script_enabled=False)
+            page = await context.new_page()
+            await page.goto(url, wait_until="load", timeout=5000)
+            content = await page.content()
+            await browser.close()
+            return content
+    except Exception:
+        return ""
+
+
+def _collect_resource_hints(html: str) -> Set[str]:
+    """Return URLs from resource hint/link and img tags."""
+    soup = BeautifulSoup(html, "html.parser")
+    urls: Set[str] = set()
+    for tag in soup.find_all("link"):
+        rel = tag.get("rel", [])
+        if isinstance(rel, str):
+            rel = [rel]
+        if any(r in {"preconnect", "dns-prefetch"} for r in rel):
+            href = tag.get("href")
+            if href:
+                urls.add(href)
+    for tag in soup.find_all("img"):
+        src = tag.get("src")
+        if src:
+            urls.add(src)
+    for tag in soup.find_all("source"):
+        srcset = tag.get("srcset") or tag.get("src")
+        if srcset:
+            for part in srcset.split(","):
+                val = part.strip().split(" ")[0]
+                if val:
+                    urls.add(val)
+    return urls
+
+
+async def analyze_url(url: str, debug: bool = False, headless: bool = False) -> Dict[str, object]:
     proxy = (
         os.getenv("OUTBOUND_HTTP_PROXY")
         or os.getenv("HTTP_PROXY")
@@ -110,11 +157,19 @@ async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
     async with httpx.AsyncClient(**client_opts) as client:
         html, resp_cookies = await _fetch(client, url)
         script_urls, inline = await _extract_scripts(client, html)
-    vendors = detect_vendors(html, resp_cookies)
+
+    resource_urls: Set[str] = set()
+    if headless:
+        headless_html = await _headless_request(url)
+        if headless_html:
+            resource_urls.update(_collect_resource_hints(headless_html))
+
+    all_urls = list(script_urls | resource_urls)
+    vendors = detect_vendors(html, resp_cookies, all_urls)
     response: Dict[str, Any] = vendors
     if debug:
         response["debug"] = {
-            "scripts": list(script_urls),
+            "scripts": all_urls,
             "inline_count": len(inline),
             "html_size": len(html),
             "cookies": resp_cookies,

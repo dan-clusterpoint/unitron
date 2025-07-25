@@ -39,7 +39,7 @@ def random_page():
 
 def test_detect_vendors_true_positive(segment_full):
     html, cookies = segment_full
-    vendors = detect_vendors(html, cookies)
+    vendors = detect_vendors(html, cookies, [])
     seg = vendors["core"]["Segment"]
     assert pytest.approx(1.0, abs=0.01) == seg["confidence"]
     assert r"analytics\.load" in seg["evidence"]["scripts"][0]
@@ -47,7 +47,7 @@ def test_detect_vendors_true_positive(segment_full):
 
 def test_detect_vendors_partial(segment_partial):
     html, cookies = segment_partial
-    vendors = detect_vendors(html, cookies)
+    vendors = detect_vendors(html, cookies, [])
     seg = vendors["core"]["Segment"]
     assert pytest.approx(0.33, abs=0.01) == seg["confidence"]
     assert len(seg["evidence"]["hosts"]) == 0
@@ -55,6 +55,6 @@ def test_detect_vendors_partial(segment_partial):
 
 def test_detect_vendors_false_positive(random_page):
     html, cookies = random_page
-    vendors = detect_vendors(html, cookies)
+    vendors = detect_vendors(html, cookies, [])
     assert vendors == {}
 

@@ -23,8 +23,20 @@ def normalize_url(url: str) -> str:
     return urlunparse((scheme, netloc, path, "", "", ""))
 
 
-def detect_vendors(html: str, cookies: dict[str, str]) -> dict[str, dict]:
-    """Return detected analytics vendors with confidence scores and evidence."""
+from typing import Iterable, Sequence
+
+
+def detect_vendors(
+    html: str,
+    cookies: dict[str, str],
+    urls: Sequence[str] | None = None,
+) -> dict[str, dict]:
+    """Return detected analytics vendors with confidence scores and evidence.
+
+    ``urls`` is an optional collection of additional resource URLs (script src,
+    image sources, resource hints, etc.) that should be considered when matching
+    vendor host fingerprints.
+    """
     import re
     import yaml
     from pathlib import Path
@@ -36,6 +48,8 @@ def detect_vendors(html: str, cookies: dict[str, str]) -> dict[str, dict]:
 
     soup = BeautifulSoup(html, "html.parser")
     srcs = [tag.get("src", "") for tag in soup.find_all("script")]
+    if urls:
+        srcs.extend(urls)
     inline = [tag.string or "" for tag in soup.find_all("script") if not tag.get("src")]
 
     results: dict[str, dict] = {}
