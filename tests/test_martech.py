@@ -3,9 +3,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from fastapi.testclient import TestClient
 
-from services.martech.app import app
+from services.martech.app import app, _extract_scripts
 import os
 import httpx
+import pytest
 
 client = TestClient(app)
 
@@ -269,3 +270,23 @@ def test_fingerprints_endpoint():
     assert any(
         vendor.get("name") == "Google Analytics" for vendor in data["core"]
     )
+
+
+@pytest.mark.asyncio
+async def test_extract_scripts_parses_gtm(monkeypatch):
+    html = "<script src='https://www.googletagmanager.com/gtm.js'></script>"
+
+    async def fake_fetch(_client, _url):
+        js = (
+            "var s=document.createElement('script');"
+            "s.src=\"https://cdn.example.com/inner.js\";"
+        )
+        return js, {}
+
+    monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
+
+    dummy_client = object()
+    urls, inline = await _extract_scripts(dummy_client, html)
+    assert "https://www.googletagmanager.com/gtm.js" in urls
+    assert "https://cdn.example.com/inner.js" in urls
+    assert inline == []
