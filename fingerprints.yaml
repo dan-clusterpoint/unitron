@@ -6,6 +6,7 @@ core:
       - "www\\.googletagmanager\\.com"
     scripts:
       - "ga\\("
+      - "gtag\\("
       - "window\\.dataLayer"
     cookies:
       - "_ga"

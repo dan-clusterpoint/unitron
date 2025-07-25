@@ -59,6 +59,12 @@ def ga_datalayer():
 
 
 @pytest.fixture
+def ga_gtag():
+    html = "<script>gtag('config','G-XYZ');</script>"
+    return html, {}
+
+
+@pytest.fixture
 def adobe_satellite():
     html = "<script>window._satellite = window._satellite || {};</script>"
     return html, {}
@@ -90,7 +96,7 @@ def test_detect_ga_via_gtm(ga_gtm_url):
     html, cookies = ga_gtm_url
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
     ga = vendors["core"]["Google Analytics"]
-    assert pytest.approx(0.33, abs=0.01) == ga["confidence"]
+    assert pytest.approx(0.31, abs=0.01) == ga["confidence"]
     assert len(ga["evidence"]["hosts"]) == 2
 
 
@@ -100,6 +106,14 @@ def test_detect_ga_via_datalayer(ga_datalayer):
     ga = vendors["core"]["Google Analytics"]
     assert pytest.approx(0.08, abs=0.01) == ga["confidence"]
     assert r"window\.dataLayer" in ga["evidence"]["scripts"][0]
+
+
+def test_detect_ga_via_gtag(ga_gtag):
+    html, cookies = ga_gtag
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    ga = vendors["core"]["Google Analytics"]
+    assert pytest.approx(0.08, abs=0.01) == ga["confidence"]
+    assert r"gtag\(" in ga["evidence"]["scripts"][0]
 
 
 def test_detect_adobe_via_satellite(adobe_satellite):
