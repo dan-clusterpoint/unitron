@@ -73,7 +73,11 @@ def test_ready_and_analyze():
         )
         data = resp.json()
         assert resp.status_code == 200
-        assert 'Google Analytics' in data['core']
+        core = data['core']
+        if isinstance(core, dict):
+            assert 'Google Analytics' in core
+        else:
+            assert 'Google Analytics' in core
     finally:
         server.shutdown()
 
@@ -90,7 +94,11 @@ def test_analyze_follows_redirects():
             "/analyze", json={"url": f"http://localhost:{port}/"}
         )
         assert resp.status_code == 200
-        assert "Google Analytics" in resp.json()["core"]
+        core = resp.json()["core"]
+        if isinstance(core, dict):
+            assert "Google Analytics" in core
+        else:
+            assert "Google Analytics" in core
     finally:
         server.shutdown()
 
@@ -251,3 +259,24 @@ def test_diagnose_mocked_asyncclient_failure(monkeypatch):
     r = client.get("/diagnose")
     assert r.status_code == 200
     assert r.json() == {"success": False, "error": "fail"}
+
+
+def test_fingerprints_endpoint():
+    server = HTTPServer(("localhost", 0), SimpleHandler)
+    port = server.server_port
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        client.get("/ready")
+        r = client.get(f"/fingerprints?url=http://localhost:{port}/")
+        assert r.status_code == 200
+        data = r.json()
+        assert "Google Analytics" in data.get("core", []) or "Google Analytics" in data.get("core", {})
+
+        r_debug = client.get(f"/fingerprints?url=http://localhost:{port}/&debug=true")
+        assert r_debug.status_code == 200
+        dbg = r_debug.json()
+        assert "Google Analytics" in dbg.get("core", {})
+        assert isinstance(dbg["core"]["Google Analytics"], dict)
+    finally:
+        server.shutdown()

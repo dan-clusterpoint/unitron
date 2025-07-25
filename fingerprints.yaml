@@ -1,10 +1,54 @@
 core:
-  - name: Google Tag Manager
-    pattern: "googletagmanager.com"
   - name: Google Analytics
-    pattern: "google-analytics.com"
+    hosts:
+      - "google-analytics\\.com"
+    scripts:
+      - "ga\\("
+    cookies:
+      - "_ga"
+      - "_gid"
+  - name: Adobe Analytics
+    hosts:
+      - "adobedtm\\.com"
+      - "omtrdc\\.net"
+    scripts:
+      - "s_code"
+    cookies:
+      - "s_pers"
+      - "s_sess"
+  - name: Segment
+    hosts:
+      - "segment\\.com"
+      - "cdn\\.segment\\.com"
+    scripts:
+      - "analytics\\.load"
+    cookies:
+      - "ajs_anonymous_id"
+      - "ajs_user_id"
+  - name: Mixpanel
+    hosts:
+      - "mxpnl\\.com"
+    scripts:
+      - "mixpanel\\.init"
+    cookies:
+      - "mp_"
+  - name: Amplitude
+    hosts:
+      - "amplitude\\.com"
+      - "api\\.amplitude\\.com"
+    scripts:
+      - "amplitude\\.getInstance"
+    cookies:
+      - "amp_"
 adjacent:
   - name: Hotjar
-    pattern: "static.hotjar.com"
+    hosts:
+      - "hotjar\\.com"
+      - "static\\.hotjar\\.com"
+    scripts:
+      - "_hjSettings"
+    cookies:
+      - "_hjSession"
+      - "_hjIncludedInSessionSample"
 broader: []
 competitors: []

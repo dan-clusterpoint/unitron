@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
+from services.shared.utils import detect_vendors
 
 # Default path for fingerprint definitions
 FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
@@ -63,31 +64,34 @@ def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
         return json.load(f)
 
 
-async def _fetch(client: httpx.AsyncClient, url: str) -> str:
+async def _fetch(client: httpx.AsyncClient, url: str) -> tuple[str, dict[str, str]]:
     r = await client.get(url, follow_redirects=True)
     r.raise_for_status()
-    return r.text
+    cookies = {k: v for k, v in r.cookies.items()}
+    return r.text, cookies
 
 
-async def _extract_scripts(client: httpx.AsyncClient, html: str) -> Set[str]:
+async def _extract_scripts(client: httpx.AsyncClient, html: str) -> tuple[Set[str], List[str]]:
     soup = BeautifulSoup(html, "html.parser")
     urls: Set[str] = set()
+    inline: List[str] = []
     for tag in soup.find_all("script"):
         src = tag.get("src")
         if src:
             urls.add(src)
             if "googletagmanager.com/gtm.js" in src:
                 try:
-                    gtm = await _fetch(client, src)
-                    found = {
-                        u
-                        for u in re.findall(r"https?://[^'\"]+", gtm)
-                        if u.endswith(".js")
-                    }
-                    urls.update(found)
+                    gtm_html, _ = await _fetch(client, src)
+                    found_urls, found_inline = await _extract_scripts(client, gtm_html)
+                    urls.update(found_urls)
+                    inline.extend(found_inline)
                 except Exception:
                     pass
-    return urls
+        else:
+            text = tag.string
+            if text:
+                inline.append(text)
+    return urls, inline
 
 
 async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
@@ -104,17 +108,17 @@ async def analyze_url(url: str, debug: bool = False) -> Dict[str, object]:
             "https://": proxy,
         }
     async with httpx.AsyncClient(**client_opts) as client:
-        html = await _fetch(client, url)
-        scripts = await _extract_scripts(client, html)
-    result: Dict[str, List[str]] = {k: [] for k in fingerprints or {}}
-    for bucket, vendors in (fingerprints or {}).items():
-        for vendor in vendors:
-            pat = vendor["pattern"]
-            if any(pat in s for s in scripts):
-                result[bucket].append(vendor["name"])
-    response: Dict[str, Any] = result
+        html, resp_cookies = await _fetch(client, url)
+        script_urls, inline = await _extract_scripts(client, html)
+    vendors = detect_vendors(html, resp_cookies)
+    response: Dict[str, Any] = vendors
     if debug:
-        response["debug"] = {"scripts": list(scripts), "html_size": len(html)}
+        response["debug"] = {
+            "scripts": list(script_urls),
+            "inline_count": len(inline),
+            "html_size": len(html),
+            "cookies": resp_cookies,
+        }
     return response
 
 
@@ -167,6 +171,30 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             )
         cache[url] = {"time": now, "data": result}
     return JSONResponse(result)
+
+
+@app.get("/fingerprints")
+async def fingerprints_endpoint(url: str, debug: bool | None = False) -> JSONResponse:
+    if fingerprints is None:
+        raise HTTPException(status_code=503, detail="Service not ready")
+    proxy = (
+        os.getenv("OUTBOUND_HTTP_PROXY")
+        or os.getenv("HTTP_PROXY")
+        or os.getenv("HTTPS_PROXY")
+        or None
+    )
+    client_opts: Dict[str, Any] = {"timeout": 10}
+    if proxy:
+        client_opts["proxies"] = {
+            "http://": proxy,
+            "https://": proxy,
+        }
+    async with httpx.AsyncClient(**client_opts) as client:
+        html, resp_cookies = await _fetch(client, url)
+    vendors = detect_vendors(html, resp_cookies)
+    if not debug:
+        vendors = {bucket: list(info.keys()) for bucket, info in vendors.items()}
+    return JSONResponse(vendors)
 
 
 @app.get("/diagnose", response_model=DiagnoseResponse, tags=["Service"])
