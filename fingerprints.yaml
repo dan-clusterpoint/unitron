@@ -6,6 +6,7 @@ core:
       - "www\\.googletagmanager\\.com"
     scripts:
       - "ga\\("
+      - "window\\.dataLayer"
     cookies:
       - "_ga"
       - "_gid"
@@ -15,6 +16,7 @@ core:
       - "omtrdc\\.net"
     scripts:
       - "s_code"
+      - "window\\._satellite"
     cookies:
       - "s_pers"
       - "s_sess"

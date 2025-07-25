@@ -52,6 +52,18 @@ def ga_gtm_url():
     return html, {}
 
 
+@pytest.fixture
+def ga_datalayer():
+    html = "<script>window.dataLayer = window.dataLayer || [];</script>"
+    return html, {}
+
+
+@pytest.fixture
+def adobe_satellite():
+    html = "<script>window._satellite = window._satellite || {};</script>"
+    return html, {}
+
+
 def test_detect_vendors_true_positive(segment_full):
     html, cookies = segment_full
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
@@ -78,5 +90,21 @@ def test_detect_ga_via_gtm(ga_gtm_url):
     html, cookies = ga_gtm_url
     vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
     ga = vendors["core"]["Google Analytics"]
-    assert pytest.approx(0.36, abs=0.01) == ga["confidence"]
+    assert pytest.approx(0.33, abs=0.01) == ga["confidence"]
     assert len(ga["evidence"]["hosts"]) == 2
+
+
+def test_detect_ga_via_datalayer(ga_datalayer):
+    html, cookies = ga_datalayer
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    ga = vendors["core"]["Google Analytics"]
+    assert pytest.approx(0.08, abs=0.01) == ga["confidence"]
+    assert r"window\.dataLayer" in ga["evidence"]["scripts"][0]
+
+
+def test_detect_adobe_via_satellite(adobe_satellite):
+    html, cookies = adobe_satellite
+    vendors = detect_vendors(html, cookies, [], FINGERPRINTS)
+    adobe = vendors["core"]["Adobe Analytics"]
+    assert pytest.approx(0.10, abs=0.01) == adobe["confidence"]
+    assert r"window\._satellite" in adobe["evidence"]["scripts"][0]
