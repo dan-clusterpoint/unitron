@@ -27,6 +27,26 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.wfile.write(html.encode())
 
 
+class RedirectHandler(BaseHTTPRequestHandler):
+    def do_GET(self) -> None:  # type: ignore[override]
+        if self.path == "/final":
+            html = (
+                "<script src='https://www.google-"
+                "analytics.com/analytics.js'></script>"
+            )
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(html.encode())
+        elif self.path == "/script.js":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"console.log('hi');")
+        else:
+            self.send_response(301)
+            self.send_header("Location", "/final")
+            self.end_headers()
+
+
 def test_health():
     r = client.get('/health')
     assert r.status_code == 200
@@ -54,6 +74,23 @@ def test_ready_and_analyze():
         data = resp.json()
         assert resp.status_code == 200
         assert 'Google Analytics' in data['core']
+    finally:
+        server.shutdown()
+
+
+def test_analyze_follows_redirects():
+    server = HTTPServer(("localhost", 0), RedirectHandler)
+    port = server.server_port
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    try:
+        client.get("/ready")
+        resp = client.post(
+            "/analyze", json={"url": f"http://localhost:{port}/"}
+        )
+        assert resp.status_code == 200
+        assert "Google Analytics" in resp.json()["core"]
     finally:
         server.shutdown()
 
@@ -105,7 +142,7 @@ def _set_stub_client(monkeypatch, hook) -> None:
         async def __aexit__(self, exc_type, exc, tb):
             return False
 
-        async def get(self, url):
+        async def get(self, url, **kwargs):
             request = httpx.Request("GET", url)
             return httpx.Response(200, text="<html></html>", request=request)
 
