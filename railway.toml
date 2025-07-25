@@ -5,7 +5,7 @@ schema = "https://railway.com/railway.schema.json"
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "services/python.Dockerfile"
+dockerfilePath = "docker/python.Dockerfile"
 
 [deploy]
 healthcheckPath     = "/health"
