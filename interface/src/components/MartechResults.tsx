@@ -3,6 +3,7 @@ export type Martech = Partial<{
   adjacent: string[]
   broader: string[]
   competitors: string[]
+  cms: string[]
 }>
 
 function renderList(items: string[]) {
