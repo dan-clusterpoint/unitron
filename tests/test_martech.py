@@ -393,6 +393,8 @@ async def test_analyze_url_detects_cms(monkeypatch):
     monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
     monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
 
-    result = await services.martech.app.analyze_url("http://example.com", debug=True)
+    result = await services.martech.app.analyze_url(
+        "http://example.com", debug=True
+    )
     cms = result["cms"]
     assert "WordPress" in cms.get("uncategorized", {})

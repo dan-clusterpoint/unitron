@@ -121,8 +121,8 @@ def match_fingerprints(
                 if rx and rx.search(value):
                     matched = True
             elif m_type == "cookie" and name_key:
-                value = cookies.get(name_key.lower())
-                if value is not None:
+                value = cookies.get(name_key.lower(), "")
+                if value:
                     if rx:
                         if rx.search(value):
                             matched = True
@@ -167,6 +167,8 @@ except Exception:
     DEFAULT_FINGERPRINTS = {}
 
 try:
-    DEFAULT_CMS_FINGERPRINTS = load_fingerprints(BASE_DIR / "cms_fingerprints.yaml")
+    DEFAULT_CMS_FINGERPRINTS = load_fingerprints(
+        BASE_DIR / "cms_fingerprints.yaml"
+    )
 except Exception:
     DEFAULT_CMS_FINGERPRINTS = {}

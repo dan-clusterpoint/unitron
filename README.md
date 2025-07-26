@@ -70,6 +70,14 @@ The gateway orchestrates the other APIs. Key endpoints:
 
 `MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
 
+Example:
+
+```bash
+curl -X POST http://localhost:8080/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com"}'
+```
+
 ### Martech analyzer service
 The martech service exposes four endpoints:
 
@@ -81,12 +89,29 @@ The martech service exposes four endpoints:
   response includes detection evidence for each vendor. Set `headless=true` to
   allow a deeper crawl using a headless browser. Pass `force=true` to bypass the
   in-memory cache and refresh the analysis immediately.
-* `GET /fingerprints` – returns the loaded fingerprint definitions. Append
-  `?debug=true` to run detection on a sample page and show which evidence types
-  triggered for each vendor.
+* `GET /fingerprints` – returns the loaded fingerprint definitions. When
+  `debug=true` the service runs detection on a sample page and reports which
+  evidence types triggered for each vendor. Results are cached so repeated calls
+  are instant.
 
-Fingerprint definitions live in `fingerprints.yaml`. Edit this file and restart
-the service to update the vendor list.
+Example:
+
+```bash
+curl -X POST http://localhost:8081/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com", "debug": true}'
+```
+
+Fingerprint definitions live in `fingerprints.yaml`. CMS fingerprints are stored
+in `cms_fingerprints.yaml`. Edit these files and restart the service to update
+the vendor lists. CMS matches appear under the `cms` key when you call
+`POST /analyze`.
+
+### CMS detection
+
+The analyzer detects popular content management systems alongside martech
+vendors. Definitions live in `cms_fingerprints.yaml`. When analyzing a URL the
+response includes a `cms` object grouping detected systems by category.
 
 If outbound HTTP access must go through a proxy, export `HTTP_PROXY` and
 `HTTPS_PROXY` or set `OUTBOUND_HTTP_PROXY` to override both. The compose file

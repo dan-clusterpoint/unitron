@@ -23,8 +23,9 @@ from services.shared.fingerprint import (
 
 # Default path for fingerprint definitions
 CACHE_TTL = 15 * 60  # 15 minutes
-FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
-CMS_FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "cms_fingerprints.yaml"
+BASE_DIR = Path(__file__).resolve().parents[2]
+FINGERPRINT_PATH = BASE_DIR / "fingerprints.yaml"
+CMS_FINGERPRINT_PATH = BASE_DIR / "cms_fingerprints.yaml"
 
 app = FastAPI()
 
@@ -51,7 +52,9 @@ try:
         CMS_FINGERPRINT_PATH
     )
 except Exception:
-    cms_fingerprints = DEFAULT_CMS_FINGERPRINTS if DEFAULT_CMS_FINGERPRINTS else None
+    cms_fingerprints = (
+        DEFAULT_CMS_FINGERPRINTS if DEFAULT_CMS_FINGERPRINTS else None
+    )
 cache: Dict[str, Dict[str, Any]] = {}
 
 
@@ -256,7 +259,9 @@ async def ready() -> ReadyResponse:
             cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
         except Exception:
             cms_fingerprints = None
-    return ReadyResponse(ready=fingerprints is not None and cms_fingerprints is not None)
+    return ReadyResponse(
+        ready=fingerprints is not None and cms_fingerprints is not None
+    )
 
 
 @app.post("/analyze")
