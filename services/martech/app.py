@@ -195,14 +195,24 @@ async def analyze_url(
             "http://": proxy,
             "https://": proxy,
         }
+    network_error = False
     async with httpx.AsyncClient(**client_opts) as client:
-        html, resp_headers, resp_cookies = await _fetch(client, url)
-        script_urls, inline, external = await _extract_scripts(
-            client, html, base_url=url
-        )
+        try:
+            html, resp_headers, resp_cookies = await _fetch(client, url)
+        except (httpx.RequestError, asyncio.TimeoutError) as exc:  # noqa: BLE001
+            logging.exception("failed fetching %s", url)
+            network_error = True
+            html = ""
+            resp_headers = {}
+            resp_cookies = {}
+            script_urls, inline, external = set(), [], []
+        else:
+            script_urls, inline, external = await _extract_scripts(
+                client, html, base_url=url
+            )
 
     resource_urls: Set[str] = set()
-    if headless:
+    if headless and not network_error:
         headless_html = await _headless_request(url)
         if headless_html:
             resource_urls.update(_collect_resource_hints(headless_html))
@@ -238,6 +248,7 @@ async def analyze_url(
             logging.exception("wappalyzer failed")
     response: Dict[str, Any] = vendors
     response["cms"] = cms_results
+    response["network_error"] = network_error
     if debug:
         response["debug"] = {
             "scripts": all_urls,
@@ -305,19 +316,19 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             result = await analyze_url(
                 url, debug=bool(req.debug), headless=bool(req.headless)
             )
-        except (httpx.RequestError, asyncio.TimeoutError):
-            logging.exception("failed analyzing URL")
-            return JSONResponse(
-                {"detail": "martech service unavailable"}, status_code=503
-            )
+        except Exception:  # noqa: BLE001
+            logging.exception("unexpected error analyzing URL")
+            raise HTTPException(status_code=500, detail="internal error")
         cache[url] = {"time": now, "data": result}
 
     final_result: Dict[str, Any]
     if req.debug:
         final_result = result
     else:
-        final_result = {}
+        final_result = {"network_error": result.get("network_error", False)}
         for bucket, info in result.items():
+            if bucket == "network_error":
+                continue
             if bucket == "cms":
                 names: List[str] = []
                 for vendors in info.values():
