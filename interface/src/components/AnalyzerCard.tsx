@@ -1,5 +1,6 @@
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
+import CmsResults from './CmsResults'
 
 export type AnalyzeResult = {
   property: {
@@ -8,6 +9,7 @@ export type AnalyzeResult = {
     notes: string[]
   } | null
   martech: Record<string, string[]> | null
+  cms?: string[] | null
   degraded: boolean
 }
 
@@ -39,7 +41,7 @@ export default function AnalyzerCard({
   result,
 }: AnalyzerProps) {
   if (result) {
-    const { property, martech, degraded } = result
+    const { property, martech, cms, degraded } = result
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
@@ -50,6 +52,7 @@ export default function AnalyzerCard({
         )}
         {property && <PropertyResults property={property} />}
         {martech && <MartechResults martech={martech} />}
+        {cms && cms.length > 0 && <CmsResults cms={cms} />}
       </div>
     )
   }
