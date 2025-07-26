@@ -1,78 +1,112 @@
-core:
+schema_version: 1
+vendors:
   - name: Google Analytics
-    hosts:
-      - "google-analytics\\.com"
-      - "googletagmanager\\.com"
-      - "www\\.googletagmanager\\.com"
-    scripts:
-      - "ga\\("
-      - "gtag\\("
-      - "window\\.dataLayer"
-      - "G-[A-Z0-9]+"
-      - "UA-[0-9A-Z-]+"
-    cookies:
-      - "_ga"
-      - "_gid"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: google-analytics\.com
+      - type: asset_host
+        pattern: googletagmanager\.com
+      - type: html
+        pattern: "ga\\("
+      - type: html
+        pattern: "gtag\\("
+      - type: html
+        pattern: "window\\.dataLayer"
+      - type: html
+        pattern: "G-[A-Z0-9]+"
+      - type: html
+        pattern: "UA-[0-9A-Z-]+"
+      - type: cookie
+        name: _ga
+      - type: cookie
+        name: _gid
   - name: Adobe Analytics
-    hosts:
-      - "adobedtm\\.com"
-      - "omtrdc\\.net"
-    scripts:
-      - "s_code"
-      - "window\\._satellite"
-    cookies:
-      - "s_pers"
-      - "s_sess"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: adobedtm\.com
+      - type: asset_host
+        pattern: omtrdc\.net
+      - type: html
+        pattern: s_code
+      - type: html
+        pattern: window\._satellite
+      - type: cookie
+        name: s_pers
+      - type: cookie
+        name: s_sess
   - name: Segment
-    hosts:
-      - "segment\\.com"
-      - "cdn\\.segment\\.com"
-    scripts:
-      - "analytics\\.load"
-    cookies:
-      - "ajs_anonymous_id"
-      - "ajs_user_id"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: segment\.com
+      - type: asset_host
+        pattern: cdn\.segment\.com
+      - type: html
+        pattern: analytics\.load
+      - type: cookie
+        name: ajs_anonymous_id
+      - type: cookie
+        name: ajs_user_id
   - name: Mixpanel
-    hosts:
-      - "mxpnl\\.com"
-      - "cdn\\.mxpnl\\.com"
-      - "mixpanel\\.com"
-      - "api\\.mixpanel\\.com"
-    scripts:
-      - "mixpanel\\.init"
-    cookies:
-      - "mp_"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: mxpnl\.com
+      - type: asset_host
+        pattern: cdn\.mxpnl\.com
+      - type: asset_host
+        pattern: mixpanel\.com
+      - type: asset_host
+        pattern: api\.mixpanel\.com
+      - type: html
+        pattern: mixpanel\.init
+      - type: cookie
+        name: mp_
   - name: Amplitude
-    hosts:
-      - "amplitude\\.com"
-      - "api\\.amplitude\\.com"
-      - "cdn\\.amplitude\\.com"
-      - "analytics\\.amplitude\\.com"
-    scripts:
-      - "amplitude\\.getInstance"
-    cookies:
-      - "amp_"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: amplitude\.com
+      - type: asset_host
+        pattern: api\.amplitude\.com
+      - type: asset_host
+        pattern: cdn\.amplitude\.com
+      - type: asset_host
+        pattern: analytics\.amplitude\.com
+      - type: html
+        pattern: amplitude\.getInstance
+      - type: cookie
+        name: amp_
   - name: HubSpot
-    hosts:
-      - "hubspot\\.com"
-      - "js\\.hs-analytics\\.net"
-    scripts:
-      - "_hsq.push"
+    category: core
+    matchers:
+      - type: asset_host
+        pattern: hubspot\.com
+      - type: asset_host
+        pattern: js\.hs-analytics\.net
+      - type: html
+        pattern: _hsq.push
   - name: Meta Pixel
-    hosts:
-      - "connect\\.facebook\\.net.*fbevents\\.js"
-    scripts:
-      - "fbq\\('init'"
-adjacent:
-    - name: Hotjar
-      hosts:
-        - "hotjar\\.com"
-        - "static\\.hotjar\\.com"
-      scripts:
-        - "_hjSettings"
-        - "window\\.hotjar"
-      cookies:
-        - "_hjSession"
-        - "_hjIncludedInSessionSample"
-broader: []
-competitors: []
+    category: core
+    matchers:
+      - type: script_url
+        pattern: connect\.facebook\.net.*fbevents\.js
+      - type: html
+        pattern: "fbq\\('init'"
+  - name: Hotjar
+    category: adjacent
+    matchers:
+      - type: asset_host
+        pattern: hotjar\.com
+      - type: asset_host
+        pattern: static\.hotjar\.com
+      - type: html
+        pattern: _hjSettings
+      - type: html
+        pattern: window\.hotjar
+      - type: cookie
+        name: _hjSession
+      - type: cookie
+        name: _hjIncludedInSessionSample

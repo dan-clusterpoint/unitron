@@ -267,10 +267,8 @@ def test_fingerprints_endpoint():
     r = client.get("/fingerprints")
     assert r.status_code == 200
     data = r.json()
-    assert "core" in data
-    assert any(
-        vendor.get("name") == "Google Analytics" for vendor in data["core"]
-    )
+    assert "vendors" in data
+    assert any(v.get("name") == "Google Analytics" for v in data["vendors"])
 
 
 def test_fingerprints_debug():
@@ -279,8 +277,8 @@ def test_fingerprints_debug():
     assert r.status_code == 200
     data = r.json()
     assert "core" in data
-    assert set(data["core"]["Google Analytics"]) == {"hosts", "scripts"}
-    assert set(data["core"]["Segment"]) == {"hosts", "scripts"}
+    assert "asset_host" in set(data["core"]["Google Analytics"])
+    assert "Segment" in data["core"]
 
 
 @pytest.mark.asyncio
