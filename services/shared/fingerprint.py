@@ -19,8 +19,17 @@ def load_fingerprints(path: Path) -> dict:
         raise FileNotFoundError(path)
     with open(path) as f:
         if path.suffix in {".yaml", ".yml"}:
-            return yaml.safe_load(f)
-        return json.load(f)
+            data = yaml.safe_load(f)
+        else:
+            data = json.load(f)
+
+    if isinstance(data, Mapping):
+        if "default_threshold" not in data:
+            scoring = data.get("scoring")
+            if isinstance(scoring, Mapping) and "default_threshold" in scoring:
+                data["default_threshold"] = scoring["default_threshold"]
+
+    return data
 
 
 _PATTERN_TYPES = {
@@ -94,7 +103,7 @@ def match_fingerprints(
         score = 0.0
 
         for matcher in vendor.get("matchers", []):
-            m_type = matcher.get("type")
+            m_type = matcher.get("type") or matcher.get("kind")
             if m_type not in _PATTERN_TYPES:
                 continue
             pattern = matcher.get("pattern")
