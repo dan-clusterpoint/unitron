@@ -24,6 +24,7 @@ def load_fingerprints(path: Path) -> dict:
             data = json.load(f)
 
     if isinstance(data, Mapping):
+        data = dict(data)
         if "default_threshold" not in data:
             scoring = data.get("scoring")
             if isinstance(scoring, Mapping) and "default_threshold" in scoring:
