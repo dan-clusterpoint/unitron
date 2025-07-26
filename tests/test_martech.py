@@ -218,6 +218,93 @@ def test_analyze_uses_proxy(monkeypatch):
     assert captured["proxy"] == "http://proxy.local"
 
 
+@pytest.mark.asyncio
+async def test_headless_playwright_uses_proxy(monkeypatch):
+    monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
+
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def get(self, url, **kwargs):
+            request = httpx.Request("GET", url)
+            return httpx.Response(200, text="<html></html>", request=request)
+
+    monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
+
+    async def fake_fetch(_client, _url):
+        return "<html></html>", {}, {}
+
+    async def fake_extract(_client, _html, base_url=None):
+        return set(), [], []
+
+    monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
+    monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
+    monkeypatch.setattr("services.martech.app.detect_vendors", lambda *a, **k: {})
+    monkeypatch.setattr("services.martech.app.match_fingerprints", lambda *a, **k: {})
+    monkeypatch.setattr("services.martech.app.cms_fingerprints", {})
+
+    captured: dict[str, object] = {}
+
+    class DummyPage:
+        async def goto(self, *args, **kwargs):
+            pass
+
+        async def content(self):
+            return ""
+
+    class DummyContext:
+        async def new_page(self):
+            return DummyPage()
+
+    class DummyBrowser:
+        async def new_context(self, **kwargs):
+            captured["proxy"] = kwargs.get("proxy")
+            return DummyContext()
+
+        async def close(self):
+            pass
+
+    class DummyBrowserType:
+        async def launch(self, headless=True):
+            return DummyBrowser()
+
+    class DummyPlaywright:
+        def __init__(self):
+            self.firefox = DummyBrowserType()
+
+    class DummyAP:
+        async def __aenter__(self):
+            return DummyPlaywright()
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+    def dummy_async_playwright():
+        return DummyAP()
+
+    import types, sys
+
+    dummy_module = types.ModuleType("playwright.async_api")
+    dummy_module.async_playwright = dummy_async_playwright
+    base_module = types.ModuleType("playwright")
+    base_module.async_api = dummy_module
+    monkeypatch.setitem(sys.modules, "playwright", base_module)
+    monkeypatch.setitem(sys.modules, "playwright.async_api", dummy_module)
+
+    await services.martech.app.analyze_url(
+        "http://example.com", headless=True
+    )
+
+    assert captured["proxy"] == {"server": "http://proxy.local"}
+
+
 def test_diagnose_mocked_asyncclient_success(monkeypatch):
     class DummyClient:
         def __init__(self, *args, **kwargs):

@@ -134,7 +134,7 @@ async def _extract_scripts(
     return urls, inline, external
 
 
-async def _headless_request(url: str) -> str:
+async def _headless_request(url: str, proxy: str | None = None) -> str:
     """Fetch ``url`` using Playwright with JavaScript disabled."""
     try:
         from playwright.async_api import async_playwright
@@ -144,7 +144,10 @@ async def _headless_request(url: str) -> str:
     try:
         async with async_playwright() as pw:
             browser = await pw.firefox.launch(headless=True)
-            context = await browser.new_context(java_script_enabled=False)
+            context_opts = {"java_script_enabled": False}
+            if proxy:
+                context_opts["proxy"] = {"server": proxy}
+            context = await browser.new_context(**context_opts)
             page = await context.new_page()
             await page.goto(url, wait_until="load", timeout=5000)
             content = await page.content()
@@ -216,7 +219,7 @@ async def analyze_url(
 
     resource_urls: Set[str] = set()
     if headless and not network_error:
-        headless_html = await _headless_request(url)
+        headless_html = await _headless_request(url, proxy)
         if headless_html:
             resource_urls.update(_collect_resource_hints(headless_html))
 
