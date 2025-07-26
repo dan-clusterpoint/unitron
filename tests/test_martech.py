@@ -402,6 +402,10 @@ async def test_analyze_url_detects_cms(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_analyze_url_wappalyzer(monkeypatch):
+    try:
+        __import__("Wappalyzer")  # noqa: WPS395
+    except Exception:  # pragma: no cover - optional dependency
+        pytest.skip("python-wappalyzer not available")
     html = "<script src='/wp-includes/wp-embed.min.js'></script>"
     headers: dict[str, str] = {}
     cookies: dict[str, str] = {}
