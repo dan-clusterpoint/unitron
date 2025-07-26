@@ -190,17 +190,14 @@ def test_proxy_usage(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured["proxies"] = kwargs.get("proxies")
+        captured["proxy"] = kwargs.get("proxy")
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
 
     r = client.get("/diagnose")
     assert r.status_code == 200
-    assert captured["proxies"] == {
-        "http://": "http://proxy.local",
-        "https://": "http://proxy.local",
-    }
+    assert captured["proxy"] == "http://proxy.local"
 
 
 def test_analyze_uses_proxy(monkeypatch):
@@ -209,7 +206,7 @@ def test_analyze_uses_proxy(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured["proxies"] = kwargs.get("proxies")
+        captured["proxy"] = kwargs.get("proxy")
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
@@ -218,10 +215,7 @@ def test_analyze_uses_proxy(monkeypatch):
         "/analyze", json={"url": "http://example.com", "force": True}
     )
     assert r.status_code == 200
-    assert captured["proxies"] == {
-        "http://": "http://proxy.local",
-        "https://": "http://proxy.local",
-    }
+    assert captured["proxy"] == "http://proxy.local"
 
 
 def test_diagnose_mocked_asyncclient_success(monkeypatch):

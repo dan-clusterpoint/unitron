@@ -191,10 +191,7 @@ async def analyze_url(
     )
     client_opts: Dict[str, Any] = {"timeout": 10}
     if proxy:
-        client_opts["proxies"] = {
-            "http://": proxy,
-            "https://": proxy,
-        }
+        client_opts["proxy"] = proxy
     network_error = False
     async with httpx.AsyncClient(**client_opts) as client:
         try:
@@ -379,10 +376,7 @@ async def diagnose() -> DiagnoseResponse:
     )
     client_opts: Dict[str, Any] = {"timeout": 5}
     if proxy:
-        client_opts["proxies"] = {
-            "http://": proxy,
-            "https://": proxy,
-        }
+        client_opts["proxy"] = proxy
     try:
         async with httpx.AsyncClient(**client_opts) as client:
             await client.get("https://example.com")
