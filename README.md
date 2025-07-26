@@ -94,6 +94,10 @@ The martech service exposes four endpoints:
   evidence types triggered for each vendor. Results are cached so repeated calls
   are instant.
 
+If fetching the page fails, the service falls back to analyzing just the URL.
+Results are still returned but include a `"network_error"` indicator set to
+`true`.
+
 Example:
 
 ```bash
