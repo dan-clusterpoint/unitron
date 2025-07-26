@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import time
 from pathlib import Path
@@ -9,14 +8,18 @@ import asyncio
 import logging
 
 import httpx
-import yaml  # type: ignore
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from services.shared.utils import detect_vendors
-from services.shared.fingerprint import match_fingerprints
+from services.shared.fingerprint import (
+    DEFAULT_CMS_FINGERPRINTS,
+    DEFAULT_FINGERPRINTS,
+    load_fingerprints,
+    match_fingerprints,
+)
 
 # Default path for fingerprint definitions
 CACHE_TTL = 15 * 60  # 15 minutes
@@ -38,8 +41,17 @@ app.add_middleware(
 )
 
 # Global state populated on startup
-fingerprints: Dict[str, Any] | None = None
-cms_fingerprints: Dict[str, Any] | None = None
+try:
+    fingerprints: Dict[str, Any] | None = load_fingerprints(FINGERPRINT_PATH)
+except Exception:
+    fingerprints = DEFAULT_FINGERPRINTS if DEFAULT_FINGERPRINTS else None
+
+try:
+    cms_fingerprints: Dict[str, Any] | None = load_fingerprints(
+        CMS_FINGERPRINT_PATH
+    )
+except Exception:
+    cms_fingerprints = DEFAULT_CMS_FINGERPRINTS if DEFAULT_CMS_FINGERPRINTS else None
 cache: Dict[str, Dict[str, Any]] = {}
 
 
@@ -60,12 +72,8 @@ class ReadyResponse(BaseModel):
 
 
 def _load_fingerprints(path: Path) -> Dict[str, Any]:
-    if not path.exists():
-        raise FileNotFoundError(path)
-    with open(path) as f:
-        if path.suffix in {".yaml", ".yml"}:
-            return yaml.safe_load(f)
-        return json.load(f)
+    """Wrapper around :func:`load_fingerprints` that ignores cache."""
+    return load_fingerprints(path)
 
 
 async def _fetch(
@@ -218,14 +226,16 @@ async def analyze_url(
 @app.on_event("startup")
 async def _startup() -> None:
     global fingerprints, cms_fingerprints
-    try:
-        fingerprints = _load_fingerprints(FINGERPRINT_PATH)
-    except Exception:
-        fingerprints = None
-    try:
-        cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
-    except Exception:
-        cms_fingerprints = None
+    if fingerprints is None:
+        try:
+            fingerprints = _load_fingerprints(FINGERPRINT_PATH)
+        except Exception:
+            fingerprints = None
+    if cms_fingerprints is None:
+        try:
+            cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
+        except Exception:
+            cms_fingerprints = None
 
 
 @app.get("/health")
