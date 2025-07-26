@@ -118,14 +118,18 @@ def test_options_analyze():
 def test_analyze_handles_request_error(monkeypatch):
     client.get('/ready')
 
-    def boom(*args, **kwargs):
-        req = httpx.Request("GET", "http://example.com")
+    async def boom_fetch(_client, _url):
+        req = httpx.Request("GET", _url)
         raise httpx.RequestError("fail", request=req)
 
-    monkeypatch.setattr("services.martech.app.analyze_url", boom)
-    resp = client.post("/analyze", json={"url": "http://example.com"})
-    assert resp.status_code == 503
-    assert resp.json() == {"detail": "martech service unavailable"}
+    monkeypatch.setattr("services.martech.app._fetch", boom_fetch)
+
+    resp = client.post(
+        "/analyze", json={"url": "http://example.com", "debug": True}
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["network_error"] is True
 
 
 def _set_mock_client(
@@ -210,7 +214,9 @@ def test_analyze_uses_proxy(monkeypatch):
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
 
-    r = client.post("/analyze", json={"url": "http://example.com"})
+    r = client.post(
+        "/analyze", json={"url": "http://example.com", "force": True}
+    )
     assert r.status_code == 200
     assert captured["proxies"] == {
         "http://": "http://proxy.local",
