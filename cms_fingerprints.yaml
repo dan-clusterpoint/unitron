@@ -12,7 +12,7 @@ vendors:
         pattern: wp-content/
       - type: html
         pattern: "wp-"
-      - type: header
+      - type: response_header
         name: x-generator
         pattern: WordPress
       - type: cookie
@@ -22,7 +22,7 @@ vendors:
     matchers:
       - type: html
         pattern: Drupal.settings
-      - type: header
+      - type: response_header
         name: x-generator
         pattern: Drupal
   - name: Joomla
