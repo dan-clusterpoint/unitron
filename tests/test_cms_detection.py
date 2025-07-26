@@ -77,3 +77,54 @@ async def test_analyze_url_handles_fetch_error(monkeypatch):
     cms = result["cms"]
     assert "WordPress" not in cms.get("oss_cms", {})
     assert result["network_error"] is True
+
+
+def test_default_threshold_root(tmp_path):
+    fp_text = """
+default_threshold: 0.5
+vendors:
+  - name: FooCMS
+    category: test
+    matchers:
+      - kind: html
+        pattern: FooCMS
+"""
+    path = tmp_path / "fp.yaml"
+    path.write_text(fp_text)
+    fp = load_fingerprints(path)
+    assert fp["default_threshold"] == 0.5
+    result = match_fingerprints(
+        "<div>FooCMS</div>",
+        "https://example.com/",
+        {},
+        {},
+        [],
+        fp,
+    )
+    assert "FooCMS" in result.get("test", {})
+
+
+def test_default_threshold_scoring(tmp_path):
+    fp_text = """
+scoring:
+  default_threshold: 0.5
+vendors:
+  - name: BarCMS
+    category: test
+    matchers:
+      - kind: html
+        pattern: BarCMS
+"""
+    path = tmp_path / "fp.yaml"
+    path.write_text(fp_text)
+    fp = load_fingerprints(path)
+    assert fp["default_threshold"] == 0.5
+    result = match_fingerprints(
+        "<div>BarCMS</div>",
+        "https://example.com/",
+        {},
+        {},
+        [],
+        fp,
+    )
+    assert "BarCMS" in result.get("test", {})
