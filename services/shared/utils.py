@@ -1,5 +1,5 @@
 
-from typing import Any, Sequence
+from typing import Sequence
 from .fingerprint import (
     DEFAULT_FINGERPRINTS,
     match_fingerprints,
@@ -51,7 +51,11 @@ def detect_vendors(
         fingerprints = DEFAULT_FINGERPRINTS
 
     soup = BeautifulSoup(html, "html.parser")
-    srcs = [tag.get("src") or "" for tag in soup.find_all("script") if tag.get("src")]
+    srcs = [
+        tag.get("src") or ""
+        for tag in soup.find_all("script")
+        if tag.get("src")
+    ]
     if urls:
         srcs.extend(urls)
 

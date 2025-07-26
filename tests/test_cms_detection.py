@@ -1,10 +1,11 @@
-import yaml
 import pytest
 from pathlib import Path
 
 from services.shared.fingerprint import load_fingerprints, match_fingerprints
 
-CMS_FP = load_fingerprints(Path(__file__).resolve().parents[1] / "cms_fingerprints.yaml")
+CMS_FP = load_fingerprints(
+    Path(__file__).resolve().parents[1] / "cms_fingerprints.yaml"
+)
 
 
 @pytest.fixture
@@ -20,7 +21,10 @@ def aem_page():
     html = "<div class='aem-Grid'></div>"
     headers = {}
     cookies = {}
-    resources = ["https://example.com/etc.clientlibs/site.js", "https://example.com/etc/designs/style.css"]
+    resources = [
+        "https://example.com/etc.clientlibs/site.js",
+        "https://example.com/etc/designs/style.css",
+    ]
     return html, "https://example.com/", headers, cookies, resources
 
 
