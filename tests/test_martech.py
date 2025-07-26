@@ -398,3 +398,27 @@ async def test_analyze_url_detects_cms(monkeypatch):
     )
     cms = result["cms"]
     assert "WordPress" in cms.get("uncategorized", {})
+
+
+@pytest.mark.asyncio
+async def test_analyze_url_wappalyzer(monkeypatch):
+    html = "<script src='/wp-includes/wp-embed.min.js'></script>"
+    headers: dict[str, str] = {}
+    cookies: dict[str, str] = {}
+
+    async def fake_fetch(_client, _url):
+        return html, headers, cookies
+
+    async def fake_extract(_client, _html, base_url=None):
+        return set(), [], []
+
+    monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
+    monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
+    monkeypatch.setattr("services.martech.app.cms_fingerprints", {})
+    monkeypatch.setattr("services.martech.app.ENABLE_WAPPALYZER", True)
+
+    result = await services.martech.app.analyze_url(
+        "http://example.com", debug=True
+    )
+    cms = result["cms"]
+    assert "WordPress" in cms.get("uncategorized", {})

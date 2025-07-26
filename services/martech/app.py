@@ -27,6 +27,13 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 FINGERPRINT_PATH = BASE_DIR / "fingerprints.yaml"
 CMS_FINGERPRINT_PATH = BASE_DIR / "cms_fingerprints.yaml"
 
+# Optional technology detection via python-wappalyzer
+ENABLE_WAPPALYZER = os.getenv("ENABLE_WAPPALYZER", "0").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+
 app = FastAPI()
 
 # Allow calls from the UI hosted on a different origin during development
@@ -214,6 +221,21 @@ async def analyze_url(
             all_urls,
             cms_fingerprints,
         )
+    if ENABLE_WAPPALYZER:
+        try:
+            from Wappalyzer import Wappalyzer, WebPage
+
+            page = WebPage(url, html, resp_headers)
+            techs = Wappalyzer.latest().analyze(page)
+            for name in techs:
+                exists = any(name in v for v in cms_results.values())
+                if not exists:
+                    cms_results.setdefault("uncategorized", {})[name] = {
+                        "confidence": 1.0,
+                        "evidence": {"wappalyzer": []},
+                    }
+        except Exception:
+            logging.exception("wappalyzer failed")
     response: Dict[str, Any] = vendors
     response["cms"] = cms_results
     if debug:

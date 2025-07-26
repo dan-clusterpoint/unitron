@@ -118,6 +118,9 @@ If outbound HTTP access must go through a proxy, export `HTTP_PROXY` and
 shows example values for local testing. On Railway, define these variables under
 the **Variables** tab for the `martech` service.
 
+Set `ENABLE_WAPPALYZER=1` to include technology detections from
+python‑wappalyzer. It is disabled by default to keep startup fast.
+
 ## Deployment
 
 * GitHub Actions installs dependencies from `pyproject.toml` and runs our test
