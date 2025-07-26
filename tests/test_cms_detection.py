@@ -1,5 +1,7 @@
 import pytest
 from pathlib import Path
+import httpx
+import services.martech.app
 
 from services.shared.fingerprint import load_fingerprints, match_fingerprints
 
@@ -54,3 +56,19 @@ def test_no_match(random_page):
     html, url, headers, cookies, resources = random_page
     result = match_fingerprints(html, url, headers, cookies, resources, CMS_FP)
     assert result == {}
+
+@pytest.mark.asyncio
+async def test_analyze_url_handles_fetch_error(monkeypatch):
+    async def boom_fetch(_client, url):
+        req = httpx.Request("GET", url)
+        raise httpx.RequestError("fail", request=req)
+
+    monkeypatch.setattr("services.martech.app._fetch", boom_fetch)
+
+    result = await services.martech.app.analyze_url(
+        "https://wp.example.com/wp-content/",
+        debug=True,
+    )
+    cms = result["cms"]
+    assert "WordPress" in cms.get("uncategorized", {})
+    assert result["network_error"] is True
