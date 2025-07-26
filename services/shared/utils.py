@@ -1,6 +1,8 @@
 
 from typing import Sequence
 
+from .fingerprint import match_fingerprints
+
 
 def ping() -> bool:
     return True
@@ -41,7 +43,6 @@ def detect_vendors(
     JavaScript text (e.g. from externally hosted scripts) which will be matched
     against script patterns.
     """
-    import re
     import yaml  # type: ignore
     from pathlib import Path
     from bs4 import BeautifulSoup
@@ -52,58 +53,11 @@ def detect_vendors(
             fingerprints = yaml.safe_load(f)
 
     soup = BeautifulSoup(html, "html.parser")
-    srcs = [tag.get("src", "") for tag in soup.find_all("script")]
+    srcs = [tag.get("src") or "" for tag in soup.find_all("script") if tag.get("src")]
     if urls:
         srcs.extend(urls)
-    inline = [
-        tag.string or ""
-        for tag in soup.find_all("script")
-        if not tag.get("src")
-    ]
+
     if script_bodies:
-        inline.extend(script_bodies)
+        html = "\n".join([html, *script_bodies])
 
-    results: dict[str, dict] = {}
-    for bucket, vendors in fingerprints.items():
-        bucket_hits: dict[str, dict] = {}
-        for vendor in vendors:
-            score = 0
-            max_score = 0
-            evidence: dict[str, list[str]] = {
-                "hosts": [],
-                "scripts": [],
-                "cookies": [],
-            }
-
-            hosts = [re.compile(h, re.I) for h in vendor.get("hosts", [])]
-            max_score += len(hosts) * 2
-            for rx in hosts:
-                if any(rx.search(src) for src in srcs):
-                    evidence["hosts"].append(rx.pattern)
-                    score += 2
-
-            scripts = [re.compile(s, re.I) for s in vendor.get("scripts", [])]
-            max_score += len(scripts)
-            for rx in scripts:
-                if any(rx.search(text) for text in inline):
-                    evidence["scripts"].append(rx.pattern)
-                    score += 1
-
-            cookie_names = vendor.get("cookies", [])
-            max_score += len(cookie_names) * 2
-            for name in cookie_names:
-                if name in cookies:
-                    evidence["cookies"].append(name)
-                    score += 2
-
-            if score:
-                confidence = round(score / max(max_score, 1), 2)
-                bucket_hits[vendor["name"]] = {
-                    "confidence": confidence,
-                    "evidence": evidence,
-                }
-
-        if bucket_hits:
-            results[bucket] = bucket_hits
-
-    return results
+    return match_fingerprints(html, "", {}, cookies, srcs, fingerprints)
