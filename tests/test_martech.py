@@ -380,7 +380,11 @@ def test_local_scripts_detected(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_analyze_url_detects_cms(monkeypatch):
-    html = "<html>wp-content</html>"
+    html = (
+        "<html><link href='/wp-content/style.css'>"
+        "<meta name='generator' content='WordPress'>"
+        "<script src='wp-emoji-release.min.js'></script></html>"
+    )
     headers = {"X-Generator": "WordPress"}
     cookies = {"wordpress_test_cookie": "1"}
 
@@ -394,10 +398,10 @@ async def test_analyze_url_detects_cms(monkeypatch):
     monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
 
     result = await services.martech.app.analyze_url(
-        "http://example.com", debug=True
+        "http://example.com/wp-content/", debug=True
     )
     cms = result["cms"]
-    assert "WordPress" in cms.get("uncategorized", {})
+    assert "WordPress" in cms.get("oss_cms", {})
 
 
 @pytest.mark.asyncio
