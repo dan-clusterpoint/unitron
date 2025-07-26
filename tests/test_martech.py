@@ -190,7 +190,7 @@ def test_proxy_usage(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured["proxy"] = kwargs.get("proxy")
+        captured['proxy'] = kwargs.get('proxy')
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
@@ -206,7 +206,7 @@ def test_analyze_uses_proxy(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured["proxy"] = kwargs.get("proxy")
+        captured['proxy'] = kwargs.get('proxy')
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")

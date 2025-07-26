@@ -57,8 +57,8 @@ def test_no_match(random_page):
     result = match_fingerprints(html, url, headers, cookies, resources, CMS_FP)
     assert result == {}
 
-@pytest.mark.asyncio
 
+@pytest.mark.asyncio
 async def test_analyze_url_handles_fetch_error(monkeypatch):
     async def boom_fetch(_client, url):
         req = httpx.Request("GET", url)
