@@ -1,0 +1,42 @@
+schema_version: 1
+scoring:
+  url: 2
+  html: 1
+  headers: 2
+  cookies: 2
+vendors:
+  - name: WordPress
+    website: https://wordpress.org
+    matchers:
+      - type: url
+        pattern: wp-content/
+      - type: html
+        pattern: "wp-"
+      - type: header
+        name: x-generator
+        pattern: WordPress
+      - type: cookie
+        name: wordpress_test_cookie
+  - name: Drupal
+    website: https://drupal.org
+    matchers:
+      - type: html
+        pattern: Drupal.settings
+      - type: header
+        name: x-generator
+        pattern: Drupal
+  - name: Joomla
+    website: https://www.joomla.org
+    matchers:
+      - type: html
+        pattern: Joomla!
+  - name: Squarespace
+    website: https://www.squarespace.com
+    matchers:
+      - type: html
+        pattern: squarespace.com
+  - name: Wix
+    website: https://www.wix.com
+    matchers:
+      - type: html
+        pattern: wix.com
