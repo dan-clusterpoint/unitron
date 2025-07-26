@@ -3,6 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from fastapi.testclient import TestClient
 
+import services.martech.app
 from services.martech.app import app, _extract_scripts
 import os
 import httpx
@@ -292,7 +293,7 @@ async def test_extract_scripts_parses_gtm(monkeypatch):
     )
 
     async def fake_fetch(_client, _url):
-        return js_content, {}
+        return js_content, {}, {}
 
     monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
 
@@ -377,3 +378,23 @@ def test_local_scripts_detected(monkeypatch):
         assert "Segment" in data
     finally:
         server.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_analyze_url_detects_cms(monkeypatch):
+    html = "<html>wp-content</html>"
+    headers = {"X-Generator": "WordPress"}
+    cookies = {"wordpress_test_cookie": "1"}
+
+    async def fake_fetch(_client, _url):
+        return html, headers, cookies
+
+    async def fake_extract(_client, _html, base_url=None):
+        return set(), [], []
+
+    monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
+    monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
+
+    result = await services.martech.app.analyze_url("http://example.com", debug=True)
+    cms = result["cms"]
+    assert "WordPress" in cms.get("uncategorized", {})

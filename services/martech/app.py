@@ -16,10 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from services.shared.utils import detect_vendors
+from services.shared.fingerprint import match_fingerprints
 
 # Default path for fingerprint definitions
-FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
 CACHE_TTL = 15 * 60  # 15 minutes
+FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
+CMS_FINGERPRINT_PATH = Path(__file__).resolve().parents[2] / "cms_fingerprints.yaml"
 
 app = FastAPI()
 
@@ -36,7 +38,8 @@ app.add_middleware(
 )
 
 # Global state populated on startup
-fingerprints: Dict[str, List[Dict[str, str]]] | None = None
+fingerprints: Dict[str, Any] | None = None
+cms_fingerprints: Dict[str, Any] | None = None
 cache: Dict[str, Dict[str, Any]] = {}
 
 
@@ -56,7 +59,7 @@ class ReadyResponse(BaseModel):
     ready: bool
 
 
-def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
+def _load_fingerprints(path: Path) -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(path)
     with open(path) as f:
@@ -67,11 +70,12 @@ def _load_fingerprints(path: Path) -> Dict[str, List[Dict[str, str]]]:
 
 async def _fetch(
     client: httpx.AsyncClient, url: str
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str], dict[str, str]]:
     r = await client.get(url, follow_redirects=True)
     r.raise_for_status()
     cookies = {k: v for k, v in r.cookies.items()}
-    return r.text, cookies
+    headers = {k.lower(): v for k, v in r.headers.items()}
+    return r.text, headers, cookies
 
 
 async def _extract_scripts(
@@ -95,7 +99,7 @@ async def _extract_scripts(
                         full_src = src
                     else:
                         full_src = urljoin(base_url or "", src)
-                    script_text, _ = await _fetch(client, full_src)
+                    script_text, _, _ = await _fetch(client, full_src)
                     external.append(script_text)
                     if "googletagmanager.com/gtm.js" in src:
                         import re
@@ -174,7 +178,7 @@ async def analyze_url(
             "https://": proxy,
         }
     async with httpx.AsyncClient(**client_opts) as client:
-        html, resp_cookies = await _fetch(client, url)
+        html, resp_headers, resp_cookies = await _fetch(client, url)
         script_urls, inline, external = await _extract_scripts(
             client, html, base_url=url
         )
@@ -189,7 +193,18 @@ async def analyze_url(
     vendors = detect_vendors(
         html, resp_cookies, all_urls, fingerprints, script_bodies=external
     )
+    cms_results: Dict[str, Any] = {}
+    if cms_fingerprints is not None:
+        cms_results = match_fingerprints(
+            html,
+            url,
+            resp_headers,
+            resp_cookies,
+            all_urls,
+            cms_fingerprints,
+        )
     response: Dict[str, Any] = vendors
+    response["cms"] = cms_results
     if debug:
         response["debug"] = {
             "scripts": all_urls,
@@ -202,11 +217,15 @@ async def analyze_url(
 
 @app.on_event("startup")
 async def _startup() -> None:
-    global fingerprints
+    global fingerprints, cms_fingerprints
     try:
         fingerprints = _load_fingerprints(FINGERPRINT_PATH)
     except Exception:
         fingerprints = None
+    try:
+        cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
+    except Exception:
+        cms_fingerprints = None
 
 
 @app.get("/health")
@@ -216,18 +235,23 @@ async def health() -> JSONResponse:
 
 @app.get("/ready", response_model=ReadyResponse)
 async def ready() -> ReadyResponse:
-    global fingerprints
+    global fingerprints, cms_fingerprints
     if fingerprints is None:
         try:
             fingerprints = _load_fingerprints(FINGERPRINT_PATH)
         except Exception:
             fingerprints = None
-    return ReadyResponse(ready=fingerprints is not None)
+    if cms_fingerprints is None:
+        try:
+            cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
+        except Exception:
+            cms_fingerprints = None
+    return ReadyResponse(ready=fingerprints is not None and cms_fingerprints is not None)
 
 
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest) -> JSONResponse:
-    if fingerprints is None:
+    if fingerprints is None or cms_fingerprints is None:
         raise HTTPException(status_code=503, detail="Service not ready")
     url = req.url
     now = time.time()
@@ -255,9 +279,15 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     if req.debug:
         final_result = result
     else:
-        final_result = {
-            bucket: list(info.keys()) for bucket, info in result.items()
-        }
+        final_result = {}
+        for bucket, info in result.items():
+            if bucket == "cms":
+                names: List[str] = []
+                for vendors in info.values():
+                    names.extend(list(vendors.keys()))
+                final_result["cms"] = names
+            else:
+                final_result[bucket] = list(info.keys())
 
     return JSONResponse(final_result)
 
