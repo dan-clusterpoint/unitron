@@ -193,10 +193,16 @@ async def analyze_url(
     if proxy:
         client_opts["proxy"] = proxy
     network_error = False
+    script_urls: set[str]
+    inline: list[str]
+    external: list[str]
     async with httpx.AsyncClient(**client_opts) as client:
         try:
             html, resp_headers, resp_cookies = await _fetch(client, url)
-        except (httpx.RequestError, asyncio.TimeoutError) as exc:  # noqa: BLE001
+        except (
+            httpx.RequestError,
+            asyncio.TimeoutError,
+        ):  # noqa: BLE001
             logging.exception("failed fetching %s", url)
             network_error = True
             html = ""
