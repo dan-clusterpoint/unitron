@@ -157,3 +157,16 @@ def match_fingerprints(
             }
 
     return results
+
+
+# Default fingerprints loaded once per process
+BASE_DIR = Path(__file__).resolve().parents[2]
+try:
+    DEFAULT_FINGERPRINTS = load_fingerprints(BASE_DIR / "fingerprints.yaml")
+except Exception:
+    DEFAULT_FINGERPRINTS = {}
+
+try:
+    DEFAULT_CMS_FINGERPRINTS = load_fingerprints(BASE_DIR / "cms_fingerprints.yaml")
+except Exception:
+    DEFAULT_CMS_FINGERPRINTS = {}

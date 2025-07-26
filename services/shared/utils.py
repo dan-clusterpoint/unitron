@@ -1,7 +1,9 @@
 
-from typing import Sequence
-
-from .fingerprint import match_fingerprints
+from typing import Any, Sequence
+from .fingerprint import (
+    DEFAULT_FINGERPRINTS,
+    match_fingerprints,
+)
 
 
 def ping() -> bool:
@@ -43,14 +45,10 @@ def detect_vendors(
     JavaScript text (e.g. from externally hosted scripts) which will be matched
     against script patterns.
     """
-    import yaml  # type: ignore
-    from pathlib import Path
     from bs4 import BeautifulSoup
 
     if fingerprints is None:
-        fp_path = Path(__file__).resolve().parents[2] / "fingerprints.yaml"
-        with open(fp_path) as f:
-            fingerprints = yaml.safe_load(f)
+        fingerprints = DEFAULT_FINGERPRINTS
 
     soup = BeautifulSoup(html, "html.parser")
     srcs = [tag.get("src") or "" for tag in soup.find_all("script") if tag.get("src")]
