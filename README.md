@@ -106,10 +106,24 @@ curl -X POST http://localhost:8081/analyze \
   -d '{"url": "https://example.com", "debug": true}'
 ```
 
-Fingerprint definitions live in `fingerprints.yaml`. CMS fingerprints are stored
-in `cms_fingerprints.yaml`. Edit these files and restart the service to update
-the vendor lists. CMS matches appear under the `cms` key when you call
-`POST /analyze`.
+Fingerprint definitions live in `fingerprints.yaml`. A separate
+`cms_fingerprints.yaml` catalogs detection rules for common CMS platforms such as
+WordPress, AEM and Shopify. When you call `POST /analyze` the response now
+includes a `cms` object grouped by category. Edit these files and restart the
+service to update the vendor lists.
+
+CMS output example:
+
+```bash
+curl -s -X POST http://localhost:8081/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://wordpress.com"}'
+# {
+#   "core": {...},
+#   "cms": {"oss_cms": {"WordPress": {"confidence": 1.0}}},
+#   "network_error": false
+# }
+```
 
 ### CMS detection
 
