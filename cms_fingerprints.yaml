@@ -40,3 +40,12 @@ vendors:
     matchers:
       - type: html
         pattern: wix.com
+  - name: Adobe Experience Manager
+    website: https://www.adobe.com/marketing/experience-manager.html
+    matchers:
+      - type: html
+        pattern: aem-Grid
+      - type: script_url
+        pattern: /etc.clientlibs/
+      - type: script_url
+        pattern: /etc/designs/
