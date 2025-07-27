@@ -144,7 +144,7 @@ async def _headless_request(url: str, proxy: str | None = None) -> str:
     try:
         async with async_playwright() as pw:
             browser = await pw.firefox.launch(headless=True)
-            context_opts = {"java_script_enabled": False}
+            context_opts: dict[str, Any] = {"java_script_enabled": False}
             if proxy:
                 context_opts["proxy"] = {"server": proxy}
             context = await browser.new_context(**context_opts)
