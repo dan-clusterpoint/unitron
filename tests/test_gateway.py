@@ -300,5 +300,6 @@ def test_insight_degraded(monkeypatch):
     assert r.json()["degraded"] is True
     assert gateway_app.metrics["insight"]["failure"] == before + 1
     assert (
-        gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
+        gateway_app.metrics["insight"]["codes"].get("503", 0)
+        == before_code + 1
     )

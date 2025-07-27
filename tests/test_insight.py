@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from services.insight.app import app
 import services.insight.app as insight_mod
+import types
 
 client = TestClient(app)
 
@@ -20,7 +21,8 @@ def test_ready():
 def test_generate_insights(monkeypatch):
     class DummyResp:
         def __init__(self, content: str) -> None:
-            self.choices = [type("obj", (), {"message": type("obj", (), {"content": content})()})]
+            message_obj = type("obj", (), {"content": content})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
 
     async def fake_create(**kwargs):
         return DummyResp("Hello insight")
@@ -32,7 +34,10 @@ def test_generate_insights(monkeypatch):
         def __init__(self, *a, **kw) -> None:
             self.chat = DummyChat
 
-    monkeypatch.setattr(insight_mod.openai, "AsyncOpenAI", lambda api_key=None: DummyClient())
+    dummy_module = types.SimpleNamespace(
+        AsyncOpenAI=lambda api_key=None: DummyClient()
+    )
+    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     r = client.post("/generate-insights", json={"text": "  some text\n"})

@@ -45,6 +45,20 @@ services:
     ports:
       - "8082:8000"
 
+  insight:
+    build:
+      context: .
+      dockerfile: docker/python.Dockerfile
+      args:
+        SERVICE: insight
+    environment:
+      - SERVICE=insight
+      - PORT=8000
+      - UI_ORIGIN=${UI_ORIGIN:-http://localhost:5173}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    ports:
+      - "8083:8000"
+
   interface:
     build:
       context: ./interface
