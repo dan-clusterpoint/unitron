@@ -79,6 +79,13 @@ class ReadyResponse(BaseModel):
     ready: bool
 
 
+class GenerateRequest(BaseModel):
+    url: str
+    martech: Dict[str, List[str]] | None = None
+    cms: List[str] | None = None
+    cms_manual: str | None = None
+
+
 def _load_fingerprints(path: Path) -> Dict[str, Any]:
     """Wrapper around :func:`load_fingerprints` that ignores cache."""
     return load_fingerprints(path)
@@ -342,6 +349,18 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
                 final_result[bucket] = list(info.keys())
 
     return JSONResponse(final_result)
+
+
+@app.post("/generate")
+async def generate(req: GenerateRequest) -> JSONResponse:
+    """Return demo personas using detected or manual CMS values."""
+    cms_used = req.cms_manual or ", ".join(req.cms or [])
+    result = {
+        "personas": [f"Persona for {cms_used or 'unknown'}"],
+        "demo_flow": f"Demo for {req.url}",
+        "cms_used": cms_used,
+    }
+    return JSONResponse(result)
 
 
 @app.get("/fingerprints")
