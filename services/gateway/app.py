@@ -29,11 +29,13 @@ app.add_middleware(
 # Default service URLs used in local docker-compose
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
 PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
+INSIGHT_URL = os.getenv("INSIGHT_URL", "http://insight:8000")
 
 # In-memory metrics for service calls
 metrics: Dict[str, Dict[str, Any]] = {
     "martech": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "property": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
+    "insight": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
 }
 
 
@@ -217,3 +219,12 @@ async def generate(req: GenerateRequest) -> JSONResponse:
         f"{MARTECH_URL}/generate", payload, "martech"
     )
     return JSONResponse({"result": martech_data or {}, "degraded": degraded})
+
+
+@app.post("/insight")
+async def insight(data: Dict[str, Any]) -> JSONResponse:
+    """Proxy insight generation to the insight service."""
+    insight_data, degraded = await _post_with_retry(
+        f"{INSIGHT_URL}/generate-insights", data, "insight"
+    )
+    return JSONResponse({"result": insight_data or {}, "degraded": degraded})
