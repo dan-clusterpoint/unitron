@@ -115,7 +115,7 @@ export default function AnalyzerCard({
             disabled={generating || insightLoading || !insight}
             onClick={onGenerate}
           >
-            {generating ? 'Generating...' : 'Generate Personas'}
+            {generating ? 'Generating...' : 'Generate Insights'}
           </button>
         )}
       </div>
