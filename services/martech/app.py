@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any
 import io
 import asyncio
 import logging
@@ -57,17 +57,17 @@ app.add_middleware(
 
 # Global state populated on startup
 try:
-    fingerprints: Dict[str, Any] | None = load_fingerprints(FINGERPRINT_PATH)
+    fingerprints: dict[str, Any] | None = load_fingerprints(FINGERPRINT_PATH)
 except Exception:
     fingerprints = DEFAULT_FINGERPRINTS or {}
 
 try:
-    cms_fingerprints: Dict[str, Any] | None = load_fingerprints(
+    cms_fingerprints: dict[str, Any] | None = load_fingerprints(
         CMS_FINGERPRINT_PATH
     )
 except Exception:
     cms_fingerprints = DEFAULT_CMS_FINGERPRINTS or {}
-cache: Dict[str, Dict[str, Any]] = {}
+cache: dict[str, dict[str, Any]] = {}
 
 
 class AnalyzeRequest(BaseModel):
@@ -88,12 +88,12 @@ class ReadyResponse(BaseModel):
 
 class GenerateRequest(BaseModel):
     url: str
-    martech: Dict[str, List[str]] | None = None
-    cms: List[str] | None = None
+    martech: dict[str, list[str]] | None = None
+    cms: list[str] | None = None
     cms_manual: str | None = None
 
 
-def _load_fingerprints(path: Path) -> Dict[str, Any]:
+def _load_fingerprints(path: Path) -> dict[str, Any]:
     """Wrapper around :func:`load_fingerprints` that ignores cache."""
     return load_fingerprints(path)
 
@@ -127,11 +127,11 @@ async def _extract_scripts(
     client: httpx.AsyncClient | None,
     html: str,
     base_url: str | None = None,
-) -> tuple[Set[str], List[str], List[str]]:
+) -> tuple[set[str], list[str], list[str]]:
     soup = BeautifulSoup(html, "html.parser")
-    urls: Set[str] = set()
-    inline: List[str] = []
-    external: List[str] = []
+    urls: set[str] = set()
+    inline: list[str] = []
+    external: list[str] = []
     from urllib.parse import urljoin
 
     for tag in soup.find_all("script"):
@@ -184,10 +184,10 @@ async def _headless_request(url: str, proxy: str | None = None) -> str:
         return ""
 
 
-def _collect_resource_hints(html: str) -> Set[str]:
+def _collect_resource_hints(html: str) -> set[str]:
     """Return URLs from resource hint/link and img tags."""
     soup = BeautifulSoup(html, "html.parser")
-    urls: Set[str] = set()
+    urls: set[str] = set()
     for tag in soup.find_all("link"):
         rel = tag.get("rel", [])
         if isinstance(rel, str):
@@ -212,14 +212,14 @@ def _collect_resource_hints(html: str) -> Set[str]:
 
 async def analyze_url(
     url: str, debug: bool = False, headless: bool = False
-) -> Dict[str, object]:
+) -> dict[str, object]:
     proxy = (
         os.getenv("OUTBOUND_HTTP_PROXY")
         or os.getenv("HTTP_PROXY")
         or os.getenv("HTTPS_PROXY")
         or None
     )
-    client_opts: Dict[str, Any] = {"timeout": 10}
+    client_opts: dict[str, Any] = {"timeout": 10}
     if proxy:
         client_opts["proxy"] = proxy
     network_error = False
@@ -244,7 +244,7 @@ async def analyze_url(
                 client, html, base_url=url
             )
 
-    resource_urls: Set[str] = set()
+    resource_urls: set[str] = set()
     if headless and not network_error:
         headless_html = await _headless_request(url, proxy)
         if headless_html:
@@ -254,7 +254,7 @@ async def analyze_url(
     vendors = detect_vendors(
         html, resp_cookies, all_urls, fingerprints, script_bodies=external
     )
-    cms_results: Dict[str, Any] = {}
+    cms_results: dict[str, Any] = {}
     if cms_fingerprints is not None:
         cms_results = match_fingerprints(
             html,
@@ -279,7 +279,7 @@ async def analyze_url(
                     }
         except Exception:
             logging.exception("wappalyzer failed")
-    response: Dict[str, Any] = vendors
+    response: dict[str, Any] = vendors
     response["cms"] = cms_results
     response["network_error"] = network_error
     if debug:
@@ -354,7 +354,7 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             raise HTTPException(status_code=500, detail="internal error")
         cache[url] = {"time": now, "data": result}
 
-    final_result: Dict[str, Any]
+    final_result: dict[str, Any]
     if req.debug:
         final_result = result
     else:
@@ -363,7 +363,7 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             if bucket == "network_error":
                 continue
             if bucket == "cms":
-                names: List[str] = []
+                names: list[str] = []
                 for vendors in info.values():
                     names.extend(list(vendors.keys()))
                 final_result["cms"] = names
@@ -402,9 +402,9 @@ async def fingerprints_endpoint(debug: bool | None = False) -> JSONResponse:
             "ga('create','UA-XYZ','auto');</script>"
         )
         detected = detect_vendors(sample_html, {}, [], fingerprints)
-        result: Dict[str, Dict[str, list[str]]] = {}
+        result: dict[str, dict[str, list[str]]] = {}
         for bucket, vendors in detected.items():
-            bucket_out: Dict[str, list[str]] = {}
+            bucket_out: dict[str, list[str]] = {}
             for name, info in vendors.items():
                 evid = info.get("evidence", {})
                 bucket_out[name] = [k for k, v in evid.items() if v]
@@ -424,7 +424,7 @@ async def diagnose() -> DiagnoseResponse:
         or os.getenv("HTTPS_PROXY")
         or None
     )
-    client_opts: Dict[str, Any] = {"timeout": 5}
+    client_opts: dict[str, Any] = {"timeout": 5}
     if proxy:
         client_opts["proxy"] = proxy
     try:

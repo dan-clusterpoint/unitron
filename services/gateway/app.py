@@ -2,7 +2,7 @@ import os
 import asyncio
 import time
 from urllib.parse import urlparse
-from typing import Any, Dict
+from typing import Any
 
 from services.shared.utils import normalize_url
 
@@ -32,7 +32,7 @@ PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
 INSIGHT_URL = os.getenv("INSIGHT_URL", "http://insight:8000")
 
 # In-memory metrics for service calls
-metrics: Dict[str, Dict[str, Any]] = {
+metrics: dict[str, dict[str, Any]] = {
     "martech": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "property": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "insight": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
@@ -77,7 +77,7 @@ class AnalyzeRequest(BaseModel):
 
 class GenerateRequest(BaseModel):
     url: str
-    martech: Dict[str, list[str]] | None = None
+    martech: dict[str, list[str]] | None = None
     cms: list[str] | None = None
     cms_manual: str | None = None
 
@@ -222,7 +222,7 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 
 
 @app.post("/insight")
-async def insight(data: Dict[str, Any]) -> JSONResponse:
+async def insight(data: dict[str, Any]) -> JSONResponse:
     """Proxy insight generation to the insight service."""
     insight_data, degraded = await _post_with_retry(
         f"{INSIGHT_URL}/generate-insights", data, "insight"
