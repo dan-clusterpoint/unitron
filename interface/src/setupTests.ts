@@ -15,6 +15,9 @@ export const server = setupServer(
       martech: { core: ['GTM'] },
     }),
   ),
+  http.post('/insight', () =>
+    Response.json({ result: { insight: 'Test insight' }, degraded: false }),
+  ),
 )
 
 beforeAll(() => server.listen())

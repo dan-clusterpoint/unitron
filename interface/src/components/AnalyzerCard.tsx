@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
@@ -45,6 +45,25 @@ export default function AnalyzerCard({
 }: AnalyzerProps) {
   const [manualCms, setManualCms] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [insight, setInsight] = useState<string | null>(null)
+  const [insightLoading, setInsightLoading] = useState(false)
+
+  useEffect(() => {
+    if (!result) {
+      setInsight(null)
+      return
+    }
+    const text = result.property?.notes.join('\n') || ''
+    setInsightLoading(true)
+    apiFetch<{ result: { insight?: string } }>('/insight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    })
+      .then((d) => setInsight(d.result.insight || ''))
+      .catch(() => setInsight(''))
+      .finally(() => setInsightLoading(false))
+  }, [result])
 
   async function onGenerate() {
     if (!result) return
@@ -84,10 +103,16 @@ export default function AnalyzerCard({
             setManualCms={setManualCms}
           />
         )}
+        {(insightLoading || insight) && (
+          <div className="bg-gray-50 p-4 rounded mb-4">
+            <h3 className="font-medium mb-2">Insights</h3>
+            {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
+          </div>
+        )}
         {cms && cms.length === 0 && (
           <button
             className="btn-primary mt-4"
-            disabled={generating}
+            disabled={generating || insightLoading || !insight}
             onClick={onGenerate}
           >
             {generating ? 'Generating...' : 'Generate Personas'}
