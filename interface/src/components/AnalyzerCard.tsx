@@ -52,7 +52,7 @@ export default function AnalyzerCard({
         )}
         {property && <PropertyResults property={property} />}
         {martech && <MartechResults martech={martech} />}
-        {cms && cms.length > 0 && <CmsResults cms={cms} />}
+        {cms != null && <CmsResults cms={cms} />}
       </div>
     )
   }
