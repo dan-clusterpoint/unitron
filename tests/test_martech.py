@@ -246,8 +246,14 @@ async def test_headless_playwright_uses_proxy(monkeypatch):
 
     monkeypatch.setattr("services.martech.app._fetch", fake_fetch)
     monkeypatch.setattr("services.martech.app._extract_scripts", fake_extract)
-    monkeypatch.setattr("services.martech.app.detect_vendors", lambda *a, **k: {})
-    monkeypatch.setattr("services.martech.app.match_fingerprints", lambda *a, **k: {})
+    monkeypatch.setattr(
+        "services.martech.app.detect_vendors",
+        lambda *a, **k: {},
+    )
+    monkeypatch.setattr(
+        "services.martech.app.match_fingerprints",
+        lambda *a, **k: {},
+    )
     monkeypatch.setattr("services.martech.app.cms_fingerprints", {})
 
     captured: dict[str, object] = {}
@@ -289,7 +295,8 @@ async def test_headless_playwright_uses_proxy(monkeypatch):
     def dummy_async_playwright():
         return DummyAP()
 
-    import types, sys
+    import types
+    import sys
 
     dummy_module = types.ModuleType("playwright.async_api")
     dummy_module.async_playwright = dummy_async_playwright
