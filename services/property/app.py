@@ -55,10 +55,10 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
     try:
         clean_url = normalize_url(req.domain)
     except Exception:  # noqa: BLE001
-        raise HTTPException(400, "Invalid domain")
+        raise HTTPException(status_code=400, detail="Invalid domain")
     domain = urlparse(clean_url).hostname
     if not domain:
-        raise HTTPException(400, "Invalid domain")
+        raise HTTPException(status_code=400, detail="Invalid domain")
 
     domain = domain.lower()
     bare = domain

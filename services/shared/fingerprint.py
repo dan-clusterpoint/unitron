@@ -7,7 +7,7 @@ import json
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 import yaml  # type: ignore
 
@@ -71,7 +71,7 @@ def match_fingerprints(
     cookies: Mapping[str, str] | None,
     resource_urls: Sequence[str] | None,
     fingerprints: Mapping[str, Any],
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """Return detected vendors grouped by category.
 
     ``resource_urls`` should include any discovered asset or script URLs.
@@ -97,7 +97,7 @@ def match_fingerprints(
     scoring = fingerprints.get("scoring", {})
     default_threshold = fingerprints.get("default_threshold", 1)
 
-    results: Dict[str, Dict[str, Any]] = {}
+    results: dict[str, dict[str, Any]] = {}
 
     for vendor in _iter_vendors(fingerprints):
         name = vendor.get("name")
@@ -106,7 +106,7 @@ def match_fingerprints(
         category = vendor.get("category", "uncategorized")
         threshold = vendor.get("threshold", default_threshold)
 
-        evidence: Dict[str, list[str]] = {k: [] for k in _PATTERN_TYPES}
+        evidence: dict[str, list[str]] = {k: [] for k in _PATTERN_TYPES}
         score = 0.0
 
         for matcher in vendor.get("matchers", []):
