@@ -76,6 +76,12 @@ def match_fingerprints(
 
     ``resource_urls`` should include any discovered asset or script URLs.
     ``headers`` and ``cookies`` are case-insensitive mappings.
+
+    The scoring system is additive: each matcher that succeeds contributes its
+    ``weight`` toward the vendor's cumulative score. When the score meets or
+    exceeds the vendor's ``threshold`` (``default_threshold`` if unspecified)
+    the vendor is reported as detected. Confidence is normalized so a score
+    equal to the threshold yields ``1.0``.
     """
 
     headers = {k.lower(): v for k, v in (headers or {}).items()}
@@ -148,6 +154,8 @@ def match_fingerprints(
                         break
 
             if matched:
+                # Each successful matcher contributes its weight to the vendor.
+                # Scores accumulate until the configured threshold is reached.
                 score += weight
                 key = m_type
                 if m_type == "response_header" and name_key:
@@ -157,6 +165,8 @@ def match_fingerprints(
                 else:
                     evidence[key].append(pattern or "")
 
+        # Once the cumulative score meets or exceeds the threshold the vendor
+        # is considered present. Confidence is capped at 1.0.
         if score >= threshold:
             confidence = round(min(score / float(threshold), 1.0), 2)
             if category not in results:
