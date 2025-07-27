@@ -94,6 +94,10 @@ The martech service exposes four endpoints:
   evidence types triggered for each vendor. Results are cached so repeated calls
   are instant.
 
+If the fingerprint files cannot be loaded at startup, the analyzer still boots
+with empty vendor lists. Analytics and CMS detection will then return no
+matches, but the API endpoints continue to respond with HTTP 200.
+
 If fetching the page fails, the service falls back to analyzing just the URL.
 Results are still returned but include a `"network_error"` indicator set to
 `true`.
