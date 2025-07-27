@@ -1,7 +1,7 @@
 import importlib
 import os
 
-allowed = {"gateway", "martech", "property"}
+allowed = {"gateway", "martech", "property", "insight"}
 svc = os.environ.get("SERVICE", "gateway").strip()
 if svc not in allowed:
     raise SystemExit(f"Unknown service: {svc}")
