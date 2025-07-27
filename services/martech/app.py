@@ -4,6 +4,7 @@ import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Set
+import io
 import asyncio
 import logging
 
@@ -26,6 +27,12 @@ CACHE_TTL = 15 * 60  # 15 minutes
 BASE_DIR = Path(__file__).resolve().parents[2]
 FINGERPRINT_PATH = BASE_DIR / "fingerprints.yaml"
 CMS_FINGERPRINT_PATH = BASE_DIR / "cms_fingerprints.yaml"
+
+# Optional logging of manually submitted CMS strings.
+# If set, CMS_MANUAL_LOG_PATH should point to a file that receives one entry
+# per request where ``cms_manual`` is provided.
+CMS_MANUAL_LOG_PATH = os.getenv("CMS_MANUAL_LOG_PATH")
+_cms_log_file: io.TextIOWrapper | None = None
 
 # Optional technology detection via python-wappalyzer
 ENABLE_WAPPALYZER = os.getenv("ENABLE_WAPPALYZER", "0").lower() in {
@@ -89,6 +96,21 @@ class GenerateRequest(BaseModel):
 def _load_fingerprints(path: Path) -> Dict[str, Any]:
     """Wrapper around :func:`load_fingerprints` that ignores cache."""
     return load_fingerprints(path)
+
+
+def _log_manual_cms(value: str) -> None:
+    """Append manual CMS entries to `CMS_MANUAL_LOG_PATH` if configured."""
+    if not CMS_MANUAL_LOG_PATH or not value:
+        return
+    global _cms_log_file
+    try:
+        if _cms_log_file is None:
+            _cms_log_file = open(CMS_MANUAL_LOG_PATH, "a", encoding="utf-8")
+        timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        _cms_log_file.write(f"{timestamp}\t{value}\n")
+        _cms_log_file.flush()
+    except Exception:  # noqa: BLE001
+        logging.exception("failed to record cms_manual")
 
 
 async def _fetch(
@@ -355,6 +377,8 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
 async def generate(req: GenerateRequest) -> JSONResponse:
     """Return demo personas using detected or manual CMS values."""
     cms_used = req.cms_manual or ", ".join(req.cms or [])
+    if req.cms_manual:
+        _log_manual_cms(req.cms_manual)
     result = {
         "personas": [f"Persona for {cms_used or 'unknown'}"],
         "demo_flow": f"Demo for {req.url}",

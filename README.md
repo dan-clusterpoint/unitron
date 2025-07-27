@@ -180,6 +180,10 @@ curl -X POST http://localhost:8080/generate \
   -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal"}'
 ```
 
+Set `CMS_MANUAL_LOG_PATH` to a file path to record submitted `cms_manual`
+values. Reviewing these logs helps refine `cms_fingerprints.yaml` with real
+world platforms not yet covered by automated detection.
+
 ## Deployment
 
 * GitHub Actions installs dependencies from `pyproject.toml` and runs our test
