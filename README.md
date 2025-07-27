@@ -168,7 +168,7 @@ The `docker-compose.yml` file wires them together with sensible defaults for loc
 3. Watch the logs for all services to report `Uvicorn running` within two seconds.
 4. Navigate to `http://localhost:8080/docs` for API docs.
 
--### Reliability principles
+### Reliability principles
 - The single Dockerfile (`docker/python.Dockerfile`) copies only local files and never reaches out to the internet during build.
 - Health checks for Railway and Compose are identical so behaviour matches across environments.
 - CI must pass flake8, mypy, and pytest before Docker images are built or published.
