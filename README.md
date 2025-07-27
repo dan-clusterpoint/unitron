@@ -79,6 +79,14 @@ curl -X POST http://localhost:8080/analyze \
   -d '{"url": "https://example.com"}'
 ```
 
+Example (generate with manual CMS):
+
+```bash
+curl -X POST http://localhost:8080/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
+```
+
 ### Martech analyzer service
 The martech service exposes several endpoints:
 
@@ -110,6 +118,12 @@ Example:
 curl -X POST http://localhost:8081/analyze \
   -H 'Content-Type: application/json' \
   -d '{"url": "https://example.com", "debug": true}'
+```
+
+```bash
+curl -X POST http://localhost:8081/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
 ```
 
 Fingerprint definitions live in `fingerprints.yaml`. A separate
@@ -148,6 +162,23 @@ the **Variables** tab for the `martech` service.
 
 Set `ENABLE_WAPPALYZER=1` to include technology detections from
 python‑wappalyzer. It is disabled by default to keep startup fast.
+
+### Manual CMS input
+
+The `/generate` endpoint lets you provide a `cms_manual` string when the
+analyzer cannot detect a CMS. The gateway forwards this value to the martech
+service so personas can still reference a specific platform.
+
+The React interface exposes a dropdown for this field only when the analysis
+returns an empty CMS list.
+
+Example request:
+
+```bash
+curl -X POST http://localhost:8080/generate \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal"}'
+```
 
 ## Deployment
 
