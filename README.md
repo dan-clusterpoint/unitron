@@ -17,7 +17,7 @@ open http://localhost:8080/docs
 # Create a .env file for secrets
 # OPENAI_API_KEY=your-openai-key
 # Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
-# MARTECH_URL and PROPERTY_URL control where the gateway proxies requests
+# MARTECH_URL, PROPERTY_URL and INSIGHT_URL control where the gateway proxies requests
 ```
 
 All Python APIs build from `docker/python.Dockerfile`. The `SERVICE` environment
@@ -72,7 +72,7 @@ The gateway orchestrates the other APIs. Key endpoints:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo flow.
 
-`MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
+`MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
 
 Example:
 
@@ -186,6 +186,33 @@ curl -X POST http://localhost:8080/generate \
 Set `CMS_MANUAL_LOG_PATH` to a file path to record submitted `cms_manual`
 values. Reviewing these logs helps refine `cms_fingerprints.yaml` with real
 world platforms not yet covered by automated detection.
+
+### Insight service
+The insight service wraps the OpenAI Chat API to generate short summaries from free-form text. It runs at `http://localhost:8083` when using Docker Compose.
+
+Endpoints:
+
+* `GET /health` – liveness probe.
+* `GET /ready` – always returns `{"ready": true}`.
+* `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
+
+Set `OPENAI_API_KEY` to a valid key so the service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`.
+
+Example direct request:
+
+```bash
+curl -X POST http://localhost:8083/generate-insights \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "My raw notes"}'
+```
+
+Example through the gateway:
+
+```bash
+curl -X POST http://localhost:8080/insight \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "My raw notes"}'
+```
 
 ## Deployment
 
