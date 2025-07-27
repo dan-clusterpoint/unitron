@@ -268,3 +268,37 @@ def test_generate_omits_empty_manual(monkeypatch):
     )
     assert r.status_code == 200
     assert "cms_manual" not in captured["data"]
+
+
+def test_insight_passthrough(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"out": True})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/insight", json={"foo": 1})
+    assert r.status_code == 200
+    assert r.json() == {"result": {"out": True}, "degraded": False}
+
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["insight"]["success"] >= 1
+
+
+def test_insight_degraded(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(503)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    before = gateway_app.metrics["insight"]["failure"]
+    before_code = gateway_app.metrics["insight"]["codes"].get("503", 0)
+
+    r = client.post("/insight", json={"foo": "bar"})
+    assert r.status_code == 200
+    assert r.json()["degraded"] is True
+    assert gateway_app.metrics["insight"]["failure"] == before + 1
+    assert (
+        gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
+    )
