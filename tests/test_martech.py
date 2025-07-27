@@ -524,3 +524,33 @@ async def test_analyze_url_wappalyzer(monkeypatch):
     )
     cms = result["cms"]
     assert "WordPress" in cms.get("uncategorized", {})
+
+
+@pytest.mark.asyncio
+async def test_startup_fallback(monkeypatch):
+    """Startup loads default fingerprints when files missing."""
+    def raise_fn(_path):
+        raise FileNotFoundError
+
+    monkeypatch.setattr("services.martech.app._load_fingerprints", raise_fn)
+    services.martech.app.fingerprints = None
+    services.martech.app.cms_fingerprints = None
+
+    await services.martech.app._startup()
+
+    assert services.martech.app.fingerprints == {}
+    assert services.martech.app.cms_fingerprints == {}
+
+    async def fake_post(url: str, data: dict, service: str):
+        if service == "martech":
+            resp = client.post("/analyze", json=data)
+            return resp.json(), False
+        return {"domains": [data.get("domain", "example.com")]}, False
+
+    monkeypatch.setattr("services.gateway.app._post_with_retry", fake_post)
+    from services.gateway.app import app as gateway_app
+
+    gw_client = TestClient(gateway_app)
+    resp = gw_client.post("/analyze", json={"url": "https://example.com"})
+    assert resp.status_code == 200
+    assert resp.json()["degraded"] is False
