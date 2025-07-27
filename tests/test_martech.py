@@ -583,3 +583,22 @@ def test_generate_detected_cms():
     assert r.status_code == 200
     data = r.json()
     assert data["cms_used"] == "WordPress"
+
+
+def test_cms_manual_logging(tmp_path, monkeypatch):
+    path = tmp_path / "cms.log"
+    monkeypatch.setattr(services.martech.app, "CMS_MANUAL_LOG_PATH", str(path))
+    services.martech.app._cms_log_file = None
+
+    r = client.post(
+        "/generate",
+        json={
+            "url": "http://example.com",
+            "martech": {},
+            "cms": [],
+            "cms_manual": "Joomla",
+        },
+    )
+    assert r.status_code == 200
+    text = path.read_text().strip()
+    assert text.endswith("Joomla")
