@@ -12,7 +12,10 @@ docker compose up --build
 # gateway -> http://localhost:8080
 # martech -> http://localhost:8081
 # property -> http://localhost:8082
+# insight -> http://localhost:8083
 open http://localhost:8080/docs
+# Create a .env file for secrets
+# OPENAI_API_KEY=your-openai-key
 # Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
 # MARTECH_URL and PROPERTY_URL control where the gateway proxies requests
 ```

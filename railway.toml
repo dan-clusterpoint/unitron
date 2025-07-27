@@ -33,6 +33,12 @@ instances    = 1
 # This command tells Railway how to RUN the property service.
 startCommand = "uvicorn services.property.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
+[[services]]
+name         = "insight"
+instances    = 1
+# This command tells Railway how to RUN the insight service.
+startCommand = "uvicorn services.insight.app:app --host 0.0.0.0 --port ${PORT:-8000}"
+
 # The interface service is correct. Its projectPath overrides the global
 # build, which is what you want for a separate Node.js app.
 [[services]]

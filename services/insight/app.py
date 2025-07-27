@@ -5,7 +5,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
-import openai
+
+try:  # Optional dependency
+    import openai
+except Exception:  # noqa: BLE001
+    openai = None  # type: ignore
 
 app = FastAPI()
 
@@ -48,7 +52,7 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Empty text")
     sanitized = _sanitize(req.text)
     api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+    if not api_key or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
     client = openai.AsyncOpenAI(api_key=api_key)
     try:
@@ -62,6 +66,9 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
         )
         content = resp.choices[0].message.content.strip()
     except Exception:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail="Failed to generate insights")
-    return JSONResponse({"insight": content})
 
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate insights",
+        )
+    return JSONResponse({"insight": content})
