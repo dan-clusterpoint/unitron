@@ -133,9 +133,29 @@ def match_fingerprints(
                         matched = True
                         break
             elif m_type == "response_header" and name_key:
-                value = headers.get(name_key.lower(), "")
-                if rx and rx.search(value):
-                    matched = True
+                # Header names may be provided as a regex (e.g. "X-A|X-B").
+                # If no regex characters are present we keep the fast direct
+                # lookup path. Otherwise every response header is scanned for a
+                # name match and the optional value regex is applied.
+                if re.search(r"[.\\^$|?*+()[{]", name_key):
+                    name_rx = re.compile(name_key, re.I)
+                    for h_name, h_value in headers.items():
+                        if name_rx.search(h_name):
+                            if rx:
+                                if rx.search(h_value):
+                                    matched = True
+                                    break
+                            else:
+                                matched = True
+                                break
+                else:
+                    value = headers.get(name_key.lower())
+                    if value is not None:
+                        if rx:
+                            if rx.search(value):
+                                matched = True
+                        else:
+                            matched = True
             elif m_type == "cookie" and name_key:
                 value = cookies.get(name_key.lower(), "")
                 if value:

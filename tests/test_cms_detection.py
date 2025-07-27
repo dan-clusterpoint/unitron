@@ -128,3 +128,46 @@ vendors:
         fp,
     )
     assert "BarCMS" in result.get("test", {})
+
+
+def test_response_header_regex_name():
+    """Header name patterns containing regex characters should scan all headers."""
+    fp = {
+        "vendors": [
+            {
+                "name": "ShopifyTest",
+                "category": "commerce_cms",
+                "threshold": 0.5,
+                "matchers": [
+                    {
+                        "type": "response_header",
+                        "name": "X-Sorting-Hat-PodId|X-Sorting-Hat-ShopId|X-ShopId|X-Shopify-Stage|X-ShardId",
+                        "pattern": ".+",
+                        "weight": 0.5,
+                    }
+                ],
+            }
+        ]
+    }
+    headers = {"X-ShopId": "1"}
+    result = match_fingerprints("", "https://example.com/", headers, {}, [], fp)
+    assert "ShopifyTest" in result.get("commerce_cms", {})
+
+
+def test_response_header_regex_no_value_pattern():
+    """Presence of a regex-named header is enough when no value pattern is provided."""
+    fp = {
+        "vendors": [
+            {
+                "name": "HeaderOnly",
+                "category": "test",
+                "threshold": 1.0,
+                "matchers": [
+                    {"type": "response_header", "name": "X-Test-(Foo|Bar)", "weight": 1.0}
+                ],
+            }
+        ]
+    }
+    headers = {"X-Test-Bar": "present"}
+    result = match_fingerprints("", "https://example.com/", headers, {}, [], fp)
+    assert "HeaderOnly" in result.get("test", {})
