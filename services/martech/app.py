@@ -52,16 +52,14 @@ app.add_middleware(
 try:
     fingerprints: Dict[str, Any] | None = load_fingerprints(FINGERPRINT_PATH)
 except Exception:
-    fingerprints = DEFAULT_FINGERPRINTS if DEFAULT_FINGERPRINTS else None
+    fingerprints = DEFAULT_FINGERPRINTS or {}
 
 try:
     cms_fingerprints: Dict[str, Any] | None = load_fingerprints(
         CMS_FINGERPRINT_PATH
     )
 except Exception:
-    cms_fingerprints = (
-        DEFAULT_CMS_FINGERPRINTS if DEFAULT_CMS_FINGERPRINTS else None
-    )
+    cms_fingerprints = DEFAULT_CMS_FINGERPRINTS or {}
 cache: Dict[str, Dict[str, Any]] = {}
 
 
@@ -272,12 +270,12 @@ async def _startup() -> None:
         try:
             fingerprints = _load_fingerprints(FINGERPRINT_PATH)
         except Exception:
-            fingerprints = None
+            fingerprints = {}
     if cms_fingerprints is None:
         try:
             cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
         except Exception:
-            cms_fingerprints = None
+            cms_fingerprints = {}
 
 
 @app.get("/health")
@@ -292,12 +290,12 @@ async def ready() -> ReadyResponse:
         try:
             fingerprints = _load_fingerprints(FINGERPRINT_PATH)
         except Exception:
-            fingerprints = None
+            fingerprints = {}
     if cms_fingerprints is None:
         try:
             cms_fingerprints = _load_fingerprints(CMS_FINGERPRINT_PATH)
         except Exception:
-            cms_fingerprints = None
+            cms_fingerprints = {}
     return ReadyResponse(
         ready=fingerprints is not None and cms_fingerprints is not None
     )
