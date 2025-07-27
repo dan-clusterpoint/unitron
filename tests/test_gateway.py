@@ -90,11 +90,30 @@ def test_analyze_success(monkeypatch):
     data = r.json()
     assert data["property"]["domains"] == ["example.com"]
     assert data["martech"]["core"] == ["GA"]
+    assert data["cms"] == []
     assert data["degraded"] is False
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["martech"]["success"] >= 1
     assert metrics_data["property"]["success"] >= 1
+
+
+def test_analyze_returns_top_level_cms(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "martech" in str(request.url):
+            return httpx.Response(200, json={"core": [], "cms": ["WordPress"]})
+        if "property" in str(request.url):
+            return httpx.Response(200, json={"domains": ["example.com"]})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": "https://example.com"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["cms"] == ["WordPress"]
+    assert data["martech"] == {"core": []}
 
 
 def test_analyze_failure_increments_metrics(monkeypatch):
@@ -140,7 +159,8 @@ def test_analyze_degraded_when_service_unready(monkeypatch):
     data = r.json()
     assert data["degraded"] is True
     assert data["property"]["domains"] == ["example.com"]
-    assert data["martech"] is None
+    assert data["martech"] == {}
+    assert data["cms"] == []
 
 
 def test_metrics_endpoint(monkeypatch):

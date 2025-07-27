@@ -186,9 +186,11 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     martech_data, martech_degraded = martech_res
     property_data, property_degraded = property_res
 
+    cms_list = martech_data.pop("cms", []) if martech_data else []
     result = {
         "property": property_data,
-        "martech": martech_data,
+        "martech": martech_data or {},
+        "cms": cms_list,
         "degraded": martech_degraded or property_degraded,
     }
     return JSONResponse(result)
