@@ -303,3 +303,23 @@ def test_insight_degraded(monkeypatch):
         gateway_app.metrics["insight"]["codes"].get("503", 0)
         == before_code + 1
     )
+
+
+def test_insight_failure(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    before = gateway_app.metrics["insight"]["failure"]
+    before_code = gateway_app.metrics["insight"]["codes"].get("500", 0)
+
+    r = client.post("/insight", json={"foo": "baz"})
+    assert r.status_code == 502
+    assert r.json()["detail"] == "insight service unavailable"
+    assert gateway_app.metrics["insight"]["failure"] == before + 1
+    assert (
+        gateway_app.metrics["insight"]["codes"].get("500", 0)
+        == before_code + 1
+    )
