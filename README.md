@@ -112,6 +112,10 @@ WordPress, AEM and Shopify. When you call `POST /analyze` the response now
 includes a `cms` object grouped by category. Edit these files and restart the
 service to update the vendor lists.
 
+Detections use an **additive scoring** model. Each matcher contributes its
+assigned weight to a vendor's score; once the cumulative score meets the vendor
+threshold (default is 1) the vendor is reported with confidence capped at 1.0.
+
 CMS output example:
 
 ```bash
