@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 import httpx
+import copy
 import services.martech.app
 
 from services.shared.fingerprint import load_fingerprints, match_fingerprints
@@ -131,7 +132,8 @@ vendors:
 
 
 def test_response_header_regex_name():
-    """Header name patterns containing regex characters should scan all headers."""
+    """Header name patterns containing regex characters should scan all
+    headers."""
     fp = {
         "vendors": [
             {
@@ -141,7 +143,10 @@ def test_response_header_regex_name():
                 "matchers": [
                     {
                         "type": "response_header",
-                        "name": "X-Sorting-Hat-PodId|X-Sorting-Hat-ShopId|X-ShopId|X-Shopify-Stage|X-ShardId",
+                        "name": (
+                            "X-Sorting-Hat-PodId|X-Sorting-Hat-ShopId|"
+                            "X-ShopId|X-Shopify-Stage|X-ShardId"
+                        ),
                         "pattern": ".+",
                         "weight": 0.5,
                     }
@@ -150,12 +155,20 @@ def test_response_header_regex_name():
         ]
     }
     headers = {"X-ShopId": "1"}
-    result = match_fingerprints("", "https://example.com/", headers, {}, [], fp)
+    result = match_fingerprints(
+        "",
+        "https://example.com/",
+        headers,
+        {},
+        [],
+        fp,
+    )
     assert "ShopifyTest" in result.get("commerce_cms", {})
 
 
 def test_response_header_regex_no_value_pattern():
-    """Presence of a regex-named header is enough when no value pattern is provided."""
+    """Presence of a regex-named header is enough when no value pattern is
+    provided."""
     fp = {
         "vendors": [
             {
@@ -163,11 +176,45 @@ def test_response_header_regex_no_value_pattern():
                 "category": "test",
                 "threshold": 1.0,
                 "matchers": [
-                    {"type": "response_header", "name": "X-Test-(Foo|Bar)", "weight": 1.0}
+                    {
+                        "type": "response_header",
+                        "name": "X-Test-(Foo|Bar)",
+                        "weight": 1.0,
+                    }
                 ],
             }
         ]
     }
     headers = {"X-Test-Bar": "present"}
-    result = match_fingerprints("", "https://example.com/", headers, {}, [], fp)
+    result = match_fingerprints(
+        "",
+        "https://example.com/",
+        headers,
+        {},
+        [],
+        fp,
+    )
     assert "HeaderOnly" in result.get("test", {})
+
+
+def test_shopify_sorting_hat_header():
+    """Shopify detected via any Sorting Hat header."""
+    headers = {"X-ShopId": "123"}
+
+    fp = copy.deepcopy(CMS_FP)
+    for v in fp["vendors"]:
+        if v.get("name") == "Shopify":
+            v["threshold"] = 0.5
+            break
+
+    result = match_fingerprints(
+        "<html></html>",
+        "https://example.com/",
+        headers,
+        {},
+        [],
+        fp,
+    )
+    shopify = result["commerce_cms"].get("Shopify")
+    assert shopify is not None
+    assert shopify["confidence"] >= 1
