@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { test, expect } from 'vitest'
 import AnalyzerCard, { type AnalyzeResult } from './AnalyzerCard'
 
@@ -89,4 +89,26 @@ test('shows degraded banner', () => {
     />,
   )
   expect(screen.getByText(/partial results/i)).toBeInTheDocument()
+})
+
+test('shows CMS placeholder when array empty', () => {
+  render(
+    <AnalyzerCard
+      id="a"
+      url="foo"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const cmsSection = screen.getByRole('heading', {
+    name: 'Content Management Systems',
+  }).parentElement as HTMLElement
+  expect(within(cmsSection).getByText('Nothing detected')).toBeInTheDocument()
 })
