@@ -28,3 +28,10 @@ def test_root_app_property():
     client = TestClient(app)
     r = client.get("/health")
     assert r.status_code == 200
+
+
+def test_root_app_insight():
+    app = _load_app("insight")
+    client = TestClient(app)
+    r = client.get("/health")
+    assert r.status_code == 200
