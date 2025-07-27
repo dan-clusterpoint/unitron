@@ -223,3 +223,48 @@ def test_analyze_normalizes_url(
     assert captured["martech"]["url"] == expected_url
     assert captured["martech"]["force"] is False
     assert captured["property"]["domain"] == expected_domain
+
+
+def test_generate_includes_manual_cms(monkeypatch):
+    captured: dict[str, dict] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        captured["data"] = json.loads(request.content.decode())
+        return httpx.Response(200, json={"ok": True})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post(
+        "/generate",
+        json={
+            "url": "https://example.com",
+            "martech": {},
+            "cms": [],
+            "cms_manual": "Drupal",
+        },
+    )
+    assert r.status_code == 200
+    assert captured["data"]["cms_manual"] == "Drupal"
+
+
+def test_generate_omits_empty_manual(monkeypatch):
+    captured: dict[str, dict] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        captured["data"] = json.loads(request.content.decode())
+        return httpx.Response(200, json={"ok": True})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post(
+        "/generate",
+        json={"url": "https://example.com", "martech": {}, "cms": []},
+    )
+    assert r.status_code == 200
+    assert "cms_manual" not in captured["data"]

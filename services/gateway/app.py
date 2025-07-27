@@ -73,6 +73,13 @@ class AnalyzeRequest(BaseModel):
         return values
 
 
+class GenerateRequest(BaseModel):
+    url: str
+    martech: Dict[str, list[str]] | None = None
+    cms: list[str] | None = None
+    cms_manual: str | None = None
+
+
 async def _get_with_retry(url: str, service: str) -> bool:
     """GET ``url`` with one retry, recording metrics."""
     last_code: int | None = None
@@ -194,3 +201,19 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
         "degraded": martech_degraded or property_degraded,
     }
     return JSONResponse(result)
+
+
+@app.post("/generate")
+async def generate(req: GenerateRequest) -> JSONResponse:
+    clean_url = normalize_url(req.url)
+    payload = {
+        "url": clean_url,
+        "martech": req.martech or {},
+        "cms": req.cms or [],
+    }
+    if req.cms_manual:
+        payload["cms_manual"] = req.cms_manual
+    martech_data, degraded = await _post_with_retry(
+        f"{MARTECH_URL}/generate", payload, "martech"
+    )
+    return JSONResponse({"result": martech_data or {}, "degraded": degraded})

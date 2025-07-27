@@ -554,3 +554,32 @@ async def test_startup_fallback(monkeypatch):
     resp = gw_client.post("/analyze", json={"url": "https://example.com"})
     assert resp.status_code == 200
     assert resp.json()["degraded"] is False
+
+
+def test_generate_manual_cms():
+    r = client.post(
+        "/generate",
+        json={
+            "url": "http://example.com",
+            "martech": {},
+            "cms": [],
+            "cms_manual": "Drupal",
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["cms_used"] == "Drupal"
+
+
+def test_generate_detected_cms():
+    r = client.post(
+        "/generate",
+        json={
+            "url": "http://example.com",
+            "martech": {},
+            "cms": ["WordPress"],
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["cms_used"] == "WordPress"

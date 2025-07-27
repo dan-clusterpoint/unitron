@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
+import { apiFetch } from '../api'
+import { normalizeUrl } from '../utils'
 
 export type AnalyzeResult = {
   property: {
@@ -40,6 +43,28 @@ export default function AnalyzerCard({
   error,
   result,
 }: AnalyzerProps) {
+  const [manualCms, setManualCms] = useState('')
+  const [generating, setGenerating] = useState(false)
+
+  async function onGenerate() {
+    if (!result) return
+    setGenerating(true)
+    try {
+      const clean = normalizeUrl(url)
+      await apiFetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: clean,
+          martech: result.martech || {},
+          cms: result.cms || [],
+          ...(manualCms ? { cms_manual: manualCms } : {}),
+        }),
+      })
+    } finally {
+      setGenerating(false)
+    }
+  }
   if (result) {
     const { property, martech, cms, degraded } = result
     return (
@@ -52,7 +77,22 @@ export default function AnalyzerCard({
         )}
         {property && <PropertyResults property={property} />}
         {martech && <MartechResults martech={martech} />}
-        {cms != null && <CmsResults cms={cms} />}
+        {cms != null && (
+          <CmsResults
+            cms={cms}
+            manualCms={manualCms}
+            setManualCms={setManualCms}
+          />
+        )}
+        {cms && cms.length === 0 && (
+          <button
+            className="btn-primary mt-4"
+            disabled={generating}
+            onClick={onGenerate}
+          >
+            {generating ? 'Generating...' : 'Generate Personas'}
+          </button>
+        )}
       </div>
     )
   }

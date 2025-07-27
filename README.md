@@ -67,6 +67,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `GET /metrics` – optional stats about service calls.
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
+* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo flow.
 
 `MARTECH_URL` and `PROPERTY_URL` configure the upstream URLs used by the gateway.
 
@@ -79,7 +80,7 @@ curl -X POST http://localhost:8080/analyze \
 ```
 
 ### Martech analyzer service
-The martech service exposes four endpoints:
+The martech service exposes several endpoints:
 
 * `GET /health` – liveness probe.
 * `GET /ready` – returns `{"ready": true}` once the fingerprint list is loaded.
@@ -89,6 +90,7 @@ The martech service exposes four endpoints:
   response includes detection evidence for each vendor. Set `headless=true` to
   allow a deeper crawl using a headless browser. Pass `force=true` to bypass the
   in-memory cache and refresh the analysis immediately.
+* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo suggestions.
 * `GET /fingerprints` – returns the loaded fingerprint definitions. When
   `debug=true` the service runs detection on a sample page and reports which
   evidence types triggered for each vendor. Results are cached so repeated calls

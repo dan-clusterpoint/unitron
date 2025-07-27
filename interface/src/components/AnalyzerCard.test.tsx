@@ -111,4 +111,5 @@ test('shows CMS placeholder when array empty', () => {
     name: 'Content Management Systems',
   }).parentElement as HTMLElement
   expect(within(cmsSection).getByText('Nothing detected')).toBeInTheDocument()
+  expect(within(cmsSection).getByLabelText('CMS')).toBeInTheDocument()
 })
