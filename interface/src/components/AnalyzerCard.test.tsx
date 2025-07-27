@@ -113,3 +113,24 @@ test('shows CMS placeholder when array empty', () => {
   expect(within(cmsSection).getByText('Nothing detected')).toBeInTheDocument()
   expect(within(cmsSection).getByLabelText('CMS')).toBeInTheDocument()
 })
+
+test('displays insight text', async () => {
+  render(
+    <AnalyzerCard
+      id="a"
+      url="foo"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  await screen.findByText('Test insight')
+  const btn = screen.getByRole('button', { name: /generate personas/i })
+  expect(btn).toBeEnabled()
+})
