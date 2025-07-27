@@ -131,6 +131,6 @@ test('displays insight text', async () => {
     />,
   )
   await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate personas/i })
+  const btn = screen.getByRole('button', { name: /generate insights/i })
   expect(btn).toBeEnabled()
 })
