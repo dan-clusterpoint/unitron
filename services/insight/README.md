@@ -11,6 +11,8 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `POST /research` – body `{ "topic": "AI" }` returns `{ "summary": "..." }`.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.
+- `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }`
+  returns `{ "insight": {...}, "personas": {...} }`.
 - `GET /metrics` – usage counters for requests and data gaps.
 
 ## Environment variables

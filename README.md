@@ -199,6 +199,7 @@ Endpoints:
 * `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
 * `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
+* `POST /insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns both insight and persona JSON.
 
 Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
 Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.

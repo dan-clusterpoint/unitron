@@ -28,6 +28,8 @@ def build_prompt(
     question: str,
     audience: str | None = None,
     prefs: dict[str, Any] | None = None,
+    company: dict[str, Any] | None = None,
+    technology: dict[str, Any] | None = None,
 ) -> str:
     """Return a prompt for the OpenAI model.
 
@@ -39,6 +41,8 @@ def build_prompt(
     audience_text = audience or "[Data Gap]"
     pref_parts = [f"{k}: {v}" for k, v in (prefs or {}).items()]
     prefs_text = "; ".join(pref_parts) if pref_parts else "[Data Gap]"
+    company_text = json.dumps(company) if company else "[Data Gap]"
+    tech_text = json.dumps(technology) if technology else "[Data Gap]"
 
     prompt = (
         "You are the Unitron insight orchestrator.\n"
@@ -47,6 +51,8 @@ def build_prompt(
         f"Follow these deliverable guidelines:\n{DELIVERABLE_GUIDELINES}\n"
         f"Audience: {audience_text}\n"
         f"Preferences: {prefs_text}\n"
+        f"Company: {company_text}\n"
+        f"Technology: {tech_text}\n"
         f"Question: {question}\n"
         "Respond only with a JSON payload."
     )
