@@ -142,10 +142,7 @@ test('shows generated details on success', async () => {
   server.use(
     http.post('/generate', async ({ request }) => {
       const body = await request.json()
-      if (!body || typeof body !== 'object' || !('url' in body)) {
-        throw new Error('Body is missing or malformed')
-      }
-      expect((body as { url: string }).url).toBe('https://example.com')
+      expect(body).toEqual({ url: 'https://example.com', cms: [] })
       return Response.json({ result: { personas: ['P1'], demo_flow: 'Flow' } })
     }),
   )

@@ -105,7 +105,6 @@ export default function AnalyzerCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: clean,
-          martech: result.martech || {},
           cms: result.cms || [],
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
