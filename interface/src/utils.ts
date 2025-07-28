@@ -13,3 +13,18 @@ export function normalizeUrl(url: string): string {
     return cleaned
   }
 }
+
+export function downloadBase64(encoded: string, filename: string): void {
+  try {
+    const data = atob(encoded)
+    const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 100)
+  } catch {
+    // ignore errors
+  }
+}

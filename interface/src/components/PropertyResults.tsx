@@ -10,8 +10,19 @@ function renderList(items: string[]) {
   }
   return (
     <ul className="list-disc list-inside space-y-1">
-      {items.map((i) => (
-        <li key={i}>{i}</li>
+      {items.map((i, idx) => (
+        <li key={i}>
+          {i}{' '}
+          <sup id={`fnref${idx + 1}`}>
+            <a
+              href={`#fn${idx + 1}`}
+              className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500"
+              tabIndex={0}
+            >
+              [{idx + 1}]
+            </a>
+          </sup>
+        </li>
       ))}
     </ul>
   )
