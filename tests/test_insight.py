@@ -291,6 +291,12 @@ async def test_generate_report_concurrent(monkeypatch):
 
     dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "openai",
+        dummy_module,
+        raising=False,
+    )
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     start = time.perf_counter()
