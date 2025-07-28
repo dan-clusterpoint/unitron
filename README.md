@@ -14,8 +14,9 @@ docker compose up --build
 # property -> http://localhost:8082
 # insight -> http://localhost:8083
 open http://localhost:8080/docs
-# Create a .env file for secrets
+# Create a .env file for secrets (required variables shown)
 # OPENAI_API_KEY=your-openai-key
+# INSIGHT_URL=http://localhost:8083
 # OPENAI_MODEL=gpt-4
 # MACRO_SECTION_CAP=5
 # Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
@@ -73,8 +74,28 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /generate-insight-and-personas` – body `{...}` proxies to the insight
-  service and returns both insight and persona JSON.
+* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight
+  service and returns `{"insight": {...}, "personas": {...}}`.
+
+Request schema:
+
+```json
+{
+  "url": "https://example.com",
+  "martech": {},
+  "cms": [],
+  "cms_manual": "WordPress"
+}
+```
+
+Response schema:
+
+```json
+{
+  "insight": {},
+  "personas": {}
+}
+```
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
 
@@ -89,7 +110,7 @@ curl -X POST http://localhost:8080/analyze \
 Example (generate with manual CMS):
 
 ```bash
-curl -X POST http://localhost:8080/generate \
+curl -X POST http://localhost:8080/generate-insight-and-personas \
   -H 'Content-Type: application/json' \
   -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
 ```
@@ -172,7 +193,7 @@ python‑wappalyzer. It is disabled by default to keep startup fast.
 
 ### Manual CMS input
 
-The `/generate` endpoint lets you provide a `cms_manual` string when the
+The `/generate-insight-and-personas` endpoint lets you provide a `cms_manual` string when the
 analyzer cannot detect a CMS. The gateway forwards this value to the martech
 service which in turn calls the insight service so personas can still reference
 a specific platform.
@@ -183,7 +204,7 @@ returns an empty CMS list.
 Example request:
 
 ```bash
-curl -X POST http://localhost:8080/generate \
+curl -X POST http://localhost:8080/generate-insight-and-personas \
   -H 'Content-Type: application/json' \
   -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal"}'
 ```
@@ -202,7 +223,7 @@ Endpoints:
 * `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
 * `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
-* `POST /insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns both insight and persona JSON.
+* `POST /insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns `{"insight": {...}, "personas": {...}}`.
 
 Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
 Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.
@@ -223,7 +244,7 @@ Expected response:
 }
 ```
 
-Set `OPENAI_API_KEY` to a valid key so the insight service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`. Its `/insight` endpoint simply proxies to `/generate-insights` on the insight service.
+Set `OPENAI_API_KEY` to a valid key so the insight service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`. Both variables are required. The gateway's `/insight` endpoint simply proxies to `/generate-insights` on the insight service.
 
 Example direct request:
 
