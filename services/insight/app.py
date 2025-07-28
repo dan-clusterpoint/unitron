@@ -118,6 +118,16 @@ def _sanitize(text: str) -> str:
     return " ".join(text.strip().split())
 
 
+def _to_persona_list(gen: dict) -> list[dict]:
+    """Return list of persona dicts from ``gen`` mapping."""
+    out = []
+    if isinstance(gen, dict):
+        for k, v in gen.items():
+            if isinstance(v, dict):
+                out.append({"id": k, **v})
+    return out
+
+
 @app.get("/health")
 async def health() -> JSONResponse:
     return JSONResponse({"status": "ok"})
@@ -341,26 +351,37 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             orchestrator.generate_report(insight_prompt),
             orchestrator.generate_report(persona_prompt),
         )
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to generate reports")
 
-    insight_val: Any
-    if isinstance(insight_raw, dict) and "insight" in insight_raw:
-        insight_val = insight_raw["insight"]
-    else:
-        insight_val = insight_raw
+        insight_text: Any
+        if isinstance(insight_raw, dict):
+            for key in ("insight", "report", "summary"):
+                if key in insight_raw:
+                    insight_text = insight_raw[key]
+                    break
+            else:
+                insight_text = insight_raw
+        else:
+            insight_text = insight_raw
 
-    persona_val: Any
-    if isinstance(personas_raw, dict) and "personas" in personas_raw:
-        persona_val = personas_raw["personas"]
-    else:
-        persona_val = personas_raw
+        personas_source: Any
+        if isinstance(personas_raw, dict) and "generated_buyer_personas" in personas_raw:
+            personas_source = personas_raw["generated_buyer_personas"]
+        else:
+            personas_source = personas_raw
+        personas_list = _to_persona_list(personas_source)
 
-    result = {"insight": insight_val, "personas": persona_val}
-    _append_size_warning(result)
-    duration = time.perf_counter() - start
-    scope = len(json.dumps(req.model_dump()))
-    sources = len(re.findall(r"https?://", json.dumps(result)))
-    gap_count = json.dumps(result).count("[Data Gap]")
-    _record_metrics("insight-and-personas", scope, sources, duration, gap_count)
-    return JSONResponse(result)
+        result = {
+            "insight": insight_text,
+            "personas": personas_list,
+            "cms_manual": req.cms_manual or "",
+            "degraded": False,
+        }
+        _append_size_warning(result)
+        duration = time.perf_counter() - start
+        scope = len(json.dumps(req.model_dump()))
+        sources = len(re.findall(r"https?://", json.dumps(result)))
+        gap_count = json.dumps(result).count("[Data Gap]")
+        _record_metrics("insight-and-personas", scope, sources, duration, gap_count)
+        return JSONResponse(result)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(500, detail=str(exc))

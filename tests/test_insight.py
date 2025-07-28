@@ -196,7 +196,7 @@ def test_metrics_and_warnings(monkeypatch):
 def test_insight_and_personas(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
         if "buyer personas" in prompt.lower():
-            return {"personas": ["P1"]}
+            return {"generated_buyer_personas": {"p1": {"name": "P1"}}}
         return {"insight": "I"}
 
     monkeypatch.setattr(
@@ -214,7 +214,9 @@ def test_insight_and_personas(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert data["insight"] == "I"
-    assert data["personas"] == ["P1"]
+    assert data["personas"] == [{"id": "p1", "name": "P1"}]
+    assert data["cms_manual"] == ""
+    assert data["degraded"] is False
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
@@ -239,7 +241,9 @@ def test_insight_and_personas_warnings(monkeypatch):
     assert r.status_code == 200
     result = r.json()
     assert result["insight"] == {"data": huge}
-    assert result["personas"] == {"data": huge}
+    assert result["personas"] == []
+    assert result["cms_manual"] == ""
+    assert result["degraded"] is False
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
