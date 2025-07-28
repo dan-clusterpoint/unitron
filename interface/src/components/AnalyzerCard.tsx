@@ -61,7 +61,7 @@ export default function AnalyzerCard({
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
-  const [generated, setGenerated] = useState<{ personas: string[]; demo_flow: string } | null>(
+  const [generated, setGenerated] = useState<{ insight: string; personas: string[] } | null>(
     null,
   )
   const [genError, setGenError] = useState<string | null>(null)
@@ -111,7 +111,7 @@ export default function AnalyzerCard({
     setGenError(null)
     try {
       const clean = normalizeUrl(url)
-      const data = await apiFetch<{ result: { personas: string[]; demo_flow: string } }>('/generate', {
+      const data = await apiFetch<{ result: { insight: string; personas: string[] } }>('/generate-insight-and-personas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -246,8 +246,8 @@ export default function AnalyzerCard({
             </button>
             {generated && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <h3 className="font-medium mb-2">Demo Flow</h3>
-                <p>{generated.demo_flow}</p>
+                <h3 className="font-medium mb-2">Insight</h3>
+                <p>{generated.insight}</p>
                 <h4 className="font-medium mt-2">Personas</h4>
                 <ul className="list-disc list-inside">
                   {generated.personas.map((p, i) => (
