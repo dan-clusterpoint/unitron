@@ -367,3 +367,46 @@ def test_insight_error_detail(monkeypatch):
     assert r.status_code == 502
     assert r.json()["detail"] == "bad input"
     assert captured["path"] == "/generate-insights"
+
+
+def test_generate_insight_and_personas_success(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(200, json={"ok": True})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/generate-insight-and-personas", json={"foo": 1})
+    assert r.status_code == 200
+    assert r.json() == {"result": {"ok": True}, "degraded": False}
+    assert captured["path"] == "/insight-and-personas"
+
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["insight"]["success"] >= 1
+
+
+def test_generate_insight_and_personas_degraded(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(503)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    before = gateway_app.metrics["insight"]["failure"]
+    before_code = gateway_app.metrics["insight"]["codes"].get("503", 0)
+
+    r = client.post("/generate-insight-and-personas", json={"foo": "bar"})
+    assert r.status_code == 200
+    assert r.json()["degraded"] is True
+    assert captured["path"] == "/insight-and-personas"
+    assert gateway_app.metrics["insight"]["failure"] == before + 1
+    assert (
+        gateway_app.metrics["insight"]["codes"].get("503", 0)
+        == before_code + 1
+    )
