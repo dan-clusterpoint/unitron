@@ -267,3 +267,42 @@ def test_insight_personas_concurrent(monkeypatch):
     duration = time.perf_counter() - start
     assert r.status_code == 200
     assert duration < sleep_dur * 1.5
+
+
+@pytest.mark.asyncio
+async def test_generate_report_concurrent(monkeypatch):
+    sleep_dur = 0.05
+
+    class DummyResp:
+        def __init__(self) -> None:
+            message_obj = type("obj", (), {"content": "{}"})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
+
+    async def fake_create(**_kwargs):
+        await asyncio.sleep(sleep_dur)
+        return DummyResp()
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_create)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
+    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "openai",
+        dummy_module,
+        raising=False,
+    )
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+
+    start = time.perf_counter()
+    await asyncio.gather(
+        insight_mod.orchestrator.generate_report("A"),
+        insight_mod.orchestrator.generate_report("B"),
+    )
+    duration = time.perf_counter() - start
+    assert duration < sleep_dur * 1.5

@@ -11,7 +11,7 @@ client = TestClient(gateway_app.app)
 
 
 def test_health():
-    r = client.get('/health')
+    r = client.get("/health")
     assert r.status_code == 200
 
 
@@ -133,19 +133,13 @@ def test_analyze_failure_increments_metrics(monkeypatch):
     r = client.post("/analyze", json={"url": "https://bad.com"})
     assert r.status_code == 502
     assert gateway_app.metrics["property"]["failure"] == before + 1
-    assert (
-        gateway_app.metrics["property"]["codes"].get("500", 0)
-        == before_code + 1
-    )
+    assert gateway_app.metrics["property"]["codes"].get("500", 0) == before_code + 1
     assert calls["count"] >= 2
 
 
 def test_analyze_degraded_when_service_unready(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
-        if (
-            "martech" in str(request.url)
-            and request.url.path == "/analyze"
-        ):
+        if "martech" in str(request.url) and request.url.path == "/analyze":
             return httpx.Response(503)
         if "property" in str(request.url):
             return httpx.Response(200, json={"domains": ["example.com"]})
@@ -199,9 +193,7 @@ def test_analyze_error_detail_mentions_service(monkeypatch):
         ("www.foo.org/", "https://www.foo.org", "www.foo.org"),
     ],
 )
-def test_analyze_normalizes_url(
-    monkeypatch, input_url, expected_url, expected_domain
-):
+def test_analyze_normalizes_url(monkeypatch, input_url, expected_url, expected_domain):
     captured: dict[str, dict] = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -307,10 +299,7 @@ def test_research_degraded(monkeypatch):
     assert r.json()["degraded"] is True
     assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
-    assert (
-        gateway_app.metrics["insight"]["codes"].get("503", 0)
-        == before_code + 1
-    )
+    assert gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
 
 
 def test_research_failure(monkeypatch):
@@ -331,10 +320,7 @@ def test_research_failure(monkeypatch):
     assert r.json()["detail"] == "insight service unavailable"
     assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
-    assert (
-        gateway_app.metrics["insight"]["codes"].get("500", 0)
-        == before_code + 1
-    )
+    assert gateway_app.metrics["insight"]["codes"].get("500", 0) == before_code + 1
 
 
 def test_insight_success(monkeypatch):
@@ -406,10 +392,7 @@ def test_generate_insight_and_personas_degraded(monkeypatch):
     assert r.json()["degraded"] is True
     assert captured["path"] == "/insight-and-personas"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
-    assert (
-        gateway_app.metrics["insight"]["codes"].get("503", 0)
-        == before_code + 1
-    )
+    assert gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
 
 
 def test_insight_timeout(monkeypatch):
@@ -427,5 +410,24 @@ def test_insight_timeout(monkeypatch):
     monkeypatch.setattr(gateway_app, "INSIGHT_TIMEOUT", 33)
 
     r = client.post("/insight", json={"text": "hi"})
+    assert r.status_code == 200
+    assert recorded["timeout"] == 33
+
+
+def test_research_timeout(monkeypatch):
+    recorded = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True})
+
+    class RecordingClient(httpx.AsyncClient):
+        def __init__(self, *args, **kwargs):
+            recorded["timeout"] = kwargs.get("timeout")
+            super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
+
+    monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
+    monkeypatch.setattr(gateway_app, "INSIGHT_TIMEOUT", 33)
+
+    r = client.post("/research", json={"topic": "ai"})
     assert r.status_code == 200
     assert recorded["timeout"] == 33
