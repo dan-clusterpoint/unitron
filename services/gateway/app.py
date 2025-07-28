@@ -240,3 +240,11 @@ async def research(data: dict[str, Any]) -> JSONResponse:
         f"{INSIGHT_URL}/research", data, "insight"
     )
     return JSONResponse({"result": research_data or {}, "degraded": degraded})
+
+
+@app.post("/generate-insight-and-personas")
+async def generate_insight_and_personas(data: dict[str, Any]) -> JSONResponse:
+    result, degraded = await _post_with_retry(
+        f"{INSIGHT_URL}/insight-and-personas", data, "insight"
+    )
+    return JSONResponse({"result": result or {}, "degraded": degraded})

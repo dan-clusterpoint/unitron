@@ -73,6 +73,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo flow.
+* `POST /generate-insight-and-personas` – body `{...}` proxies to the insight
+  service and returns both insight and persona JSON.
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
 
