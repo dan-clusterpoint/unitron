@@ -30,6 +30,7 @@ app.add_middleware(
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
 PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
 INSIGHT_URL = os.getenv("INSIGHT_URL", "http://insight:8000")
+INSIGHT_TIMEOUT = int(os.getenv("INSIGHT_TIMEOUT", "20"))
 
 # In-memory metrics for service calls
 metrics: dict[str, dict[str, Any]] = {
@@ -141,7 +142,8 @@ async def _post_with_retry(
     for attempt in range(2):
         start = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=5) as client:
+            timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
+            async with httpx.AsyncClient(timeout=timeout_seconds) as client:
                 resp = await client.post(url, json=data)
             resp.raise_for_status()
             duration = time.perf_counter() - start

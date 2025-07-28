@@ -410,3 +410,22 @@ def test_generate_insight_and_personas_degraded(monkeypatch):
         gateway_app.metrics["insight"]["codes"].get("503", 0)
         == before_code + 1
     )
+
+
+def test_insight_timeout(monkeypatch):
+    recorded = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True})
+
+    class RecordingClient(httpx.AsyncClient):
+        def __init__(self, *args, **kwargs):
+            recorded["timeout"] = kwargs.get("timeout")
+            super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
+
+    monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
+    monkeypatch.setattr(gateway_app, "INSIGHT_TIMEOUT", 33)
+
+    r = client.post("/insight", json={"text": "hi"})
+    assert r.status_code == 200
+    assert recorded["timeout"] == 33
