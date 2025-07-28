@@ -196,8 +196,8 @@ def test_metrics_and_warnings(monkeypatch):
 def test_insight_and_personas(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
         if "buyer personas" in prompt.lower():
-            return {"generated_buyer_personas": {"p1": {"name": "P1"}}}
-        return {"insight": "I"}
+            return {"generated_buyer_personas": {"P1": {"name": "P1"}}}
+        return {"report": "I"}
 
     monkeypatch.setattr(
         insight_mod.orchestrator,
@@ -214,7 +214,7 @@ def test_insight_and_personas(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert data["insight"] == "I"
-    assert data["personas"] == [{"id": "p1", "name": "P1"}]
+    assert data["personas"] == [{"id": "P1", "name": "P1"}]
     assert data["cms_manual"] == ""
     assert data["degraded"] is False
 
