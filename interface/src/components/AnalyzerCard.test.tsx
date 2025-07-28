@@ -2,10 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../setupTests'
 import { http } from 'msw'
-import { test, expect } from 'vitest'
-import AnalyzerCard, { type AnalyzeResult } from './AnalyzerCard'
+import { test, expect, vi } from 'vitest'
+import type { AnalyzeResult } from './AnalyzerCard'
+import { computeMartechCount } from './AnalyzerCard'
 
-test('shows spinner when loading', () => {
+test('shows spinner when loading', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   const { container } = render(
     <AnalyzerCard
       id="a"
@@ -24,7 +26,8 @@ test('shows spinner when loading', () => {
   expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
 })
 
-test('displays error message', () => {
+test('displays error message', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
     <AnalyzerCard
       id="a"
@@ -55,7 +58,8 @@ const result: AnalyzeResult = {
   degraded: false,
 }
 
-test('renders result lists', () => {
+test('renders result lists', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
     <AnalyzerCard
       id="a"
@@ -75,7 +79,8 @@ test('renders result lists', () => {
   expect(screen.getByText('GTM')).toBeInTheDocument()
 })
 
-test('shows degraded banner', () => {
+test('shows degraded banner', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
     <AnalyzerCard
       id="a"
@@ -94,7 +99,8 @@ test('shows degraded banner', () => {
   expect(screen.getByText(/partial results/i)).toBeInTheDocument()
 })
 
-test('shows CMS placeholder when array empty', () => {
+test('shows CMS placeholder when array empty', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
     <AnalyzerCard
       id="a"
@@ -118,6 +124,7 @@ test('shows CMS placeholder when array empty', () => {
 })
 
 test('displays insight text', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
     <AnalyzerCard
       id="a"
@@ -139,6 +146,7 @@ test('displays insight text', async () => {
 })
 
 test('shows generated details on success', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/generate', async ({ request }) => {
       const body = await request.json()
@@ -169,6 +177,7 @@ test('shows generated details on success', async () => {
 })
 
 test('shows error when generation fails', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(http.post('/generate', () => new Response(null, { status: 500 })))
   render(
     <AnalyzerCard
@@ -192,6 +201,7 @@ test('shows error when generation fails', async () => {
 })
 
 test('shows insight error and button enabled on insight failure', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(http.post('/insight', () => new Response(null, { status: 500 })))
   render(
     <AnalyzerCard
@@ -211,4 +221,13 @@ test('shows insight error and button enabled on insight failure', async () => {
   await screen.findByText('HTTP 500')
   const btn = screen.getByRole('button', { name: /generate insights/i })
   expect(btn).toBeEnabled()
+})
+
+test('counts nested martech buckets correctly', () => {
+  const nested: AnalyzeResult = {
+    property: { domains: [], confidence: 0.5, notes: [] },
+    martech: { core: ['A'], adjacent: { one: {}, two: {} } },
+    degraded: false,
+  }
+  expect(computeMartechCount(nested.martech)).toBe(3)
 })
