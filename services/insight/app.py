@@ -322,16 +322,28 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         company=company,
         technology=tech,
     )
-    insight = await orchestrator.generate_report(insight_prompt)
+    insight_raw = await orchestrator.generate_report(insight_prompt)
 
     persona_prompt = orchestrator.build_prompt(
         "Generate buyer personas.",
         company=company,
         technology=tech,
     )
-    personas = await orchestrator.generate_report(persona_prompt)
+    personas_raw = await orchestrator.generate_report(persona_prompt)
 
-    result = {"insight": insight, "personas": personas}
+    insight_val: Any
+    if isinstance(insight_raw, dict) and "insight" in insight_raw:
+        insight_val = insight_raw["insight"]
+    else:
+        insight_val = insight_raw
+
+    persona_val: Any
+    if isinstance(personas_raw, dict) and "personas" in personas_raw:
+        persona_val = personas_raw["personas"]
+    else:
+        persona_val = personas_raw
+
+    result = {"insight": insight_val, "personas": persona_val}
     _append_size_warning(result)
     duration = time.perf_counter() - start
     scope = len(json.dumps(req.model_dump()))
