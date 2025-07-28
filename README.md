@@ -219,7 +219,7 @@ Expected response:
 }
 ```
 
-Set `OPENAI_API_KEY` to a valid key so the service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`.
+Set `OPENAI_API_KEY` to a valid key so the insight service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`. Its `/insight` endpoint simply proxies to `/generate-insights` on the insight service.
 
 Example direct request:
 
@@ -229,7 +229,7 @@ curl -X POST http://localhost:8083/generate-insights \
   -d '{"text": "My raw notes"}'
 ```
 
-Example through the gateway:
+Example through the gateway (calls `/generate-insights` on the insight service):
 
 ```bash
 curl -X POST http://localhost:8080/insight \
