@@ -137,6 +137,7 @@ async def _post_with_retry(
     """
     last_exc: Exception | None = None
     last_code: int | None = None
+    last_detail: str | None = None
     for attempt in range(2):
         start = time.perf_counter()
         try:
@@ -149,6 +150,7 @@ async def _post_with_retry(
         except httpx.HTTPStatusError as exc:  # noqa: BLE001
             last_exc = exc
             last_code = exc.response.status_code
+            last_detail = exc.response.text
             if exc.response.status_code == 503:
                 break
         except Exception as exc:  # noqa: BLE001
@@ -157,12 +159,13 @@ async def _post_with_retry(
     if isinstance(last_exc, httpx.HTTPStatusError) and last_code == 503:
         return None, True
     status = 502
+    detail = f"{service} service unavailable"
     if isinstance(last_exc, HTTPException):
         status = last_exc.status_code
-    raise HTTPException(
-        status_code=status,
-        detail=f"{service} service unavailable",
-    )
+        detail = str(last_exc.detail)
+    elif last_detail:
+        detail = last_detail
+    raise HTTPException(status_code=status, detail=detail)
 
 
 @app.post("/analyze")
@@ -225,7 +228,7 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 async def insight(data: dict[str, Any]) -> JSONResponse:
     """Proxy insight generation to the insight service."""
     insight_data, degraded = await _post_with_retry(
-        f"{INSIGHT_URL}/research", data, "insight"
+        f"{INSIGHT_URL}/generate-insights", data, "insight"
     )
     return JSONResponse({"result": insight_data or {}, "degraded": degraded})
 
