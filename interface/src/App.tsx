@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useFadeInOnView, useScrollPosition } from './hooks'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { apiFetch } from './api'
+import { apiFetch, BASE_URL } from './api'
 import { normalizeUrl } from './utils'
 import {
   AnalyzerCard,
@@ -41,6 +41,12 @@ export default function App() {
     checkHealth()
     const id = setInterval(checkHealth, 30000)
     return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (!BASE_URL) {
+      setBanner('API base URL not configured \u2013 update your .env file')
+    }
   }, [])
 
 
