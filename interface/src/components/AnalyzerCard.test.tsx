@@ -148,10 +148,10 @@ test('displays insight text', async () => {
 test('shows generated details on success', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/generate', async ({ request }) => {
+    http.post('/generate-insight-and-personas', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://example.com', cms: [] })
-      return Response.json({ result: { personas: ['P1'], demo_flow: 'Flow' } })
+      return Response.json({ result: { personas: ['P1'], insight: 'Flow' } })
     }),
   )
   render(
@@ -178,7 +178,9 @@ test('shows generated details on success', async () => {
 
 test('shows error when generation fails', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  server.use(http.post('/generate', () => new Response(null, { status: 500 })))
+  server.use(
+    http.post('/generate-insight-and-personas', () => new Response(null, { status: 500 }))
+  )
   render(
     <AnalyzerCard
       id="a"
