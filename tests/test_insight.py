@@ -222,3 +222,30 @@ def test_insight_and_personas(monkeypatch):
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
+
+
+def test_insight_and_personas_warnings(monkeypatch):
+    huge = "[Data Gap]" + "x" * (260 * 1024)
+
+    async def fake_report(_prompt: str, **_kw) -> dict:
+        return {"data": huge}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    before_req = insight_mod.metrics.get("insight-and-personas", {}).get("requests", 0)
+    before_gap = insight_mod.metrics.get("data_gaps", 0)
+
+    r = client.post("/insight-and-personas", json={"url": "http://e"})
+    assert r.status_code == 200
+    result = r.json()
+    assert result["insight"] == {"data": huge}
+    assert result["personas"] == {"data": huge}
+    assert "warnings" in result.get("meta", {})
+
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["insight-and-personas"]["requests"] == before_req + 1
+    assert metrics_data["data_gaps"] >= before_gap + 1
