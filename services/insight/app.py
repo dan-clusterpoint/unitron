@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import time
+import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
@@ -48,9 +49,13 @@ metrics: dict[str, Any] = {
 }
 
 
-def _record_metrics(endpoint: str, scope: int, sources: int, duration: float, gap_count: int) -> None:
+def _record_metrics(
+    endpoint: str, scope: int, sources: int, duration: float, gap_count: int
+) -> None:
     """Update in-memory metrics and log them."""
-    data = metrics.setdefault(endpoint, {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0})
+    data = metrics.setdefault(
+        endpoint, {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0}
+    )
     data["requests"] += 1
     data["scope"] += scope
     data["sources"] += sources
@@ -225,10 +230,12 @@ async def _generate_alt_text(description: str) -> str:
     try:
         resp = await client.chat.completions.create(
             model="gpt-4",
-            messages=[{
-                "role": "user",
-                "content": f"Describe the image in under 15 words: {text}",
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Describe the image in under 15 words: {text}",
+                }
+            ],
             max_tokens=30,
         )
         alt = resp.choices[0].message.content.strip()
@@ -322,14 +329,20 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         company=company,
         technology=tech,
     )
-    insight_raw = await orchestrator.generate_report(insight_prompt)
 
     persona_prompt = orchestrator.build_prompt(
         "Generate buyer personas.",
         company=company,
         technology=tech,
     )
-    personas_raw = await orchestrator.generate_report(persona_prompt)
+
+    try:
+        insight_raw, personas_raw = await asyncio.gather(
+            orchestrator.generate_report(insight_prompt),
+            orchestrator.generate_report(persona_prompt),
+        )
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to generate reports")
 
     insight_val: Any
     if isinstance(insight_raw, dict) and "insight" in insight_raw:

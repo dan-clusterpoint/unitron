@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 import base64
 import pytest
+import asyncio
+import time
 
 from services.insight.app import app
 import services.insight.app as insight_mod
@@ -36,9 +38,7 @@ def test_generate_insights(monkeypatch):
         def __init__(self, *a, **kw) -> None:
             self.chat = DummyChat
 
-    dummy_module = types.SimpleNamespace(
-        AsyncOpenAI=lambda api_key=None: DummyClient()
-    )
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
@@ -63,9 +63,7 @@ def test_research(monkeypatch):
         def __init__(self, *a, **kw) -> None:
             self.chat = DummyChat
 
-    dummy_module = types.SimpleNamespace(
-        AsyncOpenAI=lambda api_key=None: DummyClient()
-    )
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
@@ -181,9 +179,7 @@ def test_metrics_and_warnings(monkeypatch):
         def __init__(self, *a, **kw) -> None:
             self.chat = DummyChat
 
-    dummy_module = types.SimpleNamespace(
-        AsyncOpenAI=lambda api_key=None: DummyClient()
-    )
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
@@ -249,3 +245,25 @@ def test_insight_and_personas_warnings(monkeypatch):
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before_req + 1
     assert metrics_data["data_gaps"] >= before_gap + 1
+
+
+def test_insight_personas_concurrent(monkeypatch):
+    sleep_dur = 0.05
+
+    async def fake_report(prompt: str, **_kw):
+        await asyncio.sleep(sleep_dur)
+        if "buyer personas" in prompt.lower():
+            return {"personas": ["P"]}
+        return {"insight": "I"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    start = time.perf_counter()
+    r = client.post("/insight-and-personas", json={"url": "http://x"})
+    duration = time.perf_counter() - start
+    assert r.status_code == 200
+    assert duration < sleep_dur * 1.5
