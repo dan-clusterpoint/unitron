@@ -72,7 +72,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `GET /metrics` – optional stats about service calls.
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
-* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo flow.
+* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
 * `POST /generate-insight-and-personas` – body `{...}` proxies to the insight
   service and returns both insight and persona JSON.
 
@@ -105,7 +105,7 @@ The martech service exposes several endpoints:
   response includes detection evidence for each vendor. Set `headless=true` to
   allow a deeper crawl using a headless browser. Pass `force=true` to bypass the
   in-memory cache and refresh the analysis immediately.
-* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns generated personas and demo suggestions.
+* `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` forwards the payload to the insight service and returns persona and insight JSON.
 * `GET /fingerprints` – returns the loaded fingerprint definitions. When
   `debug=true` the service runs detection on a sample page and reports which
   evidence types triggered for each vendor. Results are cached so repeated calls
@@ -174,7 +174,8 @@ python‑wappalyzer. It is disabled by default to keep startup fast.
 
 The `/generate` endpoint lets you provide a `cms_manual` string when the
 analyzer cannot detect a CMS. The gateway forwards this value to the martech
-service so personas can still reference a specific platform.
+service which in turn calls the insight service so personas can still reference
+a specific platform.
 
 The React interface exposes a dropdown for this field only when the analysis
 returns an empty CMS list.

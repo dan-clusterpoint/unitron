@@ -69,6 +69,9 @@ except Exception:
     cms_fingerprints = DEFAULT_CMS_FINGERPRINTS or {}
 cache: dict[str, dict[str, Any]] = {}
 
+# URL of the insight service used for persona generation
+INSIGHT_URL = os.getenv("INSIGHT_URL", "http://insight:8000")
+
 
 class AnalyzeRequest(BaseModel):
     url: str
@@ -375,16 +378,29 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
 
 @app.post("/generate")
 async def generate(req: GenerateRequest) -> JSONResponse:
-    """Return demo personas using detected or manual CMS values."""
-    cms_used = req.cms_manual or ", ".join(req.cms or [])
-    if req.cms_manual:
-        _log_manual_cms(req.cms_manual)
-    result = {
-        "personas": [f"Persona for {cms_used or 'unknown'}"],
-        "demo_flow": f"Demo for {req.url}",
-        "cms_used": cms_used,
+    """Proxy persona requests to the insight service."""
+    payload = {
+        "url": req.url,
+        "martech": req.martech or {},
+        "cms": req.cms or [],
     }
-    return JSONResponse(result)
+    if req.cms_manual:
+        payload["cms_manual"] = req.cms_manual
+        _log_manual_cms(req.cms_manual)
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                f"{INSIGHT_URL}/insight-and-personas", json=payload
+            )
+        resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=exc.response.status_code, detail=exc.response.text
+        )
+    except Exception:  # noqa: BLE001
+        logging.exception("failed to contact insight service")
+        raise HTTPException(status_code=500, detail="insight service error")
+    return JSONResponse(resp.json())
 
 
 @app.get("/fingerprints")

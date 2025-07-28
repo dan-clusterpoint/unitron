@@ -556,39 +556,44 @@ async def test_startup_fallback(monkeypatch):
     assert resp.json()["degraded"] is False
 
 
-def test_generate_manual_cms():
+def test_generate_proxies_to_insight(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        captured["path"] = request.url.path
+        captured["data"] = json.loads(request.content.decode())
+        return httpx.Response(200, json={"ok": True})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_client(monkeypatch, transport)
+
     r = client.post(
         "/generate",
-        json={
-            "url": "http://example.com",
-            "martech": {},
-            "cms": [],
-            "cms_manual": "Drupal",
-        },
+        json={"url": "http://example.com", "martech": {}, "cms": ["WP"]},
     )
     assert r.status_code == 200
-    data = r.json()
-    assert data["cms_used"] == "Drupal"
-
-
-def test_generate_detected_cms():
-    r = client.post(
-        "/generate",
-        json={
-            "url": "http://example.com",
-            "martech": {},
-            "cms": ["WordPress"],
-        },
-    )
-    assert r.status_code == 200
-    data = r.json()
-    assert data["cms_used"] == "WordPress"
+    assert r.json() == {"ok": True}
+    assert captured["path"] == "/insight-and-personas"
+    assert captured["data"]["cms"] == ["WP"]
 
 
 def test_cms_manual_logging(tmp_path, monkeypatch):
     path = tmp_path / "cms.log"
     monkeypatch.setattr(services.martech.app, "CMS_MANUAL_LOG_PATH", str(path))
     services.martech.app._cms_log_file = None
+
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        captured["data"] = json.loads(request.content.decode())
+        return httpx.Response(200, json={})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_client(monkeypatch, transport)
 
     r = client.post(
         "/generate",
@@ -602,3 +607,4 @@ def test_cms_manual_logging(tmp_path, monkeypatch):
     assert r.status_code == 200
     text = path.read_text().strip()
     assert text.endswith("Joomla")
+    assert captured["data"]["cms_manual"] == "Joomla"
