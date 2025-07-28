@@ -1,4 +1,6 @@
 from fastapi.testclient import TestClient
+import base64
+import pytest
 
 from services.insight.app import app
 import services.insight.app as insight_mod
@@ -75,3 +77,45 @@ def test_research(monkeypatch):
 def test_research_validation_error():
     r = client.post("/research", json={})
     assert r.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_create_markdown_and_csv(monkeypatch):
+    async def fake_alt(_desc: str) -> str:
+        return "alt text"
+
+    monkeypatch.setattr(insight_mod, "_generate_alt_text", fake_alt, raising=False)
+
+    report = {
+        "title": "Demo",
+        "summary": "short",
+        "visuals": [{"url": "http://img", "description": "image"}],
+        "scenarios": [{"step": 1, "action": "do"}],
+    }
+
+    md = await insight_mod.create_markdown(report)
+    assert "alt text" in md
+    csv_text = insight_mod.create_scenario_csv(report)
+    assert "step" in csv_text and "action" in csv_text
+
+
+def test_postprocess_report(monkeypatch):
+    async def fake_alt(_desc: str) -> str:
+        return "alt text"
+
+    monkeypatch.setattr(insight_mod, "_generate_alt_text", fake_alt, raising=False)
+
+    payload = {
+        "report": {
+            "visuals": [{"url": "http://img", "description": "d"}],
+            "scenarios": [{"foo": "bar"}],
+        }
+    }
+
+    r = client.post("/postprocess-report", json=payload)
+    assert r.status_code == 200
+    downloads = r.json()["downloads"]
+    md = base64.b64decode(downloads["markdown"]).decode()
+    assert "alt text" in md
+    csv_decoded = base64.b64decode(downloads["scenarios"]).decode()
+    assert "foo" in csv_decoded

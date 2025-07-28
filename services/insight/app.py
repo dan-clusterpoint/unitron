@@ -10,6 +10,10 @@ try:
 except Exception:  # noqa: BLE001
     jsonschema = None  # type: ignore
 from starlette.responses import JSONResponse
+import base64
+import csv
+import io
+from typing import Any
 
 try:  # Optional dependency
     import openai
@@ -133,3 +137,90 @@ async def research(data: dict) -> JSONResponse:
     except (ValidationError, Exception):
         raise HTTPException(status_code=400, detail="Invalid response")
     return JSONResponse(result)
+
+
+async def _generate_alt_text(description: str) -> str:
+    """Return alt text for ``description`` limited to 15 words."""
+    text = _sanitize(description)[:200]
+    if not text:
+        return ""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or openai is None:
+        return ""
+    client = openai.AsyncOpenAI(api_key=api_key)
+    try:
+        resp = await client.chat.completions.create(
+            model="gpt-4",
+            messages=[{
+                "role": "user",
+                "content": f"Describe the image in under 15 words: {text}",
+            }],
+            max_tokens=30,
+        )
+        alt = resp.choices[0].message.content.strip()
+    except Exception:  # noqa: BLE001
+        return ""
+    words = alt.split()
+    if len(words) > 15:
+        alt = " ".join(words[:15])
+    return alt
+
+
+async def create_markdown(report: dict[str, Any]) -> str:
+    """Return Markdown representation of ``report`` with generated alt text."""
+    lines: list[str] = []
+    title = report.get("title")
+    if title:
+        lines.append(f"# {title}")
+
+    summary = report.get("summary")
+    if summary:
+        lines.append(str(summary))
+
+    for key, value in report.items():
+        if key in {"title", "summary", "visuals", "scenarios"}:
+            continue
+        lines.append(f"## {key}")
+        lines.append(str(value))
+
+    visuals = report.get("visuals", [])
+    if visuals:
+        lines.append("## Visuals")
+        for vis in visuals:
+            desc = vis.get("description") or ""
+            alt = await _generate_alt_text(desc)
+            url = vis.get("url", "")
+            lines.append(f"![{alt}]({url})")
+
+    return "\n\n".join(lines)
+
+
+def create_scenario_csv(report: dict[str, Any]) -> str:
+    """Return CSV text for the ``scenarios`` in ``report``."""
+    scenarios = report.get("scenarios", [])
+    if not scenarios:
+        return ""
+    fieldnames = sorted({k for sc in scenarios for k in sc})
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(scenarios)
+    return output.getvalue()
+
+
+class PostProcessRequest(BaseModel):
+    report: dict[str, Any]
+
+
+@app.post("/postprocess-report")
+async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
+    """Return downloads with markdown and scenario CSV representations."""
+    report = req.report
+    markdown = await create_markdown(report)
+    csv_text = create_scenario_csv(report)
+    downloads: dict[str, str] = {}
+    if markdown:
+        downloads["markdown"] = base64.b64encode(markdown.encode()).decode()
+    if csv_text:
+        downloads["scenarios"] = base64.b64encode(csv_text.encode()).decode()
+    return JSONResponse({"report": report, "downloads": downloads})
