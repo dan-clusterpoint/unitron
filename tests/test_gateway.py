@@ -335,3 +335,35 @@ def test_research_failure(monkeypatch):
         gateway_app.metrics["insight"]["codes"].get("500", 0)
         == before_code + 1
     )
+
+
+def test_insight_success(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(200, json={"insight": "Hi"})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/insight", json={"text": "Hello"})
+    assert r.status_code == 200
+    assert r.json() == {"result": {"insight": "Hi"}, "degraded": False}
+    assert captured["path"] == "/generate-insights"
+
+
+def test_insight_error_detail(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(400, text="bad input")
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/insight", json={"text": ""})
+    assert r.status_code == 502
+    assert r.json()["detail"] == "bad input"
+    assert captured["path"] == "/generate-insights"
