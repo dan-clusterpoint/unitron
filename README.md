@@ -76,6 +76,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
 * `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight
   service and returns `{"insight": "...", "personas": ["..."]}`.
+* Set `INSIGHT_TIMEOUT` to control how long the gateway waits for a reply from the
+  insight service (default `20`s).
 
 Request schema:
 
@@ -225,6 +227,8 @@ Endpoints:
 * `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
 * `POST /insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` returns `{"insight": "...", "personas": ["..."]}`.
+  This endpoint now performs both OpenAI calls concurrently so insight and persona
+  generation complete faster.
 
 Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
 Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.
