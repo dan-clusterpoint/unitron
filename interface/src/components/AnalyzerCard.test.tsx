@@ -193,3 +193,25 @@ test('shows error when generation fails', async () => {
   await userEvent.click(btn)
   await screen.findByText('HTTP 500')
 })
+
+test('shows insight error and button enabled on insight failure', async () => {
+  server.use(http.post('/insight', () => new Response(null, { status: 500 })))
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  await screen.findByText('HTTP 500')
+  const btn = screen.getByRole('button', { name: /generate insights/i })
+  expect(btn).toBeEnabled()
+})

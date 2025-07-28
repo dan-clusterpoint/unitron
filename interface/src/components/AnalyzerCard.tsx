@@ -48,6 +48,7 @@ export default function AnalyzerCard({
   const [generating, setGenerating] = useState(false)
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
+  const [insightError, setInsightError] = useState<string | null>(null)
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
   const [generated, setGenerated] = useState<{ personas: string[]; demo_flow: string } | null>(
     null,
@@ -60,10 +61,12 @@ export default function AnalyzerCard({
       setDownloads(null)
       setGenerated(null)
       setGenError(null)
+      setInsightError(null)
       return
     }
     const text = result.property?.notes.join('\n') || ''
     setInsightLoading(true)
+    setInsightError(null)
     apiFetch<{ result: { insight?: string } }>('/insight', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,8 +86,8 @@ export default function AnalyzerCard({
           setDownloads(null)
         }
       })
-      .catch(() => {
-        setInsight('')
+      .catch((e) => {
+        setInsightError((e as Error).message || 'Failed to fetch insight')
         setDownloads(null)
       })
       .finally(() => setInsightLoading(false))
@@ -174,31 +177,38 @@ export default function AnalyzerCard({
             Partial results shown due to degraded analysis.
           </div>
         )}
-        {(insightLoading || insight) && (
-          <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-4">
-            <h3 className="font-medium mb-2">Executive Summary</h3>
-            {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
-            {downloads && (
-              <div className="mt-2 flex gap-2">
-                {downloads.markdown && (
-                  <button
-                    className="btn-primary text-sm"
-                    onClick={() => downloadBase64(downloads.markdown as string, 'report.md')}
-                  >
-                    Download Markdown
-                  </button>
-                )}
-                {downloads.scenarios && (
-                  <button
-                    className="btn-primary text-sm"
-                    onClick={() => downloadBase64(downloads.scenarios as string, 'scenarios.csv')}
-                  >
-                    Download CSV
-                  </button>
-                )}
+        {(insightLoading || insight || insightError) && (
+          <>
+            <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-2">
+              <h3 className="font-medium mb-2">Executive Summary</h3>
+              {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
+              {downloads && (
+                <div className="mt-2 flex gap-2">
+                  {downloads.markdown && (
+                    <button
+                      className="btn-primary text-sm"
+                      onClick={() => downloadBase64(downloads.markdown as string, 'report.md')}
+                    >
+                      Download Markdown
+                    </button>
+                  )}
+                  {downloads.scenarios && (
+                    <button
+                      className="btn-primary text-sm"
+                      onClick={() => downloadBase64(downloads.scenarios as string, 'scenarios.csv')}
+                    >
+                      Download CSV
+                    </button>
+                  )}
+                </div>
+              )}
+            </section>
+            {insightError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">
+                {insightError}
               </div>
             )}
-          </section>
+          </>
         )}
         {property && <section id="property"><PropertyResults property={property} /></section>}
         {martech && <section id="martech"><MartechResults martech={martech} /></section>}
@@ -221,7 +231,7 @@ export default function AnalyzerCard({
           <>
             <button
               className="btn-primary mt-4"
-              disabled={generating || insightLoading || !insight}
+              disabled={generating || insightLoading}
               onClick={onGenerate}
             >
               {generating ? 'Generating...' : 'Generate Insights'}
