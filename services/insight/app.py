@@ -18,6 +18,7 @@ import base64
 import csv
 import io
 from typing import Any
+from services.insight import orchestrator
 
 try:  # Optional dependency
     import openai
@@ -42,6 +43,7 @@ metrics: dict[str, Any] = {
     "generate-insights": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
     "research": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
     "postprocess-report": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "insight-and-personas": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
     "data_gaps": 0,
 }
 
@@ -90,6 +92,13 @@ class ResearchRequest(BaseModel):
 
 class ResearchResponse(BaseModel):
     summary: str
+
+
+class InsightPersonaRequest(BaseModel):
+    url: str
+    martech: dict[str, list[str]] | None = None
+    cms: list[str] | None = None
+    cms_manual: str | None = None
 
 
 def _validate_with_schema(data: dict, model: type[BaseModel]) -> BaseModel:
@@ -296,4 +305,37 @@ async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
     sources = len(re.findall(r"https?://", json.dumps(result)))
     gap_count = json.dumps(result).count("[Data Gap]")
     _record_metrics("postprocess-report", scope, sources, duration, gap_count)
+    return JSONResponse(result)
+
+
+@app.post("/insight-and-personas")
+async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
+    """Return insight and persona reports using the orchestrator."""
+    start = time.perf_counter()
+    company = {"url": req.url}
+    tech: dict[str, Any] = {"martech": req.martech or {}, "cms": req.cms or []}
+    if req.cms_manual:
+        tech["cms_manual"] = req.cms_manual
+
+    insight_prompt = orchestrator.build_prompt(
+        "Generate next-best-action insights.",
+        company=company,
+        technology=tech,
+    )
+    insight = await orchestrator.generate_report(insight_prompt)
+
+    persona_prompt = orchestrator.build_prompt(
+        "Generate buyer personas.",
+        company=company,
+        technology=tech,
+    )
+    personas = await orchestrator.generate_report(persona_prompt)
+
+    result = {"insight": insight, "personas": personas}
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(json.dumps(req.model_dump()))
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("insight-and-personas", scope, sources, duration, gap_count)
     return JSONResponse(result)

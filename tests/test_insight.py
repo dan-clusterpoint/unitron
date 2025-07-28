@@ -195,3 +195,30 @@ def test_metrics_and_warnings(monkeypatch):
     metrics_data = client.get("/metrics").json()
     assert metrics_data["generate-insights"]["requests"] >= 1
     assert metrics_data["data_gaps"] >= 1
+
+
+def test_insight_and_personas(monkeypatch):
+    async def fake_report(prompt: str, **_kwargs):
+        if "buyer personas" in prompt.lower():
+            return {"personas": ["P1"]}
+        return {"insight": "I"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    before = insight_mod.metrics.get("insight-and-personas", {}).get("requests", 0)
+
+    r = client.post(
+        "/insight-and-personas",
+        json={"url": "https://ex", "martech": {}, "cms": ["WP"]},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["insight"] == {"insight": "I"}
+    assert data["personas"] == {"personas": ["P1"]}
+
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["insight-and-personas"]["requests"] == before + 1
