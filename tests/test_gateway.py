@@ -271,7 +271,10 @@ def test_generate_omits_empty_manual(monkeypatch):
 
 
 def test_insight_passthrough(monkeypatch):
+    captured = {}
+
     async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
         return httpx.Response(200, json={"out": True})
 
     transport = httpx.MockTransport(handler)
@@ -280,13 +283,17 @@ def test_insight_passthrough(monkeypatch):
     r = client.post("/insight", json={"foo": 1})
     assert r.status_code == 200
     assert r.json() == {"result": {"out": True}, "degraded": False}
+    assert captured["path"] == "/research"
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight"]["success"] >= 1
 
 
 def test_insight_degraded(monkeypatch):
+    captured = {}
+
     async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
         return httpx.Response(503)
 
     transport = httpx.MockTransport(handler)
@@ -298,6 +305,7 @@ def test_insight_degraded(monkeypatch):
     r = client.post("/insight", json={"foo": "bar"})
     assert r.status_code == 200
     assert r.json()["degraded"] is True
+    assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
     assert (
         gateway_app.metrics["insight"]["codes"].get("503", 0)
@@ -306,7 +314,10 @@ def test_insight_degraded(monkeypatch):
 
 
 def test_insight_failure(monkeypatch):
+    captured = {}
+
     async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
         return httpx.Response(500)
 
     transport = httpx.MockTransport(handler)
@@ -318,6 +329,7 @@ def test_insight_failure(monkeypatch):
     r = client.post("/insight", json={"foo": "baz"})
     assert r.status_code == 502
     assert r.json()["detail"] == "insight service unavailable"
+    assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
     assert (
         gateway_app.metrics["insight"]["codes"].get("500", 0)

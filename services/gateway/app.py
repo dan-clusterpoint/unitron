@@ -225,6 +225,6 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 async def insight(data: dict[str, Any]) -> JSONResponse:
     """Proxy insight generation to the insight service."""
     insight_data, degraded = await _post_with_retry(
-        f"{INSIGHT_URL}/generate-insights", data, "insight"
+        f"{INSIGHT_URL}/research", data, "insight"
     )
     return JSONResponse({"result": insight_data or {}, "degraded": degraded})
