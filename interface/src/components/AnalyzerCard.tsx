@@ -5,13 +5,24 @@ import CmsResults from './CmsResults'
 import { apiFetch } from '../api'
 import { normalizeUrl, downloadBase64 } from '../utils'
 
+export function computeMartechCount(
+  martech: Record<string, string[] | Record<string, unknown>> | null,
+) {
+  return martech
+    ? Object.values(martech).reduce(
+        (a, b) => a + (Array.isArray(b) ? b.length : Object.keys(b).length),
+        0,
+      )
+    : 0
+}
+
 export type AnalyzeResult = {
   property: {
     domains: string[]
     confidence: number
     notes: string[]
   } | null
-  martech: Record<string, string[]> | null
+  martech: Record<string, string[] | Record<string, unknown>> | null
   cms?: string[] | null
   degraded: boolean
   downloads?: Record<string, string>
@@ -119,9 +130,7 @@ export default function AnalyzerCard({
   if (result) {
     const { property, martech, cms, degraded } = result
     const domainCount = property?.domains.length || 0
-    const martechCount = martech
-      ? Object.values(martech).reduce((a, b) => a + b.length, 0)
-      : 0
+    const martechCount = computeMartechCount(martech)
     const cmsCount = cms?.length || 0
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
