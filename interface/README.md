@@ -31,9 +31,8 @@ npm start
 ```
 
 The interface **requires** `VITE_API_BASE_URL` in `.env` so it knows where the
-API is running. The template points to the production deployment at
-`https://unitron-production.up.railway.app`. For local development use
-`http://localhost:8080`.
+API is running. The template now defaults to `http://localhost:8080`. Update
+this value to point at your deployed gateway as needed.
 
 The gateway's `/insight` endpoint calls `/generate-insights` on the insight service.
 Make sure `OPENAI_API_KEY` is set in that service's environment so it can reach the OpenAI API.
