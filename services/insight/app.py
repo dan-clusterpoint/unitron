@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import os
+import json
+import logging
+import re
+import time
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
@@ -30,6 +34,46 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+logger = logging.getLogger(__name__)
+
+# Simple in-memory metrics
+metrics: dict[str, Any] = {
+    "generate-insights": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "research": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "postprocess-report": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "data_gaps": 0,
+}
+
+
+def _record_metrics(endpoint: str, scope: int, sources: int, duration: float, gap_count: int) -> None:
+    """Update in-memory metrics and log them."""
+    data = metrics.setdefault(endpoint, {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0})
+    data["requests"] += 1
+    data["scope"] += scope
+    data["sources"] += sources
+    data["duration"] += duration
+    metrics["data_gaps"] += gap_count
+    logger.info(
+        "%s scope=%d sources=%d duration=%.3f gap_count=%d",
+        endpoint,
+        scope,
+        sources,
+        duration,
+        gap_count,
+    )
+
+
+def _append_size_warning(data: dict[str, Any]) -> None:
+    """Add size warning to ``meta.warnings`` if serialized ``data`` is large."""
+    try:
+        size = len(json.dumps(data).encode())
+    except Exception:
+        return
+    if size > 250 * 1024:  # 250 KB
+        meta = data.setdefault("meta", {})
+        warnings = meta.setdefault("warnings", [])
+        warnings.append("response exceeds 250KB")
 
 
 class InsightRequest(BaseModel):
@@ -65,6 +109,12 @@ async def health() -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
+@app.get("/metrics")
+async def metrics_endpoint() -> JSONResponse:
+    """Return accumulated metrics."""
+    return JSONResponse(metrics)
+
+
 @app.get("/ready", response_model=ReadyResponse, tags=["Service"])
 async def ready() -> ReadyResponse:
     return ReadyResponse(ready=True)
@@ -75,6 +125,7 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Empty text")
     sanitized = _sanitize(req.text)
+    start = time.perf_counter()
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
@@ -95,7 +146,14 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
             status_code=500,
             detail="Failed to generate insights",
         )
-    return JSONResponse({"insight": content})
+    result = {"insight": content}
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(sanitized)
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("generate-insights", scope, sources, duration, gap_count)
+    return JSONResponse(result)
 
 
 @app.post("/research")
@@ -108,6 +166,7 @@ async def research(data: dict) -> JSONResponse:
     if not req.topic.strip():
         raise HTTPException(status_code=400, detail="Empty topic")
     sanitized = _sanitize(req.topic)
+    start = time.perf_counter()
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
@@ -132,6 +191,12 @@ async def research(data: dict) -> JSONResponse:
         )
 
     result = {"summary": content}
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(sanitized)
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("research", scope, sources, duration, gap_count)
     try:
         _validate_with_schema(result, ResearchResponse)
     except (ValidationError, Exception):
@@ -216,6 +281,7 @@ class PostProcessRequest(BaseModel):
 async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
     """Return downloads with markdown and scenario CSV representations."""
     report = req.report
+    start = time.perf_counter()
     markdown = await create_markdown(report)
     csv_text = create_scenario_csv(report)
     downloads: dict[str, str] = {}
@@ -223,4 +289,11 @@ async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
         downloads["markdown"] = base64.b64encode(markdown.encode()).decode()
     if csv_text:
         downloads["scenarios"] = base64.b64encode(csv_text.encode()).decode()
-    return JSONResponse({"report": report, "downloads": downloads})
+    result = {"report": report, "downloads": downloads}
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(json.dumps(report))
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("postprocess-report", scope, sources, duration, gap_count)
+    return JSONResponse(result)

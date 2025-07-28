@@ -129,3 +129,37 @@ def test_postprocess_report(monkeypatch):
     assert "alt text" in md
     csv_decoded = base64.b64decode(downloads["scenarios"]).decode()
     assert "foo" in csv_decoded
+
+
+def test_metrics_and_warnings(monkeypatch):
+    huge = "[Data Gap]" + "x" * (260 * 1024)
+
+    class DummyResp:
+        def __init__(self, content: str) -> None:
+            message_obj = type("obj", (), {"content": content})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
+
+    async def fake_create(**kwargs):
+        return DummyResp(huge)
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_create)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(
+        AsyncOpenAI=lambda api_key=None: DummyClient()
+    )
+    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+
+    r = client.post("/generate-insights", json={"text": "info"})
+    assert r.status_code == 200
+    data = r.json()
+    assert "warnings" in data.get("meta", {})
+
+    metrics_data = client.get("/metrics").json()
+    assert metrics_data["generate-insights"]["requests"] >= 1
+    assert metrics_data["data_gaps"] >= 1
