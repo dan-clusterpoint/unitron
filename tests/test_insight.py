@@ -217,8 +217,8 @@ def test_insight_and_personas(monkeypatch):
     )
     assert r.status_code == 200
     data = r.json()
-    assert data["insight"] == {"insight": "I"}
-    assert data["personas"] == {"personas": ["P1"]}
+    assert data["insight"] == "I"
+    assert data["personas"] == ["P1"]
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
