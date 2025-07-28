@@ -49,11 +49,17 @@ export default function AnalyzerCard({
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
+  const [generated, setGenerated] = useState<{ personas: string[]; demo_flow: string } | null>(
+    null,
+  )
+  const [genError, setGenError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!result) {
       setInsight(null)
       setDownloads(null)
+      setGenerated(null)
+      setGenError(null)
       return
     }
     const text = result.property?.notes.join('\n') || ''
@@ -87,9 +93,11 @@ export default function AnalyzerCard({
   async function onGenerate() {
     if (!result) return
     setGenerating(true)
+    setGenerated(null)
+    setGenError(null)
     try {
       const clean = normalizeUrl(url)
-      await apiFetch('/generate', {
+      const data = await apiFetch<{ result: { personas: string[]; demo_flow: string } }>('/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -99,6 +107,9 @@ export default function AnalyzerCard({
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
       })
+      setGenerated(data.result)
+    } catch (e) {
+      setGenError((e as Error).message)
     } finally {
       setGenerating(false)
     }
@@ -207,13 +218,32 @@ export default function AnalyzerCard({
           </section>
         )}
         {cms && cms.length === 0 && (
-          <button
-            className="btn-primary mt-4"
-            disabled={generating || insightLoading || !insight}
-            onClick={onGenerate}
-          >
-            {generating ? 'Generating...' : 'Generate Insights'}
-          </button>
+          <>
+            <button
+              className="btn-primary mt-4"
+              disabled={generating || insightLoading || !insight}
+              onClick={onGenerate}
+            >
+              {generating ? 'Generating...' : 'Generate Insights'}
+            </button>
+            {generated && (
+              <section className="bg-gray-50 p-4 rounded mt-4">
+                <h3 className="font-medium mb-2">Demo Flow</h3>
+                <p>{generated.demo_flow}</p>
+                <h4 className="font-medium mt-2">Personas</h4>
+                <ul className="list-disc list-inside">
+                  {generated.personas.map((p, i) => (
+                    <li key={i}>{p}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {genError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+                {genError}
+              </div>
+            )}
+          </>
         )}
       </div>
     )

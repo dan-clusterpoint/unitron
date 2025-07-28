@@ -1,4 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { server } from '../setupTests'
+import { http } from 'msw'
 import { test, expect } from 'vitest'
 import AnalyzerCard, { type AnalyzeResult } from './AnalyzerCard'
 
@@ -133,4 +136,57 @@ test('displays insight text', async () => {
   await screen.findByText('Test insight')
   const btn = screen.getByRole('button', { name: /generate insights/i })
   expect(btn).toBeEnabled()
+})
+
+test('shows generated details on success', async () => {
+  server.use(
+    http.post('/generate', async ({ request }) => {
+      const body = await request.json()
+      expect(body.url).toBe('https://example.com')
+      return Response.json({ result: { personas: ['P1'], demo_flow: 'Flow' } })
+    }),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  await screen.findByText('Test insight')
+  const btn = screen.getByRole('button', { name: /generate insights/i })
+  await userEvent.click(btn)
+  await screen.findByText('P1')
+  screen.getByText('Flow')
+})
+
+test('shows error when generation fails', async () => {
+  server.use(http.post('/generate', () => new Response(null, { status: 500 })))
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  await screen.findByText('Test insight')
+  const btn = screen.getByRole('button', { name: /generate insights/i })
+  await userEvent.click(btn)
+  await screen.findByText('HTTP 500')
 })
