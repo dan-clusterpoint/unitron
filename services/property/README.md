@@ -29,3 +29,6 @@ The gateway aggregates this DNS check with martech analysis. Send
 for combined results. The gateway respects `MARTECH_URL` and `PROPERTY_URL`
 environment variables and optionally exposes `/metrics` for call stats.
 
+
+The gateway also forwards `/research` requests to the Insight service controlled by the
+`INSIGHT_URL` environment variable.

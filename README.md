@@ -16,6 +16,8 @@ docker compose up --build
 open http://localhost:8080/docs
 # Create a .env file for secrets
 # OPENAI_API_KEY=your-openai-key
+# OPENAI_MODEL=gpt-4
+# MACRO_SECTION_CAP=5
 # Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
 # MARTECH_URL, PROPERTY_URL and INSIGHT_URL control where the gateway proxies requests
 ```
@@ -187,14 +189,35 @@ Set `CMS_MANUAL_LOG_PATH` to a file path to record submitted `cms_manual`
 values. Reviewing these logs helps refine `cms_fingerprints.yaml` with real
 world platforms not yet covered by automated detection.
 
-### Insight service
-The insight service wraps the OpenAI Chat API to generate short summaries from free-form text. It runs at `http://localhost:8083` when using Docker Compose.
+### Insight Researcher service
+The insight service wraps the OpenAI Chat API to generate short summaries and research reports. It runs at `http://localhost:8083` when using Docker Compose.
 
 Endpoints:
 
 * `GET /health` – liveness probe.
 * `GET /ready` – always returns `{"ready": true}`.
 * `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
+* `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
+* `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
+
+Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
+Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.
+
+Example research request:
+
+```bash
+curl -X POST http://localhost:8083/research \
+  -H 'Content-Type: application/json' \
+  -d '{"topic": "AI"}'
+```
+
+Expected response:
+
+```json
+{
+  "summary": "..."
+}
+```
 
 Set `OPENAI_API_KEY` to a valid key so the service can call OpenAI. The gateway forwards requests to this service using `INSIGHT_URL`.
 
