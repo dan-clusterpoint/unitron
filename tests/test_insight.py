@@ -84,7 +84,12 @@ async def test_create_markdown_and_csv(monkeypatch):
     async def fake_alt(_desc: str) -> str:
         return "alt text"
 
-    monkeypatch.setattr(insight_mod, "_generate_alt_text", fake_alt, raising=False)
+    monkeypatch.setattr(
+        insight_mod,
+        "_generate_alt_text",
+        fake_alt,
+        raising=False,
+    )
 
     report = {
         "title": "Demo",
@@ -103,7 +108,12 @@ def test_postprocess_report(monkeypatch):
     async def fake_alt(_desc: str) -> str:
         return "alt text"
 
-    monkeypatch.setattr(insight_mod, "_generate_alt_text", fake_alt, raising=False)
+    monkeypatch.setattr(
+        insight_mod,
+        "_generate_alt_text",
+        fake_alt,
+        raising=False,
+    )
 
     payload = {
         "report": {

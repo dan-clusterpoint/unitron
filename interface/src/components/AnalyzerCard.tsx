@@ -3,7 +3,7 @@ import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
 import { apiFetch } from '../api'
-import { normalizeUrl } from '../utils'
+import { normalizeUrl, downloadBase64 } from '../utils'
 
 export type AnalyzeResult = {
   property: {
@@ -14,6 +14,7 @@ export type AnalyzeResult = {
   martech: Record<string, string[]> | null
   cms?: string[] | null
   degraded: boolean
+  downloads?: Record<string, string>
 }
 
 export type AnalyzerProps = {
@@ -47,10 +48,12 @@ export default function AnalyzerCard({
   const [generating, setGenerating] = useState(false)
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
+  const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
 
   useEffect(() => {
     if (!result) {
       setInsight(null)
+      setDownloads(null)
       return
     }
     const text = result.property?.notes.join('\n') || ''
@@ -60,8 +63,24 @@ export default function AnalyzerCard({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     })
-      .then((d) => setInsight(d.result.insight || ''))
-      .catch(() => setInsight(''))
+      .then(async (d) => {
+        const summary = d.result.insight || ''
+        setInsight(summary)
+        try {
+          const post = await apiFetch<{ downloads?: Record<string, string> }>('/postprocess-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report: { summary } }),
+          })
+          setDownloads(post.downloads || null)
+        } catch {
+          setDownloads(null)
+        }
+      })
+      .catch(() => {
+        setInsight('')
+        setDownloads(null)
+      })
       .finally(() => setInsightLoading(false))
   }, [result])
 
@@ -86,28 +105,106 @@ export default function AnalyzerCard({
   }
   if (result) {
     const { property, martech, cms, degraded } = result
+    const domainCount = property?.domains.length || 0
+    const martechCount = martech
+      ? Object.values(martech).reduce((a, b) => a + b.length, 0)
+      : 0
+    const cmsCount = cms?.length || 0
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
+        <nav aria-label="Sections" className="mb-4">
+          <ul className="flex flex-wrap gap-2 text-sm">
+            <li>
+              <a href="#exec-summary" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Summary</a>
+            </li>
+            {property && (
+              <li>
+                <a href="#property" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Property</a>
+              </li>
+            )}
+            {martech && (
+              <li>
+                <a href="#martech" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Martech</a>
+              </li>
+            )}
+            {cms != null && (
+              <li>
+                <a href="#cms" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>CMS</a>
+              </li>
+            )}
+            {property && property.notes.length > 0 && (
+              <li>
+                <a href="#footnotes" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Footnotes</a>
+              </li>
+            )}
+          </ul>
+        </nav>
+        <div className="grid grid-cols-2 gap-4 mb-4" role="region" aria-label="Key metrics">
+          <div className="p-3 rounded bg-gray-800 text-white text-center">
+            <div className="text-lg font-semibold">{domainCount}</div>
+            <div className="text-xs">Domains</div>
+          </div>
+          <div className="p-3 rounded bg-gray-800 text-white text-center">
+            <div className="text-lg font-semibold">{Math.round((property?.confidence || 0) * 100)}%</div>
+            <div className="text-xs">Confidence</div>
+          </div>
+          <div className="p-3 rounded bg-gray-800 text-white text-center">
+            <div className="text-lg font-semibold">{martechCount}</div>
+            <div className="text-xs">Martech Vendors</div>
+          </div>
+          <div className="p-3 rounded bg-gray-800 text-white text-center">
+            <div className="text-lg font-semibold">{cmsCount}</div>
+            <div className="text-xs">CMS</div>
+          </div>
+        </div>
         {degraded && (
           <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
             Partial results shown due to degraded analysis.
           </div>
         )}
-        {property && <PropertyResults property={property} />}
-        {martech && <MartechResults martech={martech} />}
-        {cms != null && (
-          <CmsResults
-            cms={cms}
-            manualCms={manualCms}
-            setManualCms={setManualCms}
-          />
-        )}
         {(insightLoading || insight) && (
-          <div className="bg-gray-50 p-4 rounded mb-4">
-            <h3 className="font-medium mb-2">Insights</h3>
+          <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-4">
+            <h3 className="font-medium mb-2">Executive Summary</h3>
             {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
-          </div>
+            {downloads && (
+              <div className="mt-2 flex gap-2">
+                {downloads.markdown && (
+                  <button
+                    className="btn-primary text-sm"
+                    onClick={() => downloadBase64(downloads.markdown as string, 'report.md')}
+                  >
+                    Download Markdown
+                  </button>
+                )}
+                {downloads.scenarios && (
+                  <button
+                    className="btn-primary text-sm"
+                    onClick={() => downloadBase64(downloads.scenarios as string, 'scenarios.csv')}
+                  >
+                    Download CSV
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+        {property && <section id="property"><PropertyResults property={property} /></section>}
+        {martech && <section id="martech"><MartechResults martech={martech} /></section>}
+        {cms != null && (
+          <section id="cms">
+            <CmsResults cms={cms} manualCms={manualCms} setManualCms={setManualCms} />
+          </section>
+        )}
+        {property && property.notes.length > 0 && (
+          <section id="footnotes" className="bg-gray-50 p-4 rounded mt-4">
+            <h3 className="font-medium mb-2">Footnotes</h3>
+            <ol className="list-decimal list-inside space-y-1">
+              {property.notes.map((n, i) => (
+                <li key={i} id={`fn${i + 1}`}>{n} <a href={`#fnref${i + 1}`} className="underline text-blue-800 ml-1" tabIndex={0}>↩</a></li>
+              ))}
+            </ol>
+          </section>
         )}
         {cms && cms.length === 0 && (
           <button
