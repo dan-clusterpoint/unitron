@@ -270,7 +270,7 @@ def test_generate_omits_empty_manual(monkeypatch):
     assert "cms_manual" not in captured["data"]
 
 
-def test_insight_passthrough(monkeypatch):
+def test_research_success(monkeypatch):
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -280,7 +280,7 @@ def test_insight_passthrough(monkeypatch):
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
-    r = client.post("/insight", json={"foo": 1})
+    r = client.post("/research", json={"foo": 1})
     assert r.status_code == 200
     assert r.json() == {"result": {"out": True}, "degraded": False}
     assert captured["path"] == "/research"
@@ -289,7 +289,7 @@ def test_insight_passthrough(monkeypatch):
     assert metrics_data["insight"]["success"] >= 1
 
 
-def test_insight_degraded(monkeypatch):
+def test_research_degraded(monkeypatch):
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -302,7 +302,7 @@ def test_insight_degraded(monkeypatch):
     before = gateway_app.metrics["insight"]["failure"]
     before_code = gateway_app.metrics["insight"]["codes"].get("503", 0)
 
-    r = client.post("/insight", json={"foo": "bar"})
+    r = client.post("/research", json={"foo": "bar"})
     assert r.status_code == 200
     assert r.json()["degraded"] is True
     assert captured["path"] == "/research"
@@ -313,7 +313,7 @@ def test_insight_degraded(monkeypatch):
     )
 
 
-def test_insight_failure(monkeypatch):
+def test_research_failure(monkeypatch):
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -326,7 +326,7 @@ def test_insight_failure(monkeypatch):
     before = gateway_app.metrics["insight"]["failure"]
     before_code = gateway_app.metrics["insight"]["codes"].get("500", 0)
 
-    r = client.post("/insight", json={"foo": "baz"})
+    r = client.post("/research", json={"foo": "baz"})
     assert r.status_code == 502
     assert r.json()["detail"] == "insight service unavailable"
     assert captured["path"] == "/research"

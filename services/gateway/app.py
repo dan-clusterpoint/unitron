@@ -228,3 +228,12 @@ async def insight(data: dict[str, Any]) -> JSONResponse:
         f"{INSIGHT_URL}/research", data, "insight"
     )
     return JSONResponse({"result": insight_data or {}, "degraded": degraded})
+
+
+@app.post("/research")
+async def research(data: dict[str, Any]) -> JSONResponse:
+    """Proxy research requests to the insight service."""
+    research_data, degraded = await _post_with_retry(
+        f"{INSIGHT_URL}/research", data, "insight"
+    )
+    return JSONResponse({"result": research_data or {}, "degraded": degraded})
