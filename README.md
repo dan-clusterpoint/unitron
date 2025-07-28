@@ -98,6 +98,7 @@ Response schema:
 ```
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
+`INSIGHT_TIMEOUT` sets the POST timeout (seconds) when contacting the insight service and defaults to `20`.
 
 Example:
 
