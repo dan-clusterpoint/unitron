@@ -142,10 +142,15 @@ async def _post_with_retry(
     for attempt in range(2):
         start = time.perf_counter()
         try:
-            timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
+            timeout_seconds = 20 if service == "insight" else 5
             async with httpx.AsyncClient(timeout=timeout_seconds) as client:
                 resp = await client.post(url, json=data)
-            resp.raise_for_status()
+            if resp.status_code != 200:
+                last_code = resp.status_code
+                last_detail = resp.text
+                if resp.status_code == 503:
+                    break
+                raise HTTPException(status_code=502, detail=resp.text)
             duration = time.perf_counter() - start
             record_success(service, duration, resp.status_code)
             return resp.json(), False
@@ -158,13 +163,13 @@ async def _post_with_retry(
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
     record_failure(service, last_code)
-    if isinstance(last_exc, httpx.HTTPStatusError) and last_code == 503:
+    if last_code == 503:
         return None, True
     status = 502
     detail = f"{service} service unavailable"
     if isinstance(last_exc, HTTPException):
         status = last_exc.status_code
-        detail = str(last_exc.detail)
+        detail = str(last_exc.detail) or last_detail or detail
     elif last_detail:
         detail = last_detail
     raise HTTPException(status_code=status, detail=detail)

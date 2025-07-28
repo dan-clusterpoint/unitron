@@ -399,7 +399,8 @@ def test_insight_timeout(monkeypatch):
     recorded = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"ok": True})
+        await asyncio.sleep(0.05)
+        return httpx.Response(400, text="slow")
 
     class RecordingClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
@@ -407,18 +408,22 @@ def test_insight_timeout(monkeypatch):
             super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
 
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
-    monkeypatch.setattr(gateway_app, "INSIGHT_TIMEOUT", 33)
 
+    start = time.perf_counter()
     r = client.post("/insight", json={"text": "hi"})
-    assert r.status_code == 200
-    assert recorded["timeout"] == 33
+    duration = time.perf_counter() - start
+    assert r.status_code == 502
+    assert r.json()["detail"] == "slow"
+    assert recorded["timeout"] == 20
+    assert duration >= 0.05
 
 
 def test_research_timeout(monkeypatch):
     recorded = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"ok": True})
+        await asyncio.sleep(0.05)
+        return httpx.Response(400, text="slow")
 
     class RecordingClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
@@ -426,8 +431,11 @@ def test_research_timeout(monkeypatch):
             super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
 
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
-    monkeypatch.setattr(gateway_app, "INSIGHT_TIMEOUT", 33)
 
+    start = time.perf_counter()
     r = client.post("/research", json={"topic": "ai"})
-    assert r.status_code == 200
-    assert recorded["timeout"] == 33
+    duration = time.perf_counter() - start
+    assert r.status_code == 502
+    assert r.json()["detail"] == "slow"
+    assert recorded["timeout"] == 20
+    assert duration >= 0.05
