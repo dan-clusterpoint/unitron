@@ -383,10 +383,21 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
 
         insight_obj = {"actions": actions, "evidence": insight_text}
 
+        degraded = False
+        if (
+            isinstance(insight_raw, dict) and insight_raw.get("error") == "[Data Gap]"
+        ) or (
+            isinstance(personas_raw, dict) and personas_raw.get("error") == "[Data Gap]"
+        ):
+            degraded = True
+
         result = {
             "insight": insight_obj,
             "personas": personas_list,
+            "degraded": degraded,
         }
+        if req.cms_manual:
+            result["cms_manual"] = req.cms_manual
         _append_size_warning(result)
         duration = time.perf_counter() - start
         scope = len(json.dumps(req.model_dump()))

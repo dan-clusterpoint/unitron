@@ -216,7 +216,7 @@ def test_insight_and_personas(monkeypatch):
     assert data["insight"] == {"actions": [], "evidence": "I"}
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
     assert "cms_manual" not in data
-    assert "degraded" not in data
+    assert data["degraded"] is False
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
@@ -243,7 +243,7 @@ def test_insight_and_personas_warnings(monkeypatch):
     assert result["insight"] == {"actions": [], "evidence": {"data": huge}}
     assert result["personas"] == []
     assert "cms_manual" not in result
-    assert "degraded" not in result
+    assert result["degraded"] is False
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
