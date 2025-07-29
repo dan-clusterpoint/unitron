@@ -49,8 +49,17 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     data = { ...data, ...data.report }
   }
 
-  const summary =
-    (getValue(data, ['summary', 'insight', 'report', 'text']) as string | undefined) || ''
+  const summaryRaw = getValue(data, ['summary', 'insight', 'report', 'text'])
+  let summary = ''
+  if (typeof summaryRaw === 'string') {
+    summary = summaryRaw
+  } else if (summaryRaw && typeof summaryRaw === 'object') {
+    const nested = getValue(summaryRaw, ['summary', 'insight', 'report', 'text'])
+    if (typeof nested === 'string') summary = nested
+    else summary = JSON.stringify(summaryRaw)
+  } else if (summaryRaw != null) {
+    summary = String(summaryRaw)
+  }
 
   let personas: Persona[] = []
   const personaRaw =
