@@ -213,10 +213,10 @@ def test_insight_and_personas(monkeypatch):
     )
     assert r.status_code == 200
     data = r.json()
-    assert data["insight"] == "I"
+    assert data["insight"] == {"actions": [], "evidence": "I"}
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
-    assert data["cms_manual"] == ""
-    assert data["degraded"] is False
+    assert "cms_manual" not in data
+    assert "degraded" not in data
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
@@ -240,10 +240,10 @@ def test_insight_and_personas_warnings(monkeypatch):
     r = client.post("/insight-and-personas", json={"url": "http://e"})
     assert r.status_code == 200
     result = r.json()
-    assert result["insight"] == {"data": huge}
+    assert result["insight"] == {"actions": [], "evidence": {"data": huge}}
     assert result["personas"] == []
-    assert result["cms_manual"] == ""
-    assert result["degraded"] is False
+    assert "cms_manual" not in result
+    assert "degraded" not in result
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
