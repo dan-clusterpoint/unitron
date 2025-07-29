@@ -1,4 +1,6 @@
-import type { ParsedInsight } from '../utils/insightParser'
+import { useState } from 'react'
+import { marked } from 'marked'
+import type { ParsedInsight, Action } from '../utils/insightParser'
 import {
   Card,
   CardContent,
@@ -12,6 +14,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from './ui/accordion'
+import Sheet from './ui/sheet'
+import { downloadBase64 } from '../utils'
+
+function actionsToMarkdown(actions: Action[]): string {
+  return actions
+    .map((a, i) => {
+      const lines = [`### ${i + 1}. ${a.title}`]
+      if (a.reasoning) lines.push(a.reasoning)
+      if (a.benefit) lines.push(`**Benefit:** ${a.benefit}`)
+      return lines.join('\n')
+    })
+    .join('\n\n')
+}
 
 export interface InsightCardProps {
   insight: ParsedInsight
@@ -19,6 +34,28 @@ export interface InsightCardProps {
 
 export default function InsightCard({ insight }: InsightCardProps) {
   const { evidence, actions, personas } = insight
+  const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
+  const markdown = actionsToMarkdown(actions)
+  const html = marked.parse(markdown)
+
+  async function copyToClipboard() {
+    try {
+      await navigator.clipboard.writeText(markdown)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // ignore clipboard errors
+    }
+  }
+
+  function onDownload() {
+    const encoded = typeof btoa === 'function'
+      ? btoa(markdown)
+      : Buffer.from(markdown, 'utf-8').toString('base64')
+    downloadBase64(encoded, 'actions.md')
+  }
+
   return (
     <Card className="space-y-4">
       {evidence && (
@@ -82,6 +119,25 @@ export default function InsightCard({ insight }: InsightCardProps) {
           </div>
         </CardContent>
       )}
+      {actions.length > 0 && (
+        <CardContent className="flex gap-2">
+          <button className="btn-primary text-sm" onClick={copyToClipboard}>
+            {copied ? 'Copied' : 'Copy Actions'}
+          </button>
+          <button className="btn-primary text-sm" onClick={() => setOpen(true)}>
+            View Markdown
+          </button>
+        </CardContent>
+      )}
+      <Sheet open={open} onClose={() => setOpen(false)}>
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+        <button className="btn-primary mt-4" onClick={onDownload}>
+          Download Markdown
+        </button>
+      </Sheet>
     </Card>
   )
 }

@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { describe, test } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, test, vi } from 'vitest'
 import InsightCard from './InsightCard'
 import type { ParsedInsight } from '../utils/insightParser'
 
@@ -34,5 +35,19 @@ describe('InsightCard', () => {
     render(<InsightCard insight={insight} />)
     screen.getByText('Thing')
     screen.getByText('p1')
+  })
+
+  test('copy button uses clipboard', async () => {
+    const write = vi.fn()
+    Object.assign(navigator as any, { clipboard: { writeText: write } })
+    const insight: ParsedInsight = {
+      evidence: '',
+      personas: [],
+      actions: [{ id: 'a1', title: 'Thing', reasoning: '', benefit: '' }],
+      degraded: false,
+    }
+    render(<InsightCard insight={insight} />)
+    await userEvent.click(screen.getByText('Copy Actions'))
+    expect(write).toHaveBeenCalled()
   })
 })

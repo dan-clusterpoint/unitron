@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { test } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { test, vi } from 'vitest'
 import InsightCard from './InsightCard'
 import type { ParsedInsight } from '../utils/insightParser'
 
@@ -21,4 +22,20 @@ test('renders evidence, actions and personas', () => {
   screen.getByText('Another')
   screen.getByText('P1')
   screen.getByText('buyer')
+})
+
+test('copies markdown to clipboard and opens sheet', async () => {
+  const write = vi.fn()
+  Object.assign(navigator as any, { clipboard: { writeText: write } })
+  const insight: ParsedInsight = {
+    evidence: '',
+    personas: [],
+    actions: [{ id: '1', title: 'Act', reasoning: 'why', benefit: '' }],
+    degraded: false,
+  }
+  render(<InsightCard insight={insight} />)
+  await userEvent.click(screen.getByText('Copy Actions'))
+  expect(write).toHaveBeenCalled()
+  await userEvent.click(screen.getByText('View Markdown'))
+  screen.getByText('Download Markdown')
 })
