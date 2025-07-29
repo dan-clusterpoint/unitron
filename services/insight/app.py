@@ -370,11 +370,22 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             personas_source = personas_raw
         personas_list = _to_persona_list(personas_source)
 
+        actions: list[Any] = []
+        if isinstance(insight_raw, dict):
+            for key in ("actions", "action_items", "next_best_actions"):
+                if key in insight_raw:
+                    val = insight_raw[key]
+                    if isinstance(val, list):
+                        actions = val
+                    elif val is not None:
+                        actions = [val]
+                    break
+
+        insight_obj = {"actions": actions, "evidence": insight_text}
+
         result = {
-            "insight": insight_text,
+            "insight": insight_obj,
             "personas": personas_list,
-            "cms_manual": req.cms_manual or "",
-            "degraded": False,
         }
         _append_size_warning(result)
         duration = time.perf_counter() - start
