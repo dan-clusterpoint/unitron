@@ -19,7 +19,9 @@ export const server = setupServer(
     Response.json({ result: { insight: 'Test insight' }, degraded: false }),
   ),
   http.post('/generate-insight-and-personas', () =>
-    Response.json({ result: { insight: 'Flow', personas: ['P1'] } }),
+    Response.json({
+      result: { insight: { text: 'Flow' }, personas: { p1: { name: 'P1' } } },
+    }),
   ),
 )
 

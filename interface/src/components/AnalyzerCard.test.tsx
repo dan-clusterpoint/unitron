@@ -151,7 +151,12 @@ test('shows generated details on success', async () => {
     http.post('/generate-insight-and-personas', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://example.com', cms: [] })
-      return Response.json({ result: { personas: ['P1'], insight: 'Flow' } })
+      return Response.json({
+        result: {
+          personas: { p1: { name: 'P1' } },
+          insight: { report: 'Flow' },
+        },
+      })
     }),
   )
   render(
