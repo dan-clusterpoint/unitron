@@ -10,3 +10,5 @@ export { default as FeatureIcon } from './FeatureIcon'
 export { default as PropertyResults } from './PropertyResults'
 export { default as MartechResults } from './MartechResults'
 export { default as CmsResults } from './CmsResults'
+export { default as InsightCard } from './InsightCard'
+
