@@ -75,7 +75,7 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   let actions: Action[] = []
   const actionRaw = getValue(data, ['actions', 'action_items', 'next_best_actions']) || []
   if (Array.isArray(actionRaw)) {
-    actions = actionRaw.map((a, i) => {
+    actions = actionRaw.map((a) => {
       if (typeof a === 'string') return { description: a }
       if (a && typeof a === 'object') {
         const { persona, persona_id, description, action, ...rest } = a as any
