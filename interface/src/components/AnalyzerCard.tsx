@@ -64,14 +64,14 @@ export default function AnalyzerCard({
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
-  const [generated, setGenerated] = useState<ParsedInsight | null>(null)
+  const [parsedInsight, setParsedInsight] = useState<ParsedInsight | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!result) {
       setInsight(null)
       setDownloads(null)
-      setGenerated(null)
+      setParsedInsight(null)
       setGenError(null)
       setInsightError(null)
       return
@@ -108,7 +108,7 @@ export default function AnalyzerCard({
   async function onGenerate() {
     if (!result) return
     setGenerating(true)
-    setGenerated(null)
+    setParsedInsight(null)
     setGenError(null)
     try {
       const clean = normalizeUrl(url)
@@ -121,7 +121,7 @@ export default function AnalyzerCard({
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
       })
-      setGenerated(parseInsightPayload(data.result))
+      setParsedInsight(parseInsightPayload(data.result))
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
@@ -245,9 +245,21 @@ export default function AnalyzerCard({
             >
               {generating ? 'Generating...' : 'Generate Insights'}
             </button>
-            {generated && (
+            {generating && (
+              <section
+                className="bg-gray-50 p-4 rounded mt-4"
+                data-testid="insight-skeleton"
+              >
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/3" />
+                  <div className="h-4 bg-gray-200 rounded" />
+                  <div className="h-4 bg-gray-200 rounded w-5/6" />
+                </div>
+              </section>
+            )}
+            {!generating && parsedInsight && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightCard insight={generated} />
+                <InsightCard insight={parsedInsight} />
               </section>
             )}
             {genError && (
