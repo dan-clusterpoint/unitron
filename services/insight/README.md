@@ -12,7 +12,7 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.
 - `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }`
-  returns `{ "insight": {...}, "personas": {...} }`.
+  returns `{ "insight": "...", "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. Insight and persona prompts run concurrently. The gateway will return a timeout after 20 s if the insight service is slow.
 - `GET /metrics` – usage counters for requests and data gaps.
 
 ## Environment variables
@@ -34,5 +34,24 @@ Expected response snippet:
 ```json
 {
   "summary": "..."
+}
+```
+
+Example (insight and personas):
+
+```bash
+curl -X POST http://localhost:8083/insight-and-personas \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
+```
+
+Expected response snippet:
+
+```json
+{
+  "insight": "...",
+  "personas": [{"id": "P1"}],
+  "cms_manual": "WordPress",
+  "degraded": false
 }
 ```
