@@ -65,9 +65,7 @@ export default function InsightCard({ insight }: InsightCardProps) {
       )}
       {evidence && (
         <CardContent>
-          <div className="prose max-w-none">
-            <p>{evidence}</p>
-          </div>
+          <p className="prose max-w-none">{evidence}</p>
         </CardContent>
       )}
       {actions.length > 0 && (
