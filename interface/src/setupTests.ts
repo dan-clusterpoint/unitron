@@ -23,6 +23,7 @@ export const server = setupServer(
       result: { insight: { text: 'Flow' }, personas: { p1: { name: 'P1' } } },
     }),
   ),
+  http.post('/postprocess-report', () => Response.json({ downloads: {} })),
 )
 
 beforeAll(() => server.listen())
