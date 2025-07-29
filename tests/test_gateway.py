@@ -399,7 +399,7 @@ def test_insight_timeout(monkeypatch):
     recorded = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(5.1)
         return httpx.Response(400, text="slow")
 
     class RecordingClient(httpx.AsyncClient):
@@ -415,7 +415,7 @@ def test_insight_timeout(monkeypatch):
     assert r.status_code == 502
     assert r.json()["detail"] == "slow"
     assert recorded["timeout"] == 20
-    assert duration >= 0.05
+    assert duration >= 5.1
 
 
 def test_research_timeout(monkeypatch):
