@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
+import InsightCard from './InsightCard'
 import { apiFetch } from '../api'
 import { normalizeUrl, downloadBase64 } from '../utils'
+import { parseInsightPayload, type ParsedInsight } from '../utils/insightParser'
 
 export function computeMartechCount(
   martech: Record<string, string[] | Record<string, unknown>> | null,
@@ -42,51 +44,6 @@ export type AnalyzerProps = {
   result: AnalyzeResult | null
 }
 
-export interface Persona {
-  name: string
-  id?: string
-  [key: string]: unknown
-}
-
-export interface InsightAndPersonasResponse {
-  insight?: unknown
-  personas?: Persona[] | Record<string, unknown> | string
-}
-
-export function normalizeResponse(
-  resp: InsightAndPersonasResponse,
-): { insight: string; personas: Persona[] } {
-  let insight = ''
-  if (typeof resp.insight === 'string') {
-    insight = resp.insight
-  } else if (resp.insight && typeof resp.insight === 'object') {
-    for (const key of ['insight', 'report', 'summary']) {
-      const val = (resp.insight as Record<string, unknown>)[key]
-      if (typeof val === 'string') {
-        insight = val
-        break
-      }
-    }
-    if (!insight) insight = JSON.stringify(resp.insight)
-  } else if (resp.insight != null) {
-    insight = String(resp.insight)
-  }
-
-  const personasRaw = resp.personas
-  let personas: Persona[] = []
-  if (Array.isArray(personasRaw)) {
-    personas = personasRaw.map((p) =>
-      typeof p === 'string' ? { name: p } : (p as Persona),
-    )
-  } else if (personasRaw && typeof personasRaw === 'object') {
-    personas = Object.values(personasRaw).map((v) =>
-      typeof v === 'string' ? { name: v } : (v as Persona),
-    )
-  } else if (typeof personasRaw === 'string') {
-    personas = [{ name: personasRaw }]
-  }
-  return { insight, personas }
-}
 
 export default function AnalyzerCard({
   id,
@@ -107,9 +64,7 @@ export default function AnalyzerCard({
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
-  const [generated, setGenerated] = useState<{ insight: string; personas: Persona[] } | null>(
-    null,
-  )
+  const [generated, setGenerated] = useState<ParsedInsight | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -157,7 +112,7 @@ export default function AnalyzerCard({
     setGenError(null)
     try {
       const clean = normalizeUrl(url)
-      const data = await apiFetch<{ result: InsightAndPersonasResponse }>('/generate-insight-and-personas', {
+      const data = await apiFetch<{ result: unknown }>('/generate-insight-and-personas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -166,7 +121,7 @@ export default function AnalyzerCard({
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
       })
-      setGenerated(normalizeResponse(data.result))
+      setGenerated(parseInsightPayload(data.result))
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
@@ -292,14 +247,7 @@ export default function AnalyzerCard({
             </button>
             {generated && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <h3 className="font-medium mb-2">Insight</h3>
-                <p>{generated.insight}</p>
-                <h4 className="font-medium mt-2">Personas</h4>
-                <ul className="list-disc list-inside">
-                  {generated.personas.map((p, i) => (
-                    <li key={p.id ?? i}>{p.name}</li>
-                  ))}
-                </ul>
+                <InsightCard insight={generated} />
               </section>
             )}
             {genError && (
