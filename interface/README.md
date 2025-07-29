@@ -36,3 +36,12 @@ this value to point at your deployed gateway as needed.
 
 The gateway's `/insight` endpoint calls `/generate-insights` on the insight service.
 Make sure `OPENAI_API_KEY` is set in that service's environment so it can reach the OpenAI API.
+
+## Insight display
+
+The analysis result now includes an "Executive Summary" showing a short
+insight fetched from the gateway. When a user clicks **Generate
+Insights** the frontend calls `/generate-insight-and-personas`. The
+response may vary, so `parseInsightPayload` in `src/utils` normalizes
+the data. The parsed result is then passed to `InsightCard` which renders
+the summary, recommended actions and any personas.
