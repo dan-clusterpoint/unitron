@@ -153,8 +153,11 @@ test('shows generated details on success', async () => {
       expect(body).toEqual({ url: 'https://example.com', cms: [] })
       return Response.json({
         result: {
-          personas: { p1: { name: 'P1' } },
-          insight: { report: 'Flow' },
+          personas: { p1: { name: 'P1', role: 'buyer' } },
+          insight: 'Flow',
+          actions: [
+            { persona: 'p1', description: 'Do it', evidence: ['src'] },
+          ],
         },
       })
     }),
@@ -177,8 +180,11 @@ test('shows generated details on success', async () => {
   await screen.findByText('Test insight')
   const btn = screen.getByRole('button', { name: /generate insights/i })
   await userEvent.click(btn)
-  await screen.findByText('P1')
+  await screen.findByText('Do it')
   screen.getByText('Flow')
+  screen.getByText('src')
+  screen.getByText('P1')
+  screen.getByText('buyer')
 })
 
 test('shows error when generation fails', async () => {
