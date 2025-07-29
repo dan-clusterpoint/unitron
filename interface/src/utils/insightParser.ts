@@ -8,7 +8,7 @@ export interface Action {
 
 export interface Persona {
   id: string
-  name: string
+  name?: string
   demographics?: string
   needs?: string
   goals?: string
