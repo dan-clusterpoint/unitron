@@ -145,6 +145,35 @@ test('displays insight text', async () => {
   expect(btn).toBeEnabled()
 })
 
+test('shows skeleton while generating', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/generate-insight-and-personas', async () => {
+      await new Promise((r) => setTimeout(r, 50))
+      return Response.json({ result: { evidence: 'done', actions: [], personas: [], degraded: false } })
+    }),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  await screen.findByText('Test insight')
+  const btn = screen.getByRole('button', { name: /generate insights/i })
+  await userEvent.click(btn)
+  await screen.findByTestId('insight-skeleton')
+})
+
 test('shows generated details on success', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
