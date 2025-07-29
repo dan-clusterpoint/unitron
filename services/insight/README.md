@@ -21,6 +21,27 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `OPENAI_MODEL` – chat model name (default `gpt-4`).
 - `MACRO_SECTION_CAP` – maximum number of macro sections returned by `/research`.
 
+### Normalized insight schema
+
+The insight service replies with an object containing an `insight` field. This
+field follows a consistent shape regardless of prompt details:
+
+```json
+{
+  "evidence": "short summary text",
+  "actions": [
+    {"id": "1", "title": "Action", "reasoning": "why", "benefit": "result"}
+  ],
+  "personas": [
+    {"id": "P1", "name": "Buyer"}
+  ],
+  "degraded": false
+}
+```
+
+Additional keys may be included but these core fields are always present. The
+frontend's `InsightCard` component expects this structure.
+
 ## Example usage
 
 ```bash

@@ -65,6 +65,14 @@ All backend services read `UI_ORIGIN` to decide which frontend domain may make
 requests. Set this to `http://localhost:5173` during local development or to the
 full production URL of your deployed interface.
 
+### InsightCard component
+
+The React interface displays each insight using a reusable **InsightCard**. This
+component accepts the normalized insight payload from the backend and renders
+the evidence, recommended actions and any personas in a single card. Markdown
+fragments are styled via the Tailwind Typography plugin so the text appears
+nicely formatted.
+
 ### Gateway service
 The gateway orchestrates the other APIs. Key endpoints:
 
