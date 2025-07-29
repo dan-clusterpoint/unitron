@@ -33,9 +33,9 @@ export default function InsightCard({ insight }: InsightCardProps) {
                   )}
                   {a.description}
                 </div>
-                {a.evidence && Array.isArray(a.evidence) && (
+                {Array.isArray(a.evidence) && (
                   <ul className="list-disc list-inside ml-6">
-                    {a.evidence.map((e: any, idx: number) => (
+                    {(a.evidence as unknown[]).map((e, idx) => (
                       <li key={idx}>{String(e)}</li>
                     ))}
                   </ul>
