@@ -1,24 +1,25 @@
 export interface Action {
-  /** Optional identifier linking to a persona */
-  persona?: string
-  /** Short action description */
-  description: string
-  /** Additional arbitrary properties */
+  id: string
+  title: string
+  reasoning: string
+  benefit: string
   [key: string]: unknown
 }
 
 export interface Persona {
-  /** Unique identifier */
   id: string
-  /** Display name */
-  name?: string
+  name: string
+  demographics?: string
+  needs?: string
+  goals?: string
   [key: string]: unknown
 }
 
 export interface ParsedInsight {
-  summary: string
-  personas: Persona[]
   actions: Action[]
+  evidence: string
+  personas: Persona[]
+  degraded: boolean
 }
 
 function getValue(obj: any, keys: string[]): any {
@@ -40,7 +41,7 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     try {
       data = JSON.parse(payload)
     } catch {
-      data = { summary: payload }
+      data = { evidence: payload }
     }
   }
 
@@ -49,27 +50,31 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     data = { ...data, ...data.report }
   }
 
-  const summaryRaw = getValue(data, ['summary', 'insight', 'report', 'text'])
-  let summary = ''
-  if (typeof summaryRaw === 'string') {
-    summary = summaryRaw
-  } else if (summaryRaw && typeof summaryRaw === 'object') {
-    const nested = getValue(summaryRaw, ['summary', 'insight', 'report', 'text'])
-    if (typeof nested === 'string') summary = nested
-    else summary = JSON.stringify(summaryRaw)
-  } else if (summaryRaw != null) {
-    summary = String(summaryRaw)
+  // flatten nested 'insight' field
+  if (data && typeof data === 'object' && 'insight' in data && typeof data.insight === 'object') {
+    data = { ...data, ...data.insight }
+  }
+
+  const evidenceRaw = getValue(data, ['evidence', 'summary', 'insight', 'report', 'text'])
+  let evidence = ''
+  if (typeof evidenceRaw === 'string') {
+    evidence = evidenceRaw
+  } else if (evidenceRaw && typeof evidenceRaw === 'object') {
+    const nested = getValue(evidenceRaw, ['evidence', 'summary', 'insight', 'report', 'text'])
+    if (typeof nested === 'string') evidence = nested
+    else evidence = JSON.stringify(evidenceRaw)
+  } else if (evidenceRaw != null) {
+    evidence = String(evidenceRaw)
   }
 
   let personas: Persona[] = []
-  const personaRaw =
-    getValue(data, ['personas', 'generated_buyer_personas', 'buyer_personas']) || []
+  const personaRaw = getValue(data, ['personas', 'generated_buyer_personas', 'buyer_personas']) || []
   if (Array.isArray(personaRaw)) {
     personas = personaRaw.map((p, i) => {
       if (typeof p === 'string') return { id: String(i), name: p }
       if (p && typeof p === 'object') {
-        const { id = String(i), name, ...rest } = p as any
-        return { id, name, ...rest }
+        const { id = String(i), name = '', demographics, needs, goals, ...rest } = p as any
+        return { id: String(id), name, demographics, needs, goals, ...rest }
       }
       return { id: String(i), name: String(p) }
     })
@@ -84,19 +89,31 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   let actions: Action[] = []
   const actionRaw = getValue(data, ['actions', 'action_items', 'next_best_actions']) || []
   if (Array.isArray(actionRaw)) {
-    actions = actionRaw.map((a) => {
-      if (typeof a === 'string') return { description: a }
-      if (a && typeof a === 'object') {
-        const { persona, persona_id, description, action, ...rest } = a as any
-        const desc = description ?? action ?? ''
-        const personaRef = persona_id ?? persona
-        const base: Action = { description: typeof desc === 'string' ? desc : JSON.stringify(desc) }
-        if (personaRef != null) base.persona = String(personaRef)
-        return { ...base, ...rest }
+    actions = actionRaw.map((a, i) => {
+      if (typeof a === 'string') {
+        return { id: String(i), title: a, reasoning: '', benefit: '' }
       }
-      return { description: String(a) }
+      if (a && typeof a === 'object') {
+        const { id = String(i), title = '', reasoning = '', benefit = '', ...rest } = a as any
+        return { id: String(id), title, reasoning, benefit, ...rest }
+      }
+      return { id: String(i), title: String(a), reasoning: '', benefit: '' }
+    })
+  } else if (actionRaw && typeof actionRaw === 'object') {
+    actions = Object.entries(actionRaw).map(([k, v]) => {
+      if (typeof v === 'string') {
+        return { id: k, title: v, reasoning: '', benefit: '' }
+      }
+      if (v && typeof v === 'object') {
+        const { title = '', reasoning = '', benefit = '', ...rest } = v as any
+        return { id: k, title, reasoning, benefit, ...rest }
+      }
+      return { id: k, title: String(v), reasoning: '', benefit: '' }
     })
   }
 
-  return { summary, personas, actions }
+  const degradedRaw = getValue(data, ['degraded'])
+  const degraded = Boolean(degradedRaw)
+
+  return { actions, evidence, personas, degraded }
 }
