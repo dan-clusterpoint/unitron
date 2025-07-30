@@ -1,0 +1,18 @@
+apiVersion: 1
+
+groups:
+  - name: unitron-gateway
+    rules:
+      - alert: GatewayHigh5xx
+        expr: |
+          sum(rate(http_requests_total{service="unitron-gateway",status=~"5.."}[10m]))
+          /
+          sum(rate(http_requests_total{service="unitron-gateway"}[10m]))
+          > 0.05
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: unitron-gateway 5xx responses exceed 5% over 10m
+          description: More than 5% of unitron-gateway responses returned HTTP 5xx in the last 10 minutes.
+          slack_channel: "#unitron-alerts"
