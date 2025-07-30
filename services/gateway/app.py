@@ -5,9 +5,11 @@ from urllib.parse import urlparse
 from typing import Any
 
 from services.shared.utils import normalize_url
+from prometheus_client import Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.responses import JSONResponse
@@ -30,7 +32,13 @@ app.add_middleware(
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
 PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
 INSIGHT_URL = os.getenv("INSIGHT_URL", "http://insight:8000")
-INSIGHT_TIMEOUT = int(os.getenv("INSIGHT_TIMEOUT", "20"))
+INSIGHT_TIMEOUT = int(os.getenv("INSIGHT_TIMEOUT", "30"))
+
+# Prometheus histogram for insight requests
+insight_call_duration = Histogram(
+    "insight_call_duration",
+    "Duration of calls to the insight service",
+)
 
 # In-memory metrics for service calls
 metrics: dict[str, dict[str, Any]] = {
@@ -109,8 +117,12 @@ async def health():
 
 
 @app.get('/metrics')
-async def metrics_endpoint() -> JSONResponse:
-    return JSONResponse(metrics)
+async def metrics_endpoint() -> PlainTextResponse:
+    """Return Prometheus metrics."""
+    return PlainTextResponse(
+        generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 
 @app.get('/ready')
@@ -142,25 +154,33 @@ async def _post_with_retry(
     for attempt in range(2):
         start = time.perf_counter()
         try:
-            timeout_seconds = 20 if service == "insight" else 5
+            timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
             async with httpx.AsyncClient(timeout=timeout_seconds) as client:
                 resp = await client.post(url, json=data)
+            duration = time.perf_counter() - start
+            if service == "insight":
+                insight_call_duration.observe(duration)
             if resp.status_code != 200:
                 last_code = resp.status_code
                 last_detail = resp.text
                 if resp.status_code == 503:
                     break
                 raise HTTPException(status_code=502, detail=resp.text)
-            duration = time.perf_counter() - start
             record_success(service, duration, resp.status_code)
             return resp.json(), False
         except httpx.HTTPStatusError as exc:  # noqa: BLE001
+            duration = time.perf_counter() - start
+            if service == "insight":
+                insight_call_duration.observe(duration)
             last_exc = exc
             last_code = exc.response.status_code
             last_detail = exc.response.text
             if exc.response.status_code == 503:
                 break
         except Exception as exc:  # noqa: BLE001
+            duration = time.perf_counter() - start
+            if service == "insight":
+                insight_call_duration.observe(duration)
             last_exc = exc
     record_failure(service, last_code)
     if last_code == 503:
