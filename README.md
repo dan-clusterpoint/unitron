@@ -5,6 +5,20 @@
 * Builds are deterministic: no hidden network I/O during image build.
 * External infra (Postgres, S3, Redis) are **optional adapters** behind ENV flags.
 
+Explore a hosted demo at [unitron-production.up.railway.app](https://unitron-production.up.railway.app).
+
+```
+┌ Insight Card ────────────────┐
+│ ▸ Action ...                 │
+│ Personas: [Avatar] ...       │
+│ Evidence ▼                   │
+└──────────────────────────────┘
+```
+
+* **Actions** – next steps tailored to the prospect.
+* **Personas** – avatars describing key stakeholders.
+* **Evidence** – supporting notes gathered from the site.
+
 ## Quick-start
 ```bash
 # local dev
