@@ -421,7 +421,7 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         ):
             degraded = True
         if any(
-            field is None
+            field in (None, "")
             for field in (
                 req.evidence_standards,
                 req.credibility_scoring,
