@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from services.shared import SecurityHeadersMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from services.shared.utils import detect_vendors
@@ -58,14 +59,13 @@ app = FastAPI(lifespan=lifespan)
 # Allow calls from the UI hosted on a different origin during development
 # UI_ORIGIN should contain the frontend domain
 # (e.g. http://localhost:5173)
-origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Global state populated on startup
 try:

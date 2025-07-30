@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 from urllib.parse import urlparse
 import socket
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
+from services.shared import SecurityHeadersMiddleware
 from pydantic import BaseModel
 from services.shared.utils import normalize_url
 from starlette.responses import JSONResponse
@@ -26,14 +26,13 @@ app = FastAPI(lifespan=lifespan)
 # Allow web interface to call this API from another origin during development
 # UI_ORIGIN should contain the frontend domain
 # (e.g. http://localhost:5173)
-origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 class RawAnalyzeRequest(BaseModel):
