@@ -9,6 +9,7 @@ import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from services.shared import SecurityHeadersMiddleware
+from utils.logging import redact
 from contextlib import asynccontextmanager
 import httpx
 from pydantic import BaseModel, ValidationError, Field
@@ -181,6 +182,7 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Empty text")
     sanitized = _sanitize(req.text)
+    logger.debug("generate-insights request: %s", redact(sanitized))
     start = time.perf_counter()
     if not os.getenv("OPENAI_API_KEY") or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
@@ -204,6 +206,7 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
     sources = len(re.findall(r"https?://", json.dumps(result)))
     gap_count = json.dumps(result).count("[Data Gap]")
     _record_metrics("generate-insights", scope, sources, duration, gap_count)
+    logger.debug("generate-insights response: %s", redact(json.dumps(result)))
     return JSONResponse(result)
 
 
@@ -217,6 +220,7 @@ async def research(data: dict) -> JSONResponse:
     if not req.topic.strip():
         raise HTTPException(status_code=400, detail="Empty topic")
     sanitized = _sanitize(req.topic)
+    logger.debug("research request: %s", redact(sanitized))
     start = time.perf_counter()
     if not os.getenv("OPENAI_API_KEY") or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
@@ -246,6 +250,7 @@ async def research(data: dict) -> JSONResponse:
     sources = len(re.findall(r"https?://", json.dumps(result)))
     gap_count = json.dumps(result).count("[Data Gap]")
     _record_metrics("research", scope, sources, duration, gap_count)
+    logger.debug("research response: %s", redact(json.dumps(result)))
     try:
         _validate_with_schema(result, ResearchResponse)
     except (ValidationError, Exception):
@@ -328,6 +333,7 @@ class PostProcessRequest(BaseModel):
 async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
     """Return downloads with markdown and scenario CSV representations."""
     report = req.report
+    logger.debug("postprocess-report request: %s", redact(json.dumps(report)))
     start = time.perf_counter()
     markdown = await create_markdown(report)
     csv_text = create_scenario_csv(report)
@@ -343,12 +349,17 @@ async def postprocess_report(req: PostProcessRequest) -> JSONResponse:
     sources = len(re.findall(r"https?://", json.dumps(result)))
     gap_count = json.dumps(result).count("[Data Gap]")
     _record_metrics("postprocess-report", scope, sources, duration, gap_count)
+    logger.debug("postprocess-report response: %s", redact(json.dumps(result)))
     return JSONResponse(result)
 
 
 @app.post("/insight-and-personas")
 async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
     """Return insight and persona reports using the orchestrator."""
+    logger.debug(
+        "insight-and-personas request: %s",
+        redact(json.dumps(req.model_dump())),
+    )
     start = time.perf_counter()
     company = {"url": req.url}
     tech: dict[str, Any] = {"martech": req.martech or {}, "cms": req.cms or []}
@@ -446,6 +457,10 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         sources = len(re.findall(r"https?://", json.dumps(result)))
         gap_count = json.dumps(result).count("[Data Gap]")
         _record_metrics("insight-and-personas", scope, sources, duration, gap_count)
+        logger.debug(
+            "insight-and-personas response: %s",
+            redact(json.dumps(result)),
+        )
         return JSONResponse(result)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(500, detail=str(exc))
