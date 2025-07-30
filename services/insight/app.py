@@ -8,6 +8,7 @@ import time
 import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from services.shared import SecurityHeadersMiddleware
 from contextlib import asynccontextmanager
 import httpx
 from pydantic import BaseModel, ValidationError, Field
@@ -40,14 +41,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 logger = logging.getLogger(__name__)
 

@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
+from services.shared import SecurityHeadersMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.responses import JSONResponse
 
@@ -30,14 +31,13 @@ app = FastAPI(lifespan=lifespan)
 # Allow calls from the UI hosted on a different origin during development
 # UI_ORIGIN should contain the frontend domain
 # (e.g. http://localhost:5173)
-origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Default service URLs used in local docker-compose
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")

@@ -158,6 +158,23 @@ def test_analyze_degraded_when_service_unready(monkeypatch):
     assert data["cms"] == []
 
 
+def test_options_analyze():
+    r = client.options(
+        "/analyze",
+        headers={
+            "Origin": "http://example.com",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "*"
+    allowed = r.headers["access-control-allow-headers"]
+    assert "Content-Type" in allowed
+    assert "Authorization" in allowed
+    assert r.headers["x-frame-options"] == "DENY"
+    assert r.headers["x-content-type-options"] == "nosniff"
+
+
 def test_metrics_endpoint(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200)
