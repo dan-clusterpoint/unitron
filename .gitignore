@@ -3,3 +3,4 @@ __pycache__/
 
 # Node
 interface/node_modules/
+playwright/node_modules/
