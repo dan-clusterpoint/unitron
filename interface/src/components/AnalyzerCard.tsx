@@ -113,12 +113,18 @@ export default function AnalyzerCard({
     setGenError(null)
     try {
       const clean = normalizeUrl(url)
+      const martech = {
+        core: (result.martech as any)?.core ?? [],
+        adjacent: (result.martech as any)?.adjacent ?? [],
+        broader: (result.martech as any)?.broader ?? [],
+        competitors: (result.martech as any)?.competitors ?? [],
+      }
       const data = await apiFetch<{ result: unknown }>('/generate-insight-and-personas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: clean,
-          martech: result.martech,
+          martech,
           cms: result.cms || [],
           ...(manualCms ? { cms_manual: manualCms } : {}),
           evidence_standards: ORG_CONTEXT.evidence_standards ?? '',

@@ -182,7 +182,12 @@ test('shows generated details on success', async () => {
       const body = await request.json()
       expect(body).toEqual({
         url: 'https://example.com',
-        martech: result.martech,
+        martech: {
+          core: (result.martech as any)?.core ?? [],
+          adjacent: (result.martech as any)?.adjacent ?? [],
+          broader: (result.martech as any)?.broader ?? [],
+          competitors: (result.martech as any)?.competitors ?? [],
+        },
         cms: [],
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
