@@ -11,6 +11,7 @@ import logging
 import httpx
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
@@ -41,7 +42,14 @@ ENABLE_WAPPALYZER = os.getenv("ENABLE_WAPPALYZER", "0").lower() in {
     "yes",
 }
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await _startup()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Allow calls from the UI hosted on a different origin during development
 # UI_ORIGIN should contain the frontend domain
@@ -295,7 +303,6 @@ async def analyze_url(
     return response
 
 
-@app.on_event("startup")
 async def _startup() -> None:
     global fingerprints, cms_fingerprints
     if fingerprints is None:
