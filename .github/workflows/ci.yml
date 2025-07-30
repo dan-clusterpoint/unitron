@@ -27,11 +27,17 @@ jobs:
       - name: Install interface dependencies
         run: npm ci
         working-directory: interface
+      - name: Build interface
+        run: npm run build
+        working-directory: interface
       - name: Install Playwright dependencies
         run: npm ci
         working-directory: playwright
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+        working-directory: playwright
+      - name: Install Playwright OS deps
+        run: npx playwright install-deps
         working-directory: playwright
       - name: Run Playwright tests
         run: npx playwright test
