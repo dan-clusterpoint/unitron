@@ -30,13 +30,16 @@ function actionsToMarkdown(actions: Action[]): string {
 
 export interface InsightCardProps {
   insight: ParsedInsight
+  loading?: boolean
 }
 
-export default function InsightCard({ insight }: InsightCardProps) {
+export default function InsightCard({ insight, loading = false }: InsightCardProps) {
   const { evidence, actions, personas } = insight
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
-  const markdown = actionsToMarkdown(actions)
+  const safeActions = Array.isArray(actions) ? actions : []
+  const safePersonas = Array.isArray(personas) ? personas : []
+  const markdown = actionsToMarkdown(safeActions)
   const html = marked.parse(markdown)
 
   async function copyToClipboard() {
@@ -56,6 +59,21 @@ export default function InsightCard({ insight }: InsightCardProps) {
     downloadBase64(encoded, 'actions.md')
   }
 
+  if (loading) {
+    return (
+      <Card className="p-4" data-testid="insight-skeleton">
+        <div className="animate-pulse space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-1/3" />
+          <div className="h-4 bg-gray-200 rounded" />
+          <div className="h-4 bg-gray-200 rounded w-5/6" />
+        </div>
+      </Card>
+    )
+  }
+
+  const hasActions = safeActions.length > 0
+  const hasPersonas = safePersonas.length > 0
+
   return (
     <Card className="space-y-4">
       {evidence && (
@@ -68,14 +86,14 @@ export default function InsightCard({ insight }: InsightCardProps) {
           <p className="prose max-w-none">{evidence}</p>
         </CardContent>
       )}
-      {actions.length > 0 && (
+      {hasActions ? (
         <CardContent>
           <Accordion
             type="multiple"
-            defaultValue={actions.map((a) => a.id)}
+            defaultValue={safeActions.map((a) => a.id)}
             className="w-full"
           >
-            {actions.map((a) => (
+            {safeActions.map((a) => (
               <AccordionItem key={a.id} value={a.id}>
                 <AccordionTrigger>{a.title}</AccordionTrigger>
                 <AccordionContent>
@@ -88,11 +106,13 @@ export default function InsightCard({ insight }: InsightCardProps) {
             ))}
           </Accordion>
         </CardContent>
+      ) : (
+        <CardContent>No data</CardContent>
       )}
-      {personas.length > 0 && (
+      {hasPersonas ? (
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {personas.map((p) => (
+            {safePersonas.map((p) => (
               <div key={p.id} className="flex items-start space-x-2 border rounded p-2">
                 <img
                   src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
@@ -116,8 +136,10 @@ export default function InsightCard({ insight }: InsightCardProps) {
             ))}
           </div>
         </CardContent>
+      ) : (
+        <CardContent>No data</CardContent>
       )}
-      {actions.length > 0 && (
+      {hasActions && (
         <CardContent className="flex gap-2">
           <button className="btn-primary text-sm" onClick={copyToClipboard}>
             {copied ? 'Copied' : 'Copy Actions'}

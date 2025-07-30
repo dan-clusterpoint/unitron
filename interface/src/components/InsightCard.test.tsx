@@ -39,3 +39,25 @@ test('copies markdown to clipboard and opens sheet', async () => {
   await userEvent.click(screen.getByText('View Markdown'))
   screen.getByText('Download Markdown')
 })
+
+test('shows skeleton when loading', () => {
+  const insight: ParsedInsight = {
+    evidence: '',
+    personas: [],
+    actions: [],
+    degraded: false,
+  }
+  render(<InsightCard insight={insight} loading />)
+  expect(screen.getByTestId('insight-skeleton')).toBeInTheDocument()
+})
+
+test('handles non-array inputs gracefully', () => {
+  const insight = {
+    evidence: 'x',
+    personas: {} as any,
+    actions: {} as any,
+    degraded: false,
+  }
+  render(<InsightCard insight={insight as ParsedInsight} />)
+  screen.getAllByText('No data')
+})
