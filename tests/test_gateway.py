@@ -46,7 +46,7 @@ def test_ready_waits_for_both_services(monkeypatch):
     assert data["property"] == "ok"
     assert duration < 0.25  # should take about max(delay)
 
-    metrics_data = client.get("/metrics").json()
+    metrics_data = gateway_app.metrics
     assert metrics_data["martech"]["success"] >= 1
     assert metrics_data["property"]["success"] >= 1
     assert metrics_data["martech"]["codes"]["200"] >= 1
@@ -93,7 +93,7 @@ def test_analyze_success(monkeypatch):
     assert data["cms"] == []
     assert data["degraded"] is False
 
-    metrics_data = client.get("/metrics").json()
+    metrics_data = gateway_app.metrics
     assert metrics_data["martech"]["success"] >= 1
     assert metrics_data["property"]["success"] >= 1
 
@@ -166,8 +166,8 @@ def test_metrics_endpoint(monkeypatch):
 
     r = client.get("/metrics")
     assert r.status_code == 200
-    data = r.json()
-    assert "martech" in data and "property" in data
+    data = r.text
+    assert "insight_call_duration" in data
 
 
 def test_analyze_error_detail_mentions_service(monkeypatch):
@@ -277,7 +277,7 @@ def test_research_success(monkeypatch):
     assert r.json() == {"result": {"out": True}, "degraded": False}
     assert captured["path"] == "/research"
 
-    metrics_data = client.get("/metrics").json()
+    metrics_data = gateway_app.metrics
     assert metrics_data["insight"]["success"] >= 1
 
 
@@ -375,7 +375,7 @@ def test_generate_insight_and_personas_success(monkeypatch):
     assert captured["path"] == "/insight-and-personas"
     assert captured["body"] == payload
 
-    metrics_data = client.get("/metrics").json()
+    metrics_data = gateway_app.metrics
     assert metrics_data["insight"]["success"] >= 1
 
 
@@ -419,7 +419,7 @@ def test_insight_timeout(monkeypatch):
     duration = time.perf_counter() - start
     assert r.status_code == 502
     assert r.json()["detail"] == "slow"
-    assert recorded["timeout"] == 20
+    assert recorded["timeout"] == 30
     assert duration >= 5.1
 
 
@@ -442,5 +442,5 @@ def test_research_timeout(monkeypatch):
     duration = time.perf_counter() - start
     assert r.status_code == 502
     assert r.json()["detail"] == "slow"
-    assert recorded["timeout"] == 20
+    assert recorded["timeout"] == 30
     assert duration >= 0.05
