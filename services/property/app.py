@@ -3,14 +3,25 @@ from __future__ import annotations
 import os
 from urllib.parse import urlparse
 import socket
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+import httpx
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from services.shared.utils import normalize_url
 from starlette.responses import JSONResponse
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.client = httpx.AsyncClient()
+    try:
+        yield
+    finally:
+        await app.state.client.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Allow web interface to call this API from another origin during development
 # UI_ORIGIN should contain the frontend domain

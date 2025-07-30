@@ -8,6 +8,8 @@ import time
 import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import httpx
 from pydantic import BaseModel, ValidationError, Field
 
 try:
@@ -26,7 +28,17 @@ try:  # Optional dependency
 except Exception:  # noqa: BLE001
     openai = None  # type: ignore
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.client = httpx.AsyncClient()
+    try:
+        yield
+    finally:
+        await app.state.client.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [os.getenv("UI_ORIGIN", "*")]
 app.add_middleware(

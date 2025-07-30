@@ -21,6 +21,7 @@ def _set_mock_transport(monkeypatch, handler: httpx.MockTransport) -> None:
             super().__init__(transport=handler, *args, **kwargs)
 
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", DummyClient)
+    gateway_app.app.state.client = DummyClient()
 
 
 def test_ready_waits_for_both_services(monkeypatch):
@@ -409,10 +410,14 @@ def test_insight_timeout(monkeypatch):
 
     class RecordingClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
-            recorded["timeout"] = kwargs.get("timeout")
             super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
 
+        async def post(self, url, *args, **kwargs):
+            recorded["timeout"] = kwargs.get("timeout")
+            return await super().post(url, *args, **kwargs)
+
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
+    gateway_app.app.state.client = RecordingClient()
 
     start = time.perf_counter()
     r = client.post("/insight", json={"text": "hi"})
@@ -432,10 +437,14 @@ def test_research_timeout(monkeypatch):
 
     class RecordingClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
-            recorded["timeout"] = kwargs.get("timeout")
             super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
 
+        async def post(self, url, *args, **kwargs):
+            recorded["timeout"] = kwargs.get("timeout")
+            return await super().post(url, *args, **kwargs)
+
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
+    gateway_app.app.state.client = RecordingClient()
 
     start = time.perf_counter()
     r = client.post("/research", json={"topic": "ai"})

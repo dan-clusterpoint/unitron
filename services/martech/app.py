@@ -46,7 +46,11 @@ ENABLE_WAPPALYZER = os.getenv("ENABLE_WAPPALYZER", "0").lower() in {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await _startup()
-    yield
+    app.state.client = httpx.AsyncClient(timeout=10)
+    try:
+        yield
+    finally:
+        await app.state.client.aclose()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -230,30 +234,33 @@ async def analyze_url(
         or os.getenv("HTTPS_PROXY")
         or None
     )
-    client_opts: dict[str, Any] = {"timeout": 10}
-    if proxy:
-        client_opts["proxy"] = proxy
     network_error = False
     script_urls: set[str]
     inline: list[str]
     external: list[str]
-    async with httpx.AsyncClient(**client_opts) as client:
-        try:
-            html, resp_headers, resp_cookies = await _fetch(client, url)
-        except (
-            httpx.RequestError,
-            asyncio.TimeoutError,
-        ):  # noqa: BLE001
-            logging.exception("failed fetching %s", url)
-            network_error = True
-            html = ""
-            resp_headers = {}
-            resp_cookies = {}
-            script_urls, inline, external = set(), [], []
-        else:
-            script_urls, inline, external = await _extract_scripts(
-                client, html, base_url=url
-            )
+    client = getattr(app.state, "client", None)
+    close_client = False
+    if client is None:
+        client = httpx.AsyncClient(timeout=10, proxy=proxy)
+        close_client = True
+    try:
+        html, resp_headers, resp_cookies = await _fetch(client, url)
+    except (
+        httpx.RequestError,
+        asyncio.TimeoutError,
+    ):  # noqa: BLE001
+        logging.exception("failed fetching %s", url)
+        network_error = True
+        html = ""
+        resp_headers = {}
+        resp_cookies = {}
+        script_urls, inline, external = set(), [], []
+    else:
+        script_urls, inline, external = await _extract_scripts(
+            client, html, base_url=url
+        )
+    if close_client and hasattr(client, "aclose"):
+        await client.aclose()
 
     resource_urls: set[str] = set()
     if headless and not network_error:
@@ -395,10 +402,9 @@ async def generate(req: GenerateRequest) -> JSONResponse:
         payload["cms_manual"] = req.cms_manual
         _log_manual_cms(req.cms_manual)
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(
-                f"{INSIGHT_URL}/insight-and-personas", json=payload
-            )
+        resp = await app.state.client.post(
+            f"{INSIGHT_URL}/insight-and-personas", json=payload, timeout=10
+        )
         resp.raise_for_status()
     except httpx.HTTPStatusError as exc:  # noqa: BLE001
         raise HTTPException(
@@ -450,9 +456,16 @@ async def diagnose() -> DiagnoseResponse:
     client_opts: dict[str, Any] = {"timeout": 5}
     if proxy:
         client_opts["proxy"] = proxy
+    client = getattr(app.state, "client", None)
+    close_client = False
+    if client is None:
+        client = httpx.AsyncClient(**client_opts)
+        close_client = True
     try:
-        async with httpx.AsyncClient(**client_opts) as client:
-            await client.get("https://example.com")
+        await client.get("https://example.com")
     except Exception as exc:  # noqa: BLE001
         return DiagnoseResponse(success=False, error=str(exc))
+    finally:
+        if close_client and hasattr(client, "aclose"):
+            await client.aclose()
     return DiagnoseResponse(success=True)
