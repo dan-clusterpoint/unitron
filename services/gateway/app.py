@@ -9,7 +9,7 @@ from services.shared.utils import normalize_url
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 from starlette.responses import JSONResponse
 
 app = FastAPI()
@@ -68,7 +68,7 @@ class AnalyzeRequest(BaseModel):
     headless: bool | None = False
     force: bool | None = False
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def _allow_domain(cls, values: dict) -> dict:  # noqa: D401
         """Allow legacy ``domain`` field as alias for ``url``."""
         if "url" not in values and "domain" in values:
