@@ -8,7 +8,7 @@ import time
 import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, Field
 
 try:
     import jsonschema
@@ -104,11 +104,26 @@ class InsightPersonaRequest(BaseModel):
     martech: dict[str, list[str]] | None = None
     cms: list[str] | None = None
     cms_manual: str | None = None
-    evidence_standards: str | None = None
-    credibility_scoring: str | None = None
-    deliverable_guidelines: str | None = None
-    audience: str | None = None
-    preferences: str | None = None
+    evidence_standards: str | None = Field(
+        default=None,
+        example="Use peer-reviewed data when available",
+    )
+    credibility_scoring: str | None = Field(
+        default=None,
+        example="Score evidence 1-5 based on reliability",
+    )
+    deliverable_guidelines: str | None = Field(
+        default=None,
+        example="Write deliverables in plain language",
+    )
+    audience: str | None = Field(
+        default=None,
+        example="CTO and senior engineers",
+    )
+    preferences: str | None = Field(
+        default=None,
+        example="Focus on open-source solutions",
+    )
 
 
 def _validate_with_schema(data: dict, model: type[BaseModel]) -> BaseModel:
