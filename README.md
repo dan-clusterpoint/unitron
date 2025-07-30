@@ -341,6 +341,17 @@ To verify that the gateway service is reachable, export `GATEWAY_URL` and execut
 GATEWAY_URL=http://localhost:8080 ./test-gateway.sh
 ```
 
+### Playwright tests
+
+Node 18 is used for the end-to-end browser tests. Install the frontend and
+Playwright dependencies and then run the suite:
+
+```bash
+npm ci --prefix interface
+npm ci --prefix playwright
+npx playwright test
+```
+
 ## FAQ
 
 **Why Docker instead of running Python directly?**
