@@ -40,11 +40,14 @@ def test_generate_insights(monkeypatch):
 
     dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     r = client.post("/generate-insights", json={"text": "  some text\n"})
     assert r.status_code == 200
-    assert r.json()["insight"] == "Hello insight"
+    data = r.json()
+    assert data["insight"] == "Hello insight"
+    assert data["degraded"] is False
 
 
 def test_research(monkeypatch):
@@ -65,11 +68,14 @@ def test_research(monkeypatch):
 
     dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
-    assert r.json()["summary"] == "Research result"
+    data = r.json()
+    assert data["summary"] == "Research result"
+    assert data["degraded"] is False
 
 
 def test_research_trim(monkeypatch):
@@ -92,11 +98,14 @@ def test_research_trim(monkeypatch):
         AsyncOpenAI=lambda api_key=None: DummyClient(),
     )
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
-    assert r.json()["summary"] == "Trim me"
+    data = r.json()
+    assert data["summary"] == "Trim me"
+    assert data["degraded"] is False
 
 
 def test_research_validation_error():
@@ -181,6 +190,7 @@ def test_metrics_and_warnings(monkeypatch):
 
     dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
 
     r = client.post("/generate-insights", json={"text": "info"})

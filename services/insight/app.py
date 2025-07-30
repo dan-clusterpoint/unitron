@@ -170,27 +170,22 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Empty text")
     sanitized = _sanitize(req.text)
     start = time.perf_counter()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or openai is None:
+    if not os.getenv("OPENAI_API_KEY") or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
-    client = openai.AsyncOpenAI(api_key=api_key)
     try:
-        resp = await client.chat.completions.create(
-            model="gpt-4",
-            messages=[
+        content, degraded = await orchestrator.call_openai_with_retry(
+            [
                 {"role": "system", "content": "Generate concise insights."},
                 {"role": "user", "content": sanitized},
             ],
             max_tokens=100,
         )
-        content = resp.choices[0].message.content.strip()
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="OpenAI not configured")
     except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail="Failed to generate insights")
 
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to generate insights",
-        )
-    result = {"insight": content}
+    result = {"insight": content, "degraded": degraded}
     _append_size_warning(result)
     duration = time.perf_counter() - start
     scope = len(sanitized)
@@ -211,14 +206,11 @@ async def research(data: dict) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Empty topic")
     sanitized = _sanitize(req.topic)
     start = time.perf_counter()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or openai is None:
+    if not os.getenv("OPENAI_API_KEY") or openai is None:
         raise HTTPException(status_code=503, detail="OpenAI not configured")
-    client = openai.AsyncOpenAI(api_key=api_key)
     try:
-        resp = await client.chat.completions.create(
-            model="gpt-4",
-            messages=[
+        content, degraded = await orchestrator.call_openai_with_retry(
+            [
                 {
                     "role": "system",
                     "content": "Provide a short research summary.",
@@ -227,14 +219,15 @@ async def research(data: dict) -> JSONResponse:
             ],
             max_tokens=150,
         )
-        content = resp.choices[0].message.content.strip()
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="OpenAI not configured")
     except Exception:  # noqa: BLE001
         raise HTTPException(
             status_code=500,
             detail="Failed to generate research",
         )
 
-    result = {"summary": content}
+    result = {"summary": content, "degraded": degraded}
     _append_size_warning(result)
     duration = time.perf_counter() - start
     scope = len(sanitized)
@@ -253,14 +246,11 @@ async def _generate_alt_text(description: str) -> str:
     text = _sanitize(description)[:200]
     if not text:
         return ""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or openai is None:
+    if not os.getenv("OPENAI_API_KEY") or openai is None:
         return ""
-    client = openai.AsyncOpenAI(api_key=api_key)
     try:
-        resp = await client.chat.completions.create(
-            model="gpt-4",
-            messages=[
+        alt, _ = await orchestrator.call_openai_with_retry(
+            [
                 {
                     "role": "user",
                     "content": f"Describe the image in under 15 words: {text}",
@@ -268,7 +258,6 @@ async def _generate_alt_text(description: str) -> str:
             ],
             max_tokens=30,
         )
-        alt = resp.choices[0].message.content.strip()
     except Exception:  # noqa: BLE001
         return ""
     words = alt.split()
