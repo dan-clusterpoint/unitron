@@ -269,21 +269,12 @@ export default function AnalyzerCard({
             >
               {generating ? 'Generating...' : 'Generate Insights'}
             </button>
-            {generating && (
-              <section
-                className="bg-gray-50 p-4 rounded mt-4"
-                data-testid="insight-skeleton"
-              >
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/3" />
-                  <div className="h-4 bg-gray-200 rounded" />
-                  <div className="h-4 bg-gray-200 rounded w-5/6" />
-                </div>
-              </section>
-            )}
-            {!generating && parsedInsight && (
+            {(generating || parsedInsight) && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightCard insight={parsedInsight} />
+                <InsightCard
+                  insight={parsedInsight || { actions: [], evidence: '', personas: [], degraded: false }}
+                  loading={generating}
+                />
               </section>
             )}
             {validationError && (
