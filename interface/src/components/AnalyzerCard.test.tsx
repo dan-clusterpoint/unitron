@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../setupTests'
 import { http } from 'msw'
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 import type { AnalyzeResult } from './AnalyzerCard'
 import { computeMartechCount } from './AnalyzerCard'
 import { ORG_CONTEXT } from '../config/orgContext'
@@ -291,4 +291,40 @@ test('counts nested martech buckets correctly', () => {
     degraded: false,
   }
   expect(computeMartechCount(nested.martech)).toBe(3)
+})
+
+test('shows validation error and skips POST on invalid payload', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  const spy = vi.fn()
+  server.use(
+    http.post('/generate-insight-and-personas', () => {
+      spy()
+      return Response.json({ result: {} })
+    }),
+  )
+  const badResult: AnalyzeResult = {
+    property: { domains: ['example.com'], confidence: 1, notes: ['note'] },
+    martech: { core: [1 as any] },
+    degraded: false,
+  }
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...badResult, cms: [] }}
+    />,
+  )
+  await screen.findByText('Test insight')
+  const btn = screen.getByRole('button', { name: /generate insights/i })
+  await userEvent.click(btn)
+  await screen.findByText(/Expected string/i)
+  expect(spy).not.toHaveBeenCalled()
 })
