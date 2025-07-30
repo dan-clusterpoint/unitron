@@ -104,6 +104,11 @@ class InsightPersonaRequest(BaseModel):
     martech: dict[str, list[str]] | None = None
     cms: list[str] | None = None
     cms_manual: str | None = None
+    evidence_standards: str | None = None
+    credibility_scoring: str | None = None
+    deliverable_guidelines: str | None = None
+    audience: str | None = None
+    preferences: str | None = None
 
 
 def _validate_with_schema(data: dict, model: type[BaseModel]) -> BaseModel:
@@ -338,12 +343,22 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         "Generate next-best-action insights.",
         company=company,
         technology=tech,
+        evidence_standards=req.evidence_standards,
+        credibility_scoring=req.credibility_scoring,
+        deliverable_guidelines=req.deliverable_guidelines,
+        audience=req.audience,
+        preferences=req.preferences,
     )
 
     persona_prompt = orchestrator.build_prompt(
         "Generate buyer personas.",
         company=company,
         technology=tech,
+        evidence_standards=req.evidence_standards,
+        credibility_scoring=req.credibility_scoring,
+        deliverable_guidelines=req.deliverable_guidelines,
+        audience=req.audience,
+        preferences=req.preferences,
     )
 
     try:
@@ -388,6 +403,17 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             isinstance(insight_raw, dict) and insight_raw.get("error") == "[Data Gap]"
         ) or (
             isinstance(personas_raw, dict) and personas_raw.get("error") == "[Data Gap]"
+        ):
+            degraded = True
+        if any(
+            field is None
+            for field in (
+                req.evidence_standards,
+                req.credibility_scoring,
+                req.deliverable_guidelines,
+                req.audience,
+                req.preferences,
+            )
         ):
             degraded = True
 

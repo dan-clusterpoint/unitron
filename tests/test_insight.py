@@ -209,7 +209,16 @@ def test_insight_and_personas(monkeypatch):
 
     r = client.post(
         "/insight-and-personas",
-        json={"url": "https://ex", "martech": {}, "cms": ["WP"]},
+        json={
+            "url": "https://ex",
+            "martech": {},
+            "cms": ["WP"],
+            "evidence_standards": "std",
+            "credibility_scoring": "score",
+            "deliverable_guidelines": "guidelines",
+            "audience": "devs",
+            "preferences": "none",
+        },
     )
     assert r.status_code == 200
     data = r.json()
@@ -243,7 +252,7 @@ def test_insight_and_personas_warnings(monkeypatch):
     assert result["insight"] == {"actions": [], "evidence": {"data": huge}}
     assert result["personas"] == []
     assert "cms_manual" not in result
-    assert result["degraded"] is False
+    assert result["degraded"] is True
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
