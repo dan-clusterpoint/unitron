@@ -11,8 +11,8 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `POST /research` – body `{ "topic": "AI" }` returns `{ "summary": "..." }`.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.
-- `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }`
-  returns { "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }. Insight and persona prompts run concurrently. The gateway will return a timeout after 20s if the insight service is slow.
+- `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS" }`
+  returns { "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }. Insight and persona prompts run concurrently. The gateway will return a timeout after 20s if the insight service is slow. The optional fields fine‑tune how the report is generated.
 - `GET /metrics` – usage counters for requests and data gaps.
 
 ## Environment variables
@@ -63,7 +63,7 @@ Example (insight and personas):
 ```bash
 curl -X POST http://localhost:8083/insight-and-personas \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}'
 ```
 
 Expected response snippet:
