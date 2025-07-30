@@ -1,11 +1,14 @@
 import os
 import asyncio
 import time
+import logging
+import json
 from urllib.parse import urlparse
 from typing import Any
 
 from services.shared.utils import normalize_url
 from prometheus_client import Histogram, generate_latest, CONTENT_TYPE_LATEST
+from utils.logging import redact
 
 import httpx
 from contextlib import asynccontextmanager
@@ -38,6 +41,8 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 app.add_middleware(SecurityHeadersMiddleware)
+
+logger = logging.getLogger(__name__)
 
 # Default service URLs used in local docker-compose
 MARTECH_URL = os.getenv("MARTECH_URL", "http://martech:8000")
@@ -163,6 +168,7 @@ async def _post_with_retry(
     last_detail: str | None = None
     for attempt in range(2):
         start = time.perf_counter()
+        logger.debug("POST %s body=%s", url, redact(json.dumps(data)))
         try:
             timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
             resp = await app.state.client.post(url, json=data, timeout=timeout_seconds)
@@ -176,6 +182,7 @@ async def _post_with_retry(
                     break
                 raise HTTPException(status_code=502, detail=resp.text)
             record_success(service, duration, resp.status_code)
+            logger.debug("RESPONSE %s body=%s", url, redact(resp.text))
             return resp.json(), False
         except httpx.HTTPStatusError as exc:  # noqa: BLE001
             duration = time.perf_counter() - start
@@ -184,6 +191,7 @@ async def _post_with_retry(
             last_exc = exc
             last_code = exc.response.status_code
             last_detail = exc.response.text
+            logger.debug("RESPONSE %s body=%s", url, redact(last_detail))
             if exc.response.status_code == 503:
                 break
         except Exception as exc:  # noqa: BLE001
@@ -201,6 +209,8 @@ async def _post_with_retry(
         detail = str(last_exc.detail) or last_detail or detail
     elif last_detail:
         detail = last_detail
+    if last_detail:
+        logger.debug("RESPONSE %s body=%s", url, redact(last_detail))
     raise HTTPException(status_code=status, detail=detail)
 
 
