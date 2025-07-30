@@ -15,6 +15,42 @@ except Exception:  # noqa: BLE001
 logger = logging.getLogger(__name__)
 
 
+async def call_openai_with_retry(
+    messages: list[dict[str, str]],
+    *,
+    max_tokens: int | None = None,
+    model: str = "gpt-4",
+) -> tuple[str, bool]:
+    """Call OpenAI with retry and return ``(content, degraded)``."""
+
+    if openai is None:
+        raise RuntimeError("OpenAI library not available")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY missing")
+
+    client = openai.AsyncOpenAI(api_key=api_key)
+    delays = [1, 2, 4]
+    for attempt in range(3):
+        try:
+            resp = await client.chat.completions.create(
+                model=model,
+                messages=messages,
+                **({"max_tokens": max_tokens} if max_tokens is not None else {}),
+            )
+            content = resp.choices[0].message.content.strip()
+            return content, False
+        except Exception as exc:  # noqa: BLE001
+            status = getattr(exc, "status_code", getattr(exc, "status", None))
+            if status not in (429, 500):
+                raise
+            if attempt < 2:
+                await asyncio.sleep(delays[attempt])
+    logger.warning("OpenAI request failed after retries")
+    return "", True
+
+
 def build_prompt(
     question: str,
     *,
@@ -62,36 +98,22 @@ async def generate_report(
     value includes ``{"error": "[Data Gap]"}``.
     """
 
-    if openai is None:
-        logger.error("OpenAI library not available")
+    messages = [
+        {"role": "system", "content": "Return JSON only."},
+        {"role": "user", "content": prompt},
+    ]
+    try:
+        content, degraded = await asyncio.wait_for(
+            call_openai_with_retry(messages),
+            timeout=timeout,
+        )
+    except Exception:  # noqa: BLE001
+        logger.error("OpenAI request failed", exc_info=True)
         return {"error": "[Data Gap]"}
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        logger.error("OPENAI_API_KEY missing")
+    if degraded:
         return {"error": "[Data Gap]"}
-
-    client = openai.AsyncOpenAI(api_key=api_key)
-    last_exc: Exception | None = None
-    for attempt in range(retries + 1):
-        try:
-            resp = await asyncio.wait_for(
-                client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "Return JSON only."},
-                        {"role": "user", "content": prompt},
-                    ],
-                ),
-                timeout=timeout,
-            )
-            content = resp.choices[0].message.content.strip()
-            try:
-                return json.loads(content)
-            except JSONDecodeError:
-                return {"insight": content, "degraded": True}
-        except Exception as exc:  # noqa: BLE001
-            last_exc = exc
-            await asyncio.sleep(2 ** attempt)
-    logger.error("OpenAI request failed", exc_info=last_exc)
-    return {"error": "[Data Gap]"}
+    try:
+        return json.loads(content)
+    except JSONDecodeError:
+        return {"insight": content, "degraded": True}
