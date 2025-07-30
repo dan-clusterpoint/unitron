@@ -6,6 +6,7 @@ import InsightCard from './InsightCard'
 import { apiFetch } from '../api'
 import { normalizeUrl, downloadBase64 } from '../utils'
 import { parseInsightPayload, type ParsedInsight } from '../utils/insightParser'
+import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 
 export function computeMartechCount(
@@ -67,6 +68,7 @@ export default function AnalyzerCard({
   const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
   const [parsedInsight, setParsedInsight] = useState<ParsedInsight | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!result) {
@@ -111,6 +113,7 @@ export default function AnalyzerCard({
     setGenerating(true)
     setParsedInsight(null)
     setGenError(null)
+    setValidationError(null)
     try {
       const clean = normalizeUrl(url)
       const martech = {
@@ -119,19 +122,27 @@ export default function AnalyzerCard({
         broader: (result.martech as any)?.broader ?? [],
         competitors: (result.martech as any)?.competitors ?? [],
       }
+      const payload = {
+        url: clean,
+        martech,
+        cms: result.cms || [],
+        evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
+        credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
+        deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
+        audience: ORG_CONTEXT.audience ?? '',
+        preferences: ORG_CONTEXT.preferences ?? '',
+      }
+      const parsed = requestSchema.safeParse(payload)
+      if (!parsed.success) {
+        setValidationError(parsed.error.errors.map((e) => e.message).join(', '))
+        return
+      }
       const data = await apiFetch<{ result: unknown }>('/generate-insight-and-personas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          url: clean,
-          martech,
-          cms: result.cms || [],
+          ...payload,
           ...(manualCms ? { cms_manual: manualCms } : {}),
-          evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
-          credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
-          deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
-          audience: ORG_CONTEXT.audience ?? '',
-          preferences: ORG_CONTEXT.preferences ?? '',
         }),
       })
       setParsedInsight(parseInsightPayload(data.result))
@@ -274,6 +285,11 @@ export default function AnalyzerCard({
               <section className="bg-gray-50 p-4 rounded mt-4">
                 <InsightCard insight={parsedInsight} />
               </section>
+            )}
+            {validationError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+                {validationError}
+              </div>
             )}
             {genError && (
               <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
