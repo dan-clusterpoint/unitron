@@ -184,7 +184,11 @@ test('shows generated details on success', async () => {
         url: 'https://example.com',
         martech: result.martech,
         cms: [],
-        ...ORG_CONTEXT,
+        evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
+        credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
+        deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
+        audience: ORG_CONTEXT.audience ?? '',
+        preferences: ORG_CONTEXT.preferences ?? '',
       })
       return Response.json({
         result: {
