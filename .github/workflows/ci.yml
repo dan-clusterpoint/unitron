@@ -34,7 +34,7 @@ jobs:
         run: npm ci
         working-directory: playwright
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps -y
+        run: npx playwright install --with-deps
         working-directory: playwright
       - name: Install Playwright OS deps
         run: npx playwright install-deps
