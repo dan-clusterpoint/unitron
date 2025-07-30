@@ -5,6 +5,7 @@ import json
 import logging
 import os
 from typing import Any
+from json import JSONDecodeError
 
 try:
     import openai
@@ -55,7 +56,9 @@ async def generate_report(
 ) -> dict[str, Any]:
     """Call OpenAI with ``prompt`` and return parsed JSON.
 
-    Timeouts and transient errors trigger retries. On failure the return
+    Timeouts and transient errors trigger retries. If the response cannot be
+    parsed as JSON, the raw ``content`` is returned as
+    ``{"insight": content, "degraded": True}``. On other failures the return
     value includes ``{"error": "[Data Gap]"}``.
     """
 
@@ -83,7 +86,10 @@ async def generate_report(
                 timeout=timeout,
             )
             content = resp.choices[0].message.content.strip()
-            return json.loads(content)
+            try:
+                return json.loads(content)
+            except JSONDecodeError:
+                return {"insight": content, "degraded": True}
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
             await asyncio.sleep(2 ** attempt)

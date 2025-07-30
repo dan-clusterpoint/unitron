@@ -356,3 +356,28 @@ def test_insight_and_personas_invalid_field():
         json={"url": "http://x", "evidence_standards": {}}
     )
     assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_generate_report_json_error(monkeypatch):
+    class DummyResp:
+        def __init__(self) -> None:
+            message_obj = type("obj", (), {"content": "not json"})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
+
+    async def fake_create(**_kwargs):
+        return DummyResp()
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_create)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+
+    result = await insight_mod.orchestrator.generate_report("prompt")
+    assert result == {"insight": "not json", "degraded": True}
