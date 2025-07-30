@@ -96,7 +96,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns `{"insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false}`. The gateway performs both OpenAI calls concurrently and enforces a 20 s timeout.
+* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "...", "credibility_scoring": "...", "deliverable_guidelines": "...", "audience": "...", "preferences": "..."}` proxies to the insight service and returns `{"insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false}`. The gateway performs both OpenAI calls concurrently and enforces a 20 s timeout.
 * `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `20`s).
 
 Request schema:
@@ -106,7 +106,12 @@ Request schema:
   "url": "https://example.com",
   "martech": {},
   "cms": [],
-  "cms_manual": "WordPress"
+  "cms_manual": "WordPress",
+  "evidence_standards": "...",
+  "credibility_scoring": "...",
+  "deliverable_guidelines": "...",
+  "audience": "...",
+  "preferences": "..."
 }
 ```
 
@@ -137,7 +142,7 @@ Example (generate with manual CMS):
 ```bash
 curl -X POST http://localhost:8080/generate-insight-and-personas \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress"}'
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "...", "credibility_scoring": "...", "deliverable_guidelines": "...", "audience": "...", "preferences": "..."}'
 ```
 
 ### Martech analyzer service
@@ -231,7 +236,7 @@ Example request:
 ```bash
 curl -X POST http://localhost:8080/generate-insight-and-personas \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal"}'
+  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal", "evidence_standards": "...", "credibility_scoring": "...", "deliverable_guidelines": "...", "audience": "...", "preferences": "..."}'
 ```
 
 Set `CMS_MANUAL_LOG_PATH` to a file path to record submitted `cms_manual`
@@ -248,7 +253,7 @@ Endpoints:
 * `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
 * `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
-* `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }` returns `{ "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. This endpoint runs the insight and persona prompts concurrently for faster replies.
+* `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "...", "credibility_scoring": "...", "deliverable_guidelines": "...", "audience": "...", "preferences": "..." }` returns `{ "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. This endpoint runs the insight and persona prompts concurrently for faster replies.
 
 Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
 Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.
