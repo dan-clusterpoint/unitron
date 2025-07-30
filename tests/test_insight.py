@@ -349,3 +349,12 @@ async def test_generate_report_concurrent(monkeypatch):
     )
     duration = time.perf_counter() - start
     assert duration < sleep_dur * 1.5
+
+
+
+def test_insight_and_personas_invalid_field():
+    r = client.post(
+        "/insight-and-personas",
+        json={"url": "http://x", "evidence_standards": {}}
+    )
+    assert r.status_code == 422
