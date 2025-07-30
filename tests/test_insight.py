@@ -231,6 +231,36 @@ def test_insight_and_personas(monkeypatch):
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
 
 
+def test_insight_and_personas_empty_fields(monkeypatch):
+    async def fake_report(prompt: str, **_kwargs):
+        if "buyer personas" in prompt.lower():
+            return {"generated_buyer_personas": {"P1": {"name": "P1"}}}
+        return {"report": "I"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    r = client.post(
+        "/insight-and-personas",
+        json={
+            "url": "https://ex",
+            "martech": {},
+            "cms": ["WP"],
+            "evidence_standards": "",
+            "credibility_scoring": "",
+            "deliverable_guidelines": "",
+            "audience": "",
+            "preferences": "",
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["degraded"] is True
+
+
 def test_insight_and_personas_warnings(monkeypatch):
     huge = "[Data Gap]" + "x" * (260 * 1024)
 
