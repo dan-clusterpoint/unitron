@@ -8,13 +8,24 @@ from services.shared.utils import normalize_url
 from prometheus_client import Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 import httpx
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.responses import JSONResponse
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.client = httpx.AsyncClient()
+    try:
+        yield
+    finally:
+        await app.state.client.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Allow calls from the UI hosted on a different origin during development
 # UI_ORIGIN should contain the frontend domain
@@ -97,8 +108,7 @@ async def _get_with_retry(url: str, service: str) -> bool:
     for _ in range(2):
         start = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=2) as client:
-                resp = await client.get(url)
+            resp = await app.state.client.get(url, timeout=2)
             resp.raise_for_status()
             duration = time.perf_counter() - start
             record_success(service, duration, resp.status_code)
@@ -155,8 +165,7 @@ async def _post_with_retry(
         start = time.perf_counter()
         try:
             timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
-            async with httpx.AsyncClient(timeout=timeout_seconds) as client:
-                resp = await client.post(url, json=data)
+            resp = await app.state.client.post(url, json=data, timeout=timeout_seconds)
             duration = time.perf_counter() - start
             if service == "insight":
                 insight_call_duration.observe(duration)

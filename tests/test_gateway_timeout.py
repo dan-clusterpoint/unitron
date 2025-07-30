@@ -13,6 +13,7 @@ def _set_mock_transport(monkeypatch, handler: httpx.MockTransport) -> None:
             super().__init__(transport=handler, *args, **kwargs)
 
     monkeypatch.setattr(gateway_app.httpx, "AsyncClient", DummyClient)
+    gateway_app.app.state.client = DummyClient()
 
 
 def test_insight_waits_for_25_seconds(monkeypatch):

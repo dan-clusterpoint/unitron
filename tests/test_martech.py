@@ -142,6 +142,7 @@ def _set_mock_client(
             super().__init__(transport=handler, *args, **kwargs)
 
     monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
+    services.martech.app.app.state.client = DummyClient()
 
 
 def _set_stub_client(monkeypatch, hook) -> None:
@@ -160,6 +161,7 @@ def _set_stub_client(monkeypatch, hook) -> None:
             return httpx.Response(200, text="<html></html>", request=request)
 
     monkeypatch.setattr("services.martech.app.httpx.AsyncClient", DummyClient)
+    services.martech.app.app.state.client = None
 
 
 def test_diagnose_success(monkeypatch):
