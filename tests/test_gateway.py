@@ -359,16 +359,21 @@ def test_generate_insight_and_personas_success(monkeypatch):
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
         captured["path"] = request.url.path
+        captured["body"] = json.loads(request.content.decode())
         return httpx.Response(200, json={"ok": True})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
-    r = client.post("/generate-insight-and-personas", json={"foo": 1})
+    payload = {"foo": 1, "evidence_standards": "x"}
+    r = client.post("/generate-insight-and-personas", json=payload)
     assert r.status_code == 200
     assert r.json() == {"result": {"ok": True}, "degraded": False}
     assert captured["path"] == "/insight-and-personas"
+    assert captured["body"] == payload
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight"]["success"] >= 1

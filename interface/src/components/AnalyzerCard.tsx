@@ -6,6 +6,7 @@ import InsightCard from './InsightCard'
 import { apiFetch } from '../api'
 import { normalizeUrl, downloadBase64 } from '../utils'
 import { parseInsightPayload, type ParsedInsight } from '../utils/insightParser'
+import { ORG_CONTEXT } from '../config/orgContext'
 
 export function computeMartechCount(
   martech: Record<string, string[] | Record<string, unknown>> | null,
@@ -117,8 +118,10 @@ export default function AnalyzerCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: clean,
+          martech: result.martech,
           cms: result.cms || [],
           ...(manualCms ? { cms_manual: manualCms } : {}),
+          ...ORG_CONTEXT,
         }),
       })
       setParsedInsight(parseInsightPayload(data.result))

@@ -5,6 +5,7 @@ import { http } from 'msw'
 import { test, expect } from 'vitest'
 import type { AnalyzeResult } from './AnalyzerCard'
 import { computeMartechCount } from './AnalyzerCard'
+import { ORG_CONTEXT } from '../config/orgContext'
 
 test('shows spinner when loading', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
@@ -179,7 +180,12 @@ test('shows generated details on success', async () => {
   server.use(
     http.post('/generate-insight-and-personas', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://example.com', cms: [] })
+      expect(body).toEqual({
+        url: 'https://example.com',
+        martech: result.martech,
+        cms: [],
+        ...ORG_CONTEXT,
+      })
       return Response.json({
         result: {
           insight: {

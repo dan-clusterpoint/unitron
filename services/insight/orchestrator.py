@@ -13,42 +13,33 @@ except Exception:  # noqa: BLE001
 
 logger = logging.getLogger(__name__)
 
-EVIDENCE_STANDARDS = (
-    "[Data Gap] Evidence standards from PRD are unavailable."
-)
-SCORING_FORMULA = (
-    "[Data Gap] Credibility scoring formula from PRD is unavailable."
-)
-DELIVERABLE_GUIDELINES = (
-    "[Data Gap] Deliverable guidelines from PRD are unavailable."
-)
-
 
 def build_prompt(
     question: str,
-    audience: str | None = None,
-    prefs: dict[str, Any] | None = None,
+    *,
     company: dict[str, Any] | None = None,
     technology: dict[str, Any] | None = None,
+    evidence_standards: str | None = None,
+    credibility_scoring: str | None = None,
+    deliverable_guidelines: str | None = None,
+    audience: str | None = None,
+    preferences: str | None = None,
 ) -> str:
-    """Return a prompt for the OpenAI model.
+    """Return a prompt for the OpenAI model."""
 
-    The prompt references evidence standards, credibility scoring and
-    deliverable guidelines from the PRD. Missing sections are flagged with
-    ``[Data Gap]``.
-    """
-
-    audience_text = audience or "[Data Gap]"
-    pref_parts = [f"{k}: {v}" for k, v in (prefs or {}).items()]
-    prefs_text = "; ".join(pref_parts) if pref_parts else "[Data Gap]"
-    company_text = json.dumps(company) if company else "[Data Gap]"
-    tech_text = json.dumps(technology) if technology else "[Data Gap]"
+    evidence_text = evidence_standards or ""
+    scoring_text = credibility_scoring or ""
+    guidelines_text = deliverable_guidelines or ""
+    audience_text = audience or ""
+    prefs_text = preferences or ""
+    company_text = json.dumps(company) if company else ""
+    tech_text = json.dumps(technology) if technology else ""
 
     prompt = (
         "You are the Unitron insight orchestrator.\n"
-        f"Adhere to the following evidence standards:\n{EVIDENCE_STANDARDS}\n"
-        f"Apply the credibility scoring formula:\n{SCORING_FORMULA}\n"
-        f"Follow these deliverable guidelines:\n{DELIVERABLE_GUIDELINES}\n"
+        f"Adhere to the following evidence standards:\n{evidence_text}\n"
+        f"Apply the credibility scoring formula:\n{scoring_text}\n"
+        f"Follow these deliverable guidelines:\n{guidelines_text}\n"
         f"Audience: {audience_text}\n"
         f"Preferences: {prefs_text}\n"
         f"Company: {company_text}\n"
