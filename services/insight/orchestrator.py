@@ -14,6 +14,9 @@ except Exception:  # noqa: BLE001
 
 logger = logging.getLogger(__name__)
 
+# Default token limit for OpenAI responses
+OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "800"))
+
 # Canonical schema used when prompting the LLM. The example combines a
 # TypeScript interface and JSON snippet so tests can verify the keys
 # are present in the service response.
@@ -145,7 +148,7 @@ async def generate_report(
     ]
     try:
         content, degraded = await asyncio.wait_for(
-            call_openai_with_retry(messages),
+            call_openai_with_retry(messages, max_tokens=OPENAI_MAX_TOKENS),
             timeout=timeout,
         )
     except Exception:  # noqa: BLE001

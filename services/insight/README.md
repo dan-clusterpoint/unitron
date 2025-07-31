@@ -20,6 +20,8 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `OPENAI_API_KEY` – required key for the OpenAI client.
 - `OPENAI_MODEL` – chat model name used by `call_openai_with_retry`
   (default `gpt-4`).
+- `OPENAI_MAX_TOKENS` – maximum tokens returned by the LLM
+  (default `800`).
 - `MACRO_SECTION_CAP` – maximum number of macro sections returned by `/research`.
 
 ### Normalized insight schema
