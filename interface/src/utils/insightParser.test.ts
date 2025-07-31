@@ -34,3 +34,20 @@ test('ignores insight object evidence when only actions present', () => {
   expect(parsed.actions.map((a) => a.title)).toEqual(['A'])
   expect(parsed.evidence).toBe('')
 })
+
+test('parses actions from insight.insights array', () => {
+  const raw = {
+    insight: {
+      insights: [
+        { action: 'Foo', reasoning: 'foo reason' },
+        { action: 'Bar', reasoning: 'bar reason' },
+      ],
+    },
+  }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.actions).toEqual([
+    { id: '0', title: 'Foo', reasoning: 'foo reason', benefit: '' },
+    { id: '1', title: 'Bar', reasoning: 'bar reason', benefit: '' },
+  ])
+  expect(parsed.evidence).toBe('')
+})
