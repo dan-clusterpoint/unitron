@@ -23,8 +23,8 @@ test('handles insights list with action field', () => {
   }
   const parsed = parseInsightPayload(raw)
   expect(parsed.actions).toEqual([
-    { id: '0', title: 'Do X', reasoning: 'Because', benefit: '' },
-    { id: '1', title: 'Do Y', reasoning: 'Why not', benefit: '' },
+    { id: '1', title: 'Do X', reasoning: 'Because', benefit: '' },
+    { id: '2', title: 'Do Y', reasoning: 'Why not', benefit: '' },
   ])
 })
 
@@ -46,8 +46,26 @@ test('handles nested result.insight.insights', () => {
   const parsed = parseInsightPayload(raw)
   expect(parsed.evidence).toBe('E')
   expect(parsed.actions).toEqual([
-    { id: '0', title: 'Foo', reasoning: 'Because', benefit: '' },
-    { id: '1', title: 'Bar', reasoning: '', benefit: '' },
+    { id: '1', title: 'Foo', reasoning: 'Because', benefit: '' },
+    { id: '2', title: 'Bar', reasoning: '', benefit: '' },
+  ])
+})
+
+test('maps name and description fields', () => {
+  const raw = {
+    result: {
+      insight: {
+        insights: [
+          { name: 'X', description: 'why' },
+          { name: 'Y' },
+        ],
+      },
+    },
+  }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.actions).toEqual([
+    { id: '1', title: 'X', reasoning: 'why', benefit: '' },
+    { id: '2', title: 'Y', reasoning: '', benefit: '' },
   ])
 })
 
