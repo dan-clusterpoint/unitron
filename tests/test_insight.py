@@ -353,7 +353,10 @@ def test_insight_and_personas_warnings(monkeypatch):
     assert r.status_code == 200
     result = r.json()
     assert result["insight"] == {"actions": [], "evidence": {"data": huge}}
-    assert result["personas"] == []
+    assert result["personas"] == [
+        {"id": "company", "name": "e"},
+        {"id": "tech", "name": "unknown"},
+    ]
     assert "cms_manual" not in result
     assert result["degraded"] is True
     assert "warnings" in result.get("meta", {})
@@ -361,6 +364,30 @@ def test_insight_and_personas_warnings(monkeypatch):
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before_req + 1
     assert metrics_data["data_gaps"] >= before_gap + 1
+
+
+def test_insight_and_personas_empty_personas(monkeypatch):
+    async def fake_report(prompt: str, **_kw):
+        if "buyer personas" in prompt.lower():
+            return {}
+        return {"summary": "I"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    r = client.post(
+        "/insight-and-personas",
+        json={"url": "https://ex", "martech": {"js": ["React"]}, "cms": ["WP"]},
+    )
+    assert r.status_code == 200
+    result = r.json()
+    assert result["personas"] == [
+        {"id": "company", "name": "ex"},
+        {"id": "tech", "name": "React, WP"},
+    ]
 
 
 def test_insight_personas_concurrent(monkeypatch):

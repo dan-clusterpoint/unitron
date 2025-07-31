@@ -413,6 +413,23 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         else:
             personas_source = personas_raw
         personas_list = _to_persona_list(personas_source)
+        if not personas_list:
+            from urllib.parse import urlparse
+
+            domain = urlparse(req.url).netloc or req.url
+            tech_names: list[str] = []
+            if req.cms:
+                tech_names.extend(req.cms)
+            if req.cms_manual:
+                tech_names.append(req.cms_manual)
+            if req.martech:
+                for vals in req.martech.values():
+                    tech_names.extend(vals)
+            tech_text = ", ".join(sorted(set(tech_names))) or "unknown"
+            personas_list = [
+                {"id": "company", "name": domain},
+                {"id": "tech", "name": tech_text},
+            ]
 
         actions: list[Any] = []
         if isinstance(insight_raw, dict):
