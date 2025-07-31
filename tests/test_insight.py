@@ -417,7 +417,8 @@ def test_insight_and_personas_invalid_field():
 async def test_generate_report_json_error(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            message_obj = type("obj", (), {"content": "not json"})()
+            json_snippet = "```json\n{\"foo\": \"bar\"}\n```"
+            message_obj = type("obj", (), {"content": json_snippet})()
             self.choices = [type("obj", (), {"message": message_obj})()]
 
     async def fake_create(**_kwargs):
@@ -436,4 +437,4 @@ async def test_generate_report_json_error(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"insight": "not json", "degraded": True}
+    assert result == {"foo": "bar"}
