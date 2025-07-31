@@ -28,6 +28,7 @@ test('handles insights list with action field', () => {
   ])
 })
 
+
 test('handles nested result.insight.insights', () => {
   const raw = {
     result: {
@@ -49,3 +50,4 @@ test('handles nested result.insight.insights', () => {
     { id: '1', title: 'Bar', reasoning: '', benefit: '' },
   ])
 })
+

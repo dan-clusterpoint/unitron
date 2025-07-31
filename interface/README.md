@@ -43,5 +43,8 @@ The analysis result now includes an "Executive Summary" showing a short
 insight fetched from the gateway. When a user clicks **Generate
 Insights** the frontend calls `/generate-insight-and-personas`. The
 response may vary, so `parseInsightPayload` in `src/utils` normalizes
-the data. The parsed result is then passed to `InsightCard` which renders
-the summary, recommended actions and any personas.
+the data. It also supports payloads shaped as `{ insights: [{ action: ... }] }`
+or the same list nested under `insight`. Objects that lack a summary are
+still displayed using only their actions. The parsed result is then passed
+to `InsightCard` which renders the summary, recommended actions and any
+personas.
