@@ -101,8 +101,20 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   }
 
   let actions: Action[] = []
+  const nested =
+    data &&
+    typeof data === 'object' &&
+    (data as any).result &&
+    typeof (data as any).result === 'object' &&
+    (data as any).result.insight &&
+    typeof (data as any).result.insight === 'object' &&
+    Array.isArray((data as any).result.insight.insights)
+      ? (data as any).result.insight.insights
+      : undefined
+
   let actionRaw =
     getValue(data, ['actions', 'action_items', 'next_best_actions']) || []
+
   if (
     (!actionRaw ||
       (Array.isArray(actionRaw) && actionRaw.length === 0)) &&
@@ -110,24 +122,41 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   ) {
     actionRaw = (data as any).insights
   }
+
+  if (
+    (!actionRaw ||
+      (Array.isArray(actionRaw) && actionRaw.length === 0)) &&
+    Array.isArray(nested)
+  ) {
+    actionRaw = nested
+  }
+
   if (Array.isArray(actionRaw)) {
-    actions = actionRaw.map((a, i) => {
-      if (typeof a === 'string') {
-        return { id: String(i), title: a, reasoning: '', benefit: '' }
+    actions = actionRaw.map((item, idx) => {
+      if (typeof item === 'string') {
+        return { id: String(idx + 1), title: item, reasoning: '', benefit: '' }
       }
-      if (a && typeof a === 'object') {
+      if (item && typeof item === 'object') {
         const {
-          id = String(i),
+          name,
+          description,
           title = '',
           reasoning = '',
           benefit = '',
           action,
           ...rest
-        } = a as any
-        const titleVal = title || action || ''
-        return { id: String(id), title: titleVal, reasoning, benefit, ...rest }
+        } = item as any
+        const titleVal = name || title || action || 'Action'
+        const reasonVal = description || reasoning || ''
+        return {
+          id: String(idx + 1),
+          title: titleVal,
+          reasoning: reasonVal,
+          benefit,
+          ...rest,
+        }
       }
-      return { id: String(i), title: String(a), reasoning: '', benefit: '' }
+      return { id: String(idx + 1), title: String(item), reasoning: '', benefit: '' }
     })
   } else if (actionRaw && typeof actionRaw === 'object') {
     actions = Object.entries(actionRaw).map(([k, v]) => {
@@ -135,9 +164,18 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
         return { id: k, title: v, reasoning: '', benefit: '' }
       }
       if (v && typeof v === 'object') {
-        const { title = '', reasoning = '', benefit = '', action, ...rest } = v as any
-        const titleVal = title || action || ''
-        return { id: k, title: titleVal, reasoning, benefit, ...rest }
+        const {
+          name,
+          description,
+          title = '',
+          reasoning = '',
+          benefit = '',
+          action,
+          ...rest
+        } = v as any
+        const titleVal = name || title || action || 'Action'
+        const reasonVal = description || reasoning || ''
+        return { id: k, title: titleVal, reasoning: reasonVal, benefit, ...rest }
       }
       return { id: k, title: String(v), reasoning: '', benefit: '' }
     })
