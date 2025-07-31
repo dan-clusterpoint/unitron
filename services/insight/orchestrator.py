@@ -117,6 +117,17 @@ def build_prompt(
     return prompt
 
 
+def _extract_json_block(text: str) -> str:
+    """Return ``text`` minus surrounding ```json fences, if present."""
+
+    stripped = text.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        if len(lines) >= 3 and lines[0].startswith("```") and lines[-1].startswith("```"):
+            return "\n".join(lines[1:-1]).strip()
+    return stripped
+
+
 async def generate_report(
     prompt: str, *, timeout: int = 30, retries: int = 2
 ) -> dict[str, Any]:
@@ -144,6 +155,6 @@ async def generate_report(
     if degraded:
         return {"error": "[Data Gap]"}
     try:
-        return json.loads(content)
+        return json.loads(_extract_json_block(content))
     except JSONDecodeError:
         return {"insight": content, "degraded": True}
