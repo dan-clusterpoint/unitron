@@ -69,3 +69,23 @@ test('maps name and description fields', () => {
   ])
 })
 
+test('handles evidence.insights list', () => {
+  const raw = {
+    insight: {
+      actions: [],
+      evidence: {
+        insights: [
+          { title: 'Improve', description: 'why' },
+          { title: 'Scale' },
+        ],
+      },
+      personas: [],
+    },
+  }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.actions).toEqual([
+    { id: '1', title: 'Improve', reasoning: 'why', benefit: '' },
+    { id: '2', title: 'Scale', reasoning: '', benefit: '' },
+  ])
+})
+

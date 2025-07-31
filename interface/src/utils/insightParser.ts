@@ -131,6 +131,18 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     actionRaw = nested
   }
 
+  if (
+    (!actionRaw ||
+      (Array.isArray(actionRaw) && actionRaw.length === 0)) &&
+    data &&
+    typeof data === 'object' &&
+    (data as any).evidence &&
+    typeof (data as any).evidence === 'object' &&
+    Array.isArray((data as any).evidence.insights)
+  ) {
+    actionRaw = (data as any).evidence.insights
+  }
+
   if (Array.isArray(actionRaw)) {
     actions = actionRaw.map((item, idx) => {
       if (typeof item === 'string') {
