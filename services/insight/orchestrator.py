@@ -127,7 +127,10 @@ def _extract_json_block(text: str) -> str:
     if stripped.startswith("```"):
         lines = stripped.splitlines()
         if len(lines) >= 3 and lines[0].startswith("```") and lines[-1].startswith("```"):
-            return "\n".join(lines[1:-1]).strip()
+            inner = "\n".join(lines[1:-1]).strip()
+            if inner.lower().startswith("json\n"):
+                inner = inner.split("\n", 1)[1].strip()
+            return inner
     return stripped
 
 
