@@ -41,6 +41,7 @@ def test_retry_rate_limit(monkeypatch):
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     r = client.post("/generate-insights", json={"text": "hi"})
     assert r.status_code == 200
