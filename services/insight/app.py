@@ -425,6 +425,14 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                         actions = [val]
                     break
 
+        if (
+            not actions
+            and isinstance(insight_text, dict)
+            and {"title", "action"}.issubset(insight_text.keys())
+        ):
+            actions = [insight_text]
+            insight_text = ""
+
         insight_obj = {"actions": actions, "evidence": insight_text}
 
         degraded = False
