@@ -31,6 +31,7 @@ open http://localhost:8080/docs
 # Create a .env file for secrets (required variables shown)
 # OPENAI_API_KEY=your-openai-key
 # INSIGHT_URL=http://localhost:8083
+# INSIGHT_TIMEOUT=30  # seconds the gateway waits for insight
 # OPENAI_MODEL=gpt-4
 # MACRO_SECTION_CAP=5
 # Compose passes `SERVICE` so `docker/python.Dockerfile` starts the correct FastAPI app
@@ -79,6 +80,14 @@ All backend services read `UI_ORIGIN` to decide which frontend domain may make
 requests. Set this to `http://localhost:5173` during local development or to the
 full production URL of your deployed interface.
 
+### Runtime behaviour
+
+Each FastAPI service reuses a single shared `httpx.AsyncClient` for outbound
+requests and applies a `SecurityHeadersMiddleware` that adds `X-Frame-Options`
+and `X-Content-Type-Options` to every response. When downstream calls fail or
+time out, the APIs still return any partial data with a `degraded` flag so
+clients can detect limited results.
+
 ### InsightCard component
 
 The React interface displays each insight using a reusable **InsightCard**. This
@@ -96,8 +105,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}` proxies to the insight service and returns `{"insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false}`. The gateway performs both OpenAI calls concurrently and enforces a 20 s timeout.
-* `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `20`s).
+* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}` proxies to the insight service and returns `{"insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false}`. The gateway performs both OpenAI calls concurrently and enforces a 30 s timeout.
+* `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `30`s).
 
 Request schema:
 
@@ -127,7 +136,7 @@ Response schema:
 ```
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
-`INSIGHT_TIMEOUT` sets the POST timeout (seconds) when contacting the insight service and defaults to `20`.
+`INSIGHT_TIMEOUT` sets the POST timeout (seconds) when contacting the insight service and defaults to `30`.
 
 Example:
 
@@ -328,17 +337,13 @@ The `docker-compose.yml` file wires them together with sensible defaults for loc
 We encourage small PRs that keep the local build fast and stable. Use the `Makefile` shortcuts for common tasks. The devcontainer ensures a consistent Python and Node toolchain and editor setup.
 
 ## Testing
-Run the automated checks with:
+
+### Unit tests
+Run lint and the Python test suite:
 
 ```bash
 make lint
 make test
-```
-
-To verify that the gateway service is reachable, export `GATEWAY_URL` and execute:
-
-```bash
-GATEWAY_URL=http://localhost:8080 ./test-gateway.sh
 ```
 
 ### Playwright tests
@@ -350,6 +355,12 @@ Playwright dependencies and then run the suite:
 npm ci --prefix interface
 npm ci --prefix playwright
 npx playwright test
+```
+
+To verify that the gateway service is reachable, export `GATEWAY_URL` and execute:
+
+```bash
+GATEWAY_URL=http://localhost:8080 ./test-gateway.sh
 ```
 
 ## FAQ
