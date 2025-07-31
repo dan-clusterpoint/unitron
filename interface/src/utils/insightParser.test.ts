@@ -27,3 +27,4 @@ test('handles insights list with action field', () => {
     { id: '1', title: 'Do Y', reasoning: 'Why not', benefit: '' },
   ])
 })
+
