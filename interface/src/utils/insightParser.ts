@@ -87,15 +87,31 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   }
 
   let actions: Action[] = []
-  const actionRaw = getValue(data, ['actions', 'action_items', 'next_best_actions']) || []
+  let actionRaw =
+    getValue(data, ['actions', 'action_items', 'next_best_actions']) || []
+  if (
+    (!actionRaw ||
+      (Array.isArray(actionRaw) && actionRaw.length === 0)) &&
+    Array.isArray((data as any).insights)
+  ) {
+    actionRaw = (data as any).insights
+  }
   if (Array.isArray(actionRaw)) {
     actions = actionRaw.map((a, i) => {
       if (typeof a === 'string') {
         return { id: String(i), title: a, reasoning: '', benefit: '' }
       }
       if (a && typeof a === 'object') {
-        const { id = String(i), title = '', reasoning = '', benefit = '', ...rest } = a as any
-        return { id: String(id), title, reasoning, benefit, ...rest }
+        const {
+          id = String(i),
+          title = '',
+          reasoning = '',
+          benefit = '',
+          action,
+          ...rest
+        } = a as any
+        const titleVal = title || action || ''
+        return { id: String(id), title: titleVal, reasoning, benefit, ...rest }
       }
       return { id: String(i), title: String(a), reasoning: '', benefit: '' }
     })
@@ -105,8 +121,9 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
         return { id: k, title: v, reasoning: '', benefit: '' }
       }
       if (v && typeof v === 'object') {
-        const { title = '', reasoning = '', benefit = '', ...rest } = v as any
-        return { id: k, title, reasoning, benefit, ...rest }
+        const { title = '', reasoning = '', benefit = '', action, ...rest } = v as any
+        const titleVal = title || action || ''
+        return { id: k, title: titleVal, reasoning, benefit, ...rest }
       }
       return { id: k, title: String(v), reasoning: '', benefit: '' }
     })
