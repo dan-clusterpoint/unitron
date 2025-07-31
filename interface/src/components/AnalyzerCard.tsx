@@ -4,7 +4,7 @@ import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
 import InsightCard from './InsightCard'
 import { apiFetch } from '../api'
-import { normalizeUrl, downloadBase64 } from '../utils'
+import { normalizeUrl } from '../utils'
 import { parseInsightPayload, type ParsedInsight } from '../utils/insightParser'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
@@ -29,7 +29,6 @@ export type AnalyzeResult = {
   martech: Record<string, string[] | Record<string, unknown>> | null
   cms?: string[] | null
   degraded: boolean
-  downloads?: Record<string, string>
 }
 
 export type AnalyzerProps = {
@@ -65,7 +64,6 @@ export default function AnalyzerCard({
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
-  const [downloads, setDownloads] = useState<Record<string, string> | null>(null)
   const [parsedInsight, setParsedInsight] = useState<ParsedInsight | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
@@ -73,7 +71,6 @@ export default function AnalyzerCard({
   useEffect(() => {
     if (!result) {
       setInsight(null)
-      setDownloads(null)
       setParsedInsight(null)
       setGenError(null)
       setInsightError(null)
@@ -90,20 +87,9 @@ export default function AnalyzerCard({
       .then(async (d) => {
         const summary = d.result.insight || ''
         setInsight(summary)
-        try {
-          const post = await apiFetch<{ downloads?: Record<string, string> }>('/postprocess-report', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ report: { summary } }),
-          })
-          setDownloads(post.downloads || null)
-        } catch {
-          setDownloads(null)
-        }
       })
       .catch((e) => {
         setInsightError((e as Error).message || 'Failed to fetch insight')
-        setDownloads(null)
       })
       .finally(() => setInsightLoading(false))
   }, [result])
@@ -215,26 +201,6 @@ export default function AnalyzerCard({
             <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-2">
               <h3 className="font-medium mb-2">Executive Summary</h3>
               {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
-              {downloads && (
-                <div className="mt-2 flex gap-2">
-                  {downloads.markdown && (
-                    <button
-                      className="btn-primary text-sm"
-                      onClick={() => downloadBase64(downloads.markdown as string, 'report.md')}
-                    >
-                      Download Markdown
-                    </button>
-                  )}
-                  {downloads.scenarios && (
-                    <button
-                      className="btn-primary text-sm"
-                      onClick={() => downloadBase64(downloads.scenarios as string, 'scenarios.csv')}
-                    >
-                      Download CSV
-                    </button>
-                  )}
-                </div>
-              )}
             </section>
             {insightError && (
               <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">
