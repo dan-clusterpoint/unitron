@@ -50,7 +50,13 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     data = { ...data, ...data.report }
   }
 
-  // flatten nested 'insight' field and remove it to avoid misinterpreting it as evidence
+
+  // flatten nested 'result' field if present
+  if (data && typeof data === 'object' && 'result' in data && typeof (data as any).result === 'object') {
+    data = { ...data, ...(data as any).result }
+  }
+
+  // flatten nested 'insight' field
   if (data && typeof data === 'object' && 'insight' in data && typeof data.insight === 'object') {
     const { insight, ...rest } = data as any
     data = { ...rest, ...insight }

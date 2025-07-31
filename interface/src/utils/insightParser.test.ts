@@ -28,3 +28,26 @@ test('handles insights list with action field', () => {
   ])
 })
 
+
+test('handles nested result.insight.insights', () => {
+  const raw = {
+    result: {
+      insight: {
+        evidence: 'E',
+        actions: [],
+        insights: [
+          { action: 'Foo', reasoning: 'Because' },
+          { action: 'Bar' },
+        ],
+        personas: [],
+      },
+    },
+  }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.evidence).toBe('E')
+  expect(parsed.actions).toEqual([
+    { id: '0', title: 'Foo', reasoning: 'Because', benefit: '' },
+    { id: '1', title: 'Bar', reasoning: '', benefit: '' },
+  ])
+})
+
