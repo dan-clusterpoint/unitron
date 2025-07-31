@@ -44,7 +44,7 @@ async def call_openai_with_retry(
     messages: list[dict[str, str]],
     *,
     max_tokens: int | None = None,
-    model: str = "gpt-4",
+    model: str | None = None,
 ) -> tuple[str, bool]:
     """Call OpenAI with retry and return ``(content, degraded)``."""
 
@@ -55,12 +55,14 @@ async def call_openai_with_retry(
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY missing")
 
+    selected_model = model or os.getenv("OPENAI_MODEL", "gpt-4")
+
     client = openai.AsyncOpenAI(api_key=api_key)
     delays = [1, 2, 4]
     for attempt in range(3):
         try:
             resp = await client.chat.completions.create(
-                model=model,
+                model=selected_model,
                 messages=messages,
                 **({"max_tokens": max_tokens} if max_tokens is not None else {}),
             )

@@ -42,6 +42,7 @@ def test_generate_insights(monkeypatch):
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     r = client.post("/generate-insights", json={"text": "  some text\n"})
     assert r.status_code == 200
@@ -100,6 +101,7 @@ def test_research_trim(monkeypatch):
     monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
     monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
@@ -374,6 +376,7 @@ async def test_generate_report_concurrent(monkeypatch):
         raising=False,
     )
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     start = time.perf_counter()
     await asyncio.gather(
@@ -412,6 +415,7 @@ async def test_generate_report_json_error(monkeypatch):
     dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
     monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
     assert result == {"insight": "not json", "degraded": True}
