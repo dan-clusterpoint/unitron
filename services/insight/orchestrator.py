@@ -14,6 +14,31 @@ except Exception:  # noqa: BLE001
 
 logger = logging.getLogger(__name__)
 
+# Canonical schema used when prompting the LLM. The example combines a
+# TypeScript interface and JSON snippet so tests can verify the keys
+# are present in the service response.
+NEXT_BEST_ACTION_EXAMPLE = """
+```ts
+interface NextBestAction {
+  title: string;
+  description: string;
+  action: string;
+  source: { url: string };
+  credibilityScore: number;
+}
+```
+
+```json
+{
+  "title": "Improve caching",
+  "description": "Use caching to reduce load",
+  "action": "Add HTTP cache middleware",
+  "source": { "url": "https://example.com" },
+  "credibilityScore": 0.9
+}
+```
+"""
+
 
 async def call_openai_with_retry(
     messages: list[dict[str, str]],
@@ -84,6 +109,9 @@ def build_prompt(
         f"Question: {question}\n"
         "Respond only with a JSON payload."
     )
+    prompt += "\n" + NEXT_BEST_ACTION_EXAMPLE
+    prompt += ("\nReply only with JSON matching the above structure inside a"
+               " ```json code block. Keep empty arrays/objects.")
     return prompt
 
 
