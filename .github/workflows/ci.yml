@@ -17,3 +17,28 @@ jobs:
         run: docker build -t property-image -f Dockerfile .
       - name: Verify npx exists
         run: docker run --rm interface-image which npx
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            playwright/package-lock.json
+            interface/package-lock.json
+      - name: Install interface dependencies
+        run: npm ci
+        working-directory: interface
+      - name: Build interface
+        run: npm run build
+        working-directory: interface
+      - name: Install Playwright dependencies
+        run: npm ci
+        working-directory: playwright
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: playwright
+      - name: Install Playwright OS deps
+        run: npx playwright install-deps
+        working-directory: playwright
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: playwright
