@@ -107,7 +107,9 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
           </Accordion>
         </CardContent>
       ) : (
-        <CardContent>No data</CardContent>
+        <CardContent>
+          No recommended actions were generated for this analysis.
+        </CardContent>
       )}
       {hasPersonas ? (
         <CardContent>

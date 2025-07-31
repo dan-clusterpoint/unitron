@@ -59,5 +59,19 @@ test('handles non-array inputs gracefully', () => {
     degraded: false,
   }
   render(<InsightCard insight={insight as ParsedInsight} />)
-  screen.getAllByText('No data')
+  screen.getByText('No recommended actions were generated for this analysis.')
+  screen.getByText('No data')
+})
+
+test('shows fallback message when no actions', () => {
+  const insight: ParsedInsight = {
+    evidence: 'Proof',
+    personas: [{ id: 'p1', name: 'P1' }],
+    actions: [],
+    degraded: false,
+  }
+  render(<InsightCard insight={insight} />)
+  screen.getByText('Proof')
+  screen.getByText('P1')
+  screen.getByText('No recommended actions were generated for this analysis.')
 })
