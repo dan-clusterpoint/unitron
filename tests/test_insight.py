@@ -207,7 +207,18 @@ def test_insight_and_personas(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
         if "buyer personas" in prompt.lower():
             return {"generated_buyer_personas": {"P1": {"name": "P1"}}}
-        return {"report": "I"}
+        return {
+            "next_best_actions": [
+                {
+                    "title": "T",
+                    "description": "D",
+                    "action": "A",
+                    "source": {"url": "https://x"},
+                    "credibilityScore": 0.5,
+                }
+            ],
+            "summary": "I",
+        }
 
     monkeypatch.setattr(
         insight_mod.orchestrator,
@@ -232,7 +243,19 @@ def test_insight_and_personas(monkeypatch):
     )
     assert r.status_code == 200
     data = r.json()
-    assert data["insight"] == {"actions": [], "evidence": "I"}
+    actions = data["insight"]["actions"]
+    assert isinstance(actions, list) and len(actions) == 1
+    act = actions[0]
+    for key in (
+        "title",
+        "description",
+        "action",
+        "source",
+        "credibilityScore",
+    ):
+        assert key in act
+    assert "url" in act["source"]
+    assert data["insight"]["evidence"] == "I"
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
     assert "cms_manual" not in data
     assert data["degraded"] is False
