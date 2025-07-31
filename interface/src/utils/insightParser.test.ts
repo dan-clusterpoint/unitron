@@ -13,3 +13,17 @@ test('converts action map to array', () => {
   expect(parsed.actions).toEqual([{ id: 'a1', title: 'T', reasoning: 'R', benefit: 'B' }])
   expect(parsed.degraded).toBe(true)
 })
+
+test('handles insights list with action field', () => {
+  const raw = {
+    insights: [
+      { action: 'Do X', reasoning: 'Because' },
+      { action: 'Do Y', reasoning: 'Why not' },
+    ],
+  }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.actions).toEqual([
+    { id: '0', title: 'Do X', reasoning: 'Because', benefit: '' },
+    { id: '1', title: 'Do Y', reasoning: 'Why not', benefit: '' },
+  ])
+})
