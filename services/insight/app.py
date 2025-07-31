@@ -42,9 +42,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+ui_origin = os.getenv("UI_ORIGIN")
+allow = [ui_origin] if ui_origin else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow,
     allow_methods=["*"],
     allow_headers=["Content-Type", "Authorization"],
 )

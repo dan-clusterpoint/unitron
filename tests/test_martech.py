@@ -121,6 +121,24 @@ def test_options_analyze():
     assert r.headers['x-content-type-options'] == 'nosniff'
 
 
+def test_options_respects_ui_origin(monkeypatch):
+    monkeypatch.setenv("UI_ORIGIN", "http://ui.example")
+    import importlib
+    import services.martech.app as mt
+
+    mt = importlib.reload(mt)
+    local_client = TestClient(mt.app)
+    r = local_client.options(
+        '/analyze',
+        headers={
+            'Origin': 'http://ui.example',
+            'Access-Control-Request-Method': 'POST',
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers['access-control-allow-origin'] == 'http://ui.example'
+
+
 def test_analyze_handles_request_error(monkeypatch):
     client.get('/ready')
 

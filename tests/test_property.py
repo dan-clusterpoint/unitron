@@ -50,3 +50,21 @@ def test_options_analyze():
     assert "Authorization" in allowed
     assert r.headers["x-frame-options"] == "DENY"
     assert r.headers["x-content-type-options"] == "nosniff"
+
+
+def test_options_respects_ui_origin(monkeypatch):
+    monkeypatch.setenv("UI_ORIGIN", "http://ui.example")
+    import importlib
+    import services.property.app as prop
+
+    prop = importlib.reload(prop)
+    local_client = TestClient(prop.app)
+    r = local_client.options(
+        "/analyze",
+        headers={
+            "Origin": "http://ui.example",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "http://ui.example"
