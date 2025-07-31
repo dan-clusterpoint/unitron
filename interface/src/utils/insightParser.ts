@@ -50,9 +50,10 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
     data = { ...data, ...data.report }
   }
 
-  // flatten nested 'insight' field
+  // flatten nested 'insight' field and remove it to avoid misinterpreting it as evidence
   if (data && typeof data === 'object' && 'insight' in data && typeof data.insight === 'object') {
-    data = { ...data, ...data.insight }
+    const { insight, ...rest } = data as any
+    data = { ...rest, ...insight }
   }
 
   const evidenceRaw = getValue(data, ['evidence', 'summary', 'insight', 'report', 'text'])
@@ -60,8 +61,15 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   if (typeof evidenceRaw === 'string') {
     evidence = evidenceRaw
   } else if (evidenceRaw && typeof evidenceRaw === 'object') {
-    const nested = getValue(evidenceRaw, ['evidence', 'summary', 'insight', 'report', 'text'])
+    const nested = getValue(evidenceRaw, [
+      'evidence',
+      'summary',
+      'insight',
+      'report',
+      'text',
+    ])
     if (typeof nested === 'string') evidence = nested
+    else if (nested === undefined) evidence = ''
     else evidence = JSON.stringify(evidenceRaw)
   } else if (evidenceRaw != null) {
     evidence = String(evidenceRaw)

@@ -27,3 +27,10 @@ test('handles insights list with action field', () => {
     { id: '1', title: 'Do Y', reasoning: 'Why not', benefit: '' },
   ])
 })
+
+test('ignores insight object evidence when only actions present', () => {
+  const raw = { insight: { audience: 'X', insights: [{ action: 'A' }] } }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.actions.map((a) => a.title)).toEqual(['A'])
+  expect(parsed.evidence).toBe('')
+})
