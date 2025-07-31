@@ -22,6 +22,24 @@ def test_ready():
     assert r.json() == {"ready": True}
 
 
+def test_options_respects_ui_origin(monkeypatch):
+    monkeypatch.setenv("UI_ORIGIN", "http://ui.example")
+    import importlib
+    import services.insight.app as ins
+
+    ins = importlib.reload(ins)
+    local_client = TestClient(ins.app)
+    r = local_client.options(
+        "/generate-insights",
+        headers={
+            "Origin": "http://ui.example",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "http://ui.example"
+
+
 def test_generate_insights(monkeypatch):
     class DummyResp:
         def __init__(self, content: str) -> None:

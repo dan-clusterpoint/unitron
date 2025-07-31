@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 import socket
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 import httpx
@@ -23,12 +24,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Allow web interface to call this API from another origin during development
-# UI_ORIGIN should contain the frontend domain
-# (e.g. http://localhost:5173)
+# Allow web interface to call this API from another origin during development.
+# UI_ORIGIN should contain the frontend domain (e.g. http://localhost:5173)
+ui_origin = os.getenv("UI_ORIGIN")
+allow = [ui_origin] if ui_origin else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow,
     allow_methods=["*"],
     allow_headers=["Content-Type", "Authorization"],
 )

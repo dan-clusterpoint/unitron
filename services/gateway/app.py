@@ -31,12 +31,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Allow calls from the UI hosted on a different origin during development
-# UI_ORIGIN should contain the frontend domain
-# (e.g. http://localhost:5173)
+# Allow calls from the UI hosted on a different origin during development.
+# UI_ORIGIN should contain the frontend domain (e.g. http://localhost:5173)
+ui_origin = os.getenv("UI_ORIGIN")
+allow = [ui_origin] if ui_origin else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow,
     allow_methods=["*"],
     allow_headers=["Content-Type", "Authorization"],
 )
