@@ -485,3 +485,30 @@ async def test_generate_report_json_error(monkeypatch):
 
     result = await insight_mod.orchestrator.generate_report("prompt")
     assert result == {"foo": "bar"}
+
+
+@pytest.mark.asyncio
+async def test_generate_report_fenced_json(monkeypatch):
+    class DummyResp:
+        def __init__(self) -> None:
+            content = "```json\njson\n{ \"foo\": \"bar\" }\n```"
+            message_obj = type("obj", (), {"content": content})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
+
+    async def fake_create(**_kwargs):
+        return DummyResp()
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_create)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
+
+    result = await insight_mod.orchestrator.generate_report("prompt")
+    assert result == {"foo": "bar"}
