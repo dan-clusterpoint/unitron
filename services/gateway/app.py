@@ -157,8 +157,8 @@ async def ready() -> JSONResponse:
 
 
 async def _post_with_retry(
-    url: str, data: dict, service: str
-) -> tuple[dict | None, bool]:
+    url: str, data: dict[str, Any], service: str
+) -> tuple[dict[str, Any] | None, bool]:
     """POST ``data`` to ``url`` with one retry on failure.
 
     Returns a tuple of ``(response_json, degraded)``. ``degraded`` is ``True``
@@ -275,9 +275,11 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 async def insight(data: dict[str, Any]) -> JSONResponse:
     """Proxy insight generation to the insight service."""
     insight_data, degraded = await _post_with_retry(
-        f"{INSIGHT_URL}/generate-insights", data, "insight"
+        INSIGHT_URL, data, "insight"
     )
-    return JSONResponse({"result": insight_data or {}, "degraded": degraded})
+    response = insight_data or {}
+    response["degraded"] = degraded
+    return JSONResponse(response)
 
 
 @app.post("/research")
@@ -289,9 +291,3 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     return JSONResponse({"result": research_data or {}, "degraded": degraded})
 
 
-@app.post("/generate-insight-and-personas")
-async def generate_insight_and_personas(data: dict[str, Any]) -> JSONResponse:
-    result, degraded = await _post_with_retry(
-        f"{INSIGHT_URL}/insight-and-personas", data, "insight"
-    )
-    return JSONResponse({"result": result or {}, "degraded": degraded})

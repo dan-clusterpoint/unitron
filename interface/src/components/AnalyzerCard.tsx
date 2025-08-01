@@ -123,7 +123,7 @@ export default function AnalyzerCard({
         setValidationError(parsed.error.errors.map((e) => e.message).join(', '))
         return
       }
-      const data = await apiFetch<{ result: unknown }>('/generate-insight-and-personas', {
+      const data = await apiFetch<{ markdown?: string; degraded: boolean }>('/insight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export default function AnalyzerCard({
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
       })
-      setParsedInsight(parseInsightPayload(data.result))
+      setParsedInsight(parseInsightPayload(data))
     } catch (e) {
       setGenError((e as Error).message)
     } finally {

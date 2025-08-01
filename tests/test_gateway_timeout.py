@@ -29,5 +29,5 @@ def test_insight_waits_for_25_seconds(monkeypatch):
     duration = time.perf_counter() - start
 
     assert r.status_code == 200
-    assert r.json() == {"result": {"ok": True}, "degraded": False}
+    assert r.json() == {"ok": True, "degraded": False}
     assert duration >= 25
