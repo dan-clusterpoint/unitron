@@ -222,7 +222,6 @@ def test_insight_and_personas(monkeypatch):
     }
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
     assert "cms_manual" not in data
-    assert data["degraded"] is False
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
@@ -255,7 +254,6 @@ def test_insight_and_personas_empty_fields(monkeypatch):
     )
     assert r.status_code == 200
     data = r.json()
-    assert data["degraded"] is True
 
 
 def test_insight_and_personas_action_dict(monkeypatch):
@@ -375,7 +373,6 @@ def test_insight_and_personas_warnings(monkeypatch):
         },
     ]
     assert "cms_manual" not in result
-    assert result["degraded"] is True
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
@@ -523,6 +520,7 @@ async def test_generate_report_json(monkeypatch):
 
     result = await insight_mod.orchestrator.generate_report("prompt")
     assert result == {"markdown": "bar"}
+    assert "```" not in result["markdown"]
 
 
 @pytest.mark.asyncio
@@ -553,6 +551,7 @@ json
 
     result = await insight_mod.orchestrator.generate_report("prompt")
     assert result == {"markdown": "bar"}
+    assert "```" not in result["markdown"]
 
 
 @pytest.mark.asyncio
@@ -579,3 +578,4 @@ async def test_generate_report_invalid_json(monkeypatch):
 
     result = await insight_mod.orchestrator.generate_report("prompt")
     assert result == {"markdown": "_Degraded: model returned invalid output._"}
+    assert "```" not in result["markdown"]

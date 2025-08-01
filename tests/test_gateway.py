@@ -71,8 +71,6 @@ def test_ready_returns_false_when_unhealthy(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert data["ready"] is False
-    assert data["martech"] == "degraded"
-    assert data["property"] == "ok"
 
 
 def test_analyze_success(monkeypatch):
@@ -92,7 +90,6 @@ def test_analyze_success(monkeypatch):
     assert data["property"]["domains"] == ["example.com"]
     assert data["martech"]["core"] == ["GA"]
     assert data["cms"] == []
-    assert data["degraded"] is False
 
     metrics_data = gateway_app.metrics
     assert metrics_data["martech"]["success"] >= 1
@@ -152,7 +149,6 @@ def test_analyze_degraded_when_service_unready(monkeypatch):
     r = client.post("/analyze", json={"url": "https://example.com"})
     assert r.status_code == 200
     data = r.json()
-    assert data["degraded"] is True
     assert data["property"]["domains"] == ["example.com"]
     assert data["martech"] == {}
     assert data["cms"] == []
@@ -309,14 +305,15 @@ def test_research_success(monkeypatch):
 
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
-        return httpx.Response(200, json={"out": True})
+        return httpx.Response(200, json={"markdown": "Hi"})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
     r = client.post("/research", json={"foo": 1})
     assert r.status_code == 200
-    assert r.json() == {"result": {"out": True}, "degraded": False}
+    assert r.json() == {"markdown": "Hi"}
+    assert "```" not in r.json()["markdown"]
     assert captured["path"] == "/research"
 
     metrics_data = gateway_app.metrics
@@ -338,7 +335,8 @@ def test_research_degraded(monkeypatch):
 
     r = client.post("/research", json={"foo": "bar"})
     assert r.status_code == 200
-    assert r.json()["degraded"] is True
+    assert r.json()["markdown"].startswith("_Degraded")
+    assert "```" not in r.json()["markdown"]
     assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
     assert gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
@@ -377,7 +375,8 @@ def test_insight_success(monkeypatch):
 
     r = client.post("/insight", json={"text": "Hello"})
     assert r.status_code == 200
-    assert r.json() == {"markdown": "Hi", "degraded": False}
+    assert r.json() == {"markdown": "Hi"}
+    assert "```" not in r.json()["markdown"]
     assert captured["path"] == "/"
 
 

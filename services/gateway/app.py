@@ -277,9 +277,9 @@ async def insight(data: dict[str, Any]) -> JSONResponse:
     insight_data, degraded = await _post_with_retry(
         INSIGHT_URL, data, "insight"
     )
-    response = insight_data or {}
-    response["degraded"] = degraded
-    return JSONResponse(response)
+    if degraded or not insight_data:
+        return JSONResponse({"markdown": "_Degraded: insight service unavailable._"})
+    return JSONResponse(insight_data)
 
 
 @app.post("/research")
@@ -288,6 +288,8 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     research_data, degraded = await _post_with_retry(
         f"{INSIGHT_URL}/research", data, "insight"
     )
-    return JSONResponse({"result": research_data or {}, "degraded": degraded})
+    if degraded or not research_data:
+        return JSONResponse({"markdown": "_Degraded: insight service unavailable._"})
+    return JSONResponse(research_data)
 
 
