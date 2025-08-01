@@ -427,8 +427,20 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                     tech_names.extend(vals)
             tech_text = ", ".join(sorted(set(tech_names))) or "unknown"
             personas_list = [
-                {"id": "company", "name": domain},
-                {"id": "tech", "name": tech_text},
+                {
+                    "id": "company",
+                    "name": domain,
+                    "role": "unknown",
+                    "goal": "unknown",
+                    "challenge": "unknown",
+                },
+                {
+                    "id": "tech",
+                    "name": tech_text,
+                    "role": "unknown",
+                    "goal": "unknown",
+                    "challenge": "unknown",
+                },
             ]
 
         actions: list[Any] = []

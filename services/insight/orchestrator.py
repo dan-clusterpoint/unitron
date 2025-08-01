@@ -42,6 +42,30 @@ interface NextBestAction {
 ```
 """
 
+# Example persona schema with all fields populated. Unknown attributes use
+# the literal string "unknown" to ensure every key has a value.
+PERSONA_EXAMPLE = """
+```ts
+interface Persona {
+  id: string;
+  name: string;
+  role: string;
+  goal: string;
+  challenge: string;
+}
+```
+
+```json
+{
+  "id": "P1",
+  "name": "Jane Doe",
+  "role": "CTO",
+  "goal": "Improve developer productivity",
+  "challenge": "unknown"
+}
+```
+"""
+
 
 async def call_openai_with_retry(
     messages: list[dict[str, str]],
@@ -112,9 +136,10 @@ def build_prompt(
         f"Company: {company_text}\n"
         f"Technology: {tech_text}\n"
         f"Question: {question}\n"
-        "Respond only with a JSON payload."
+        "Respond only with a JSON payload. Always include an evidence field summarizing the findings in 1-2 sentences. Provide company, technology and user personas. Fill every persona attribute; use the literal string \"unknown\" when data is not available."
     )
     prompt += "\n" + NEXT_BEST_ACTION_EXAMPLE
+    prompt += "\n" + PERSONA_EXAMPLE
     prompt += ("\nReply only with JSON matching the above structure inside a"
                " ```json code block. Keep empty arrays/objects.")
     return prompt

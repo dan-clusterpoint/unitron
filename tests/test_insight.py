@@ -354,8 +354,20 @@ def test_insight_and_personas_warnings(monkeypatch):
     result = r.json()
     assert result["insight"] == {"actions": [], "evidence": {"data": huge}}
     assert result["personas"] == [
-        {"id": "company", "name": "e"},
-        {"id": "tech", "name": "unknown"},
+        {
+            "id": "company",
+            "name": "e",
+            "role": "unknown",
+            "goal": "unknown",
+            "challenge": "unknown",
+        },
+        {
+            "id": "tech",
+            "name": "unknown",
+            "role": "unknown",
+            "goal": "unknown",
+            "challenge": "unknown",
+        },
     ]
     assert "cms_manual" not in result
     assert result["degraded"] is True
@@ -385,8 +397,20 @@ def test_insight_and_personas_empty_personas(monkeypatch):
     assert r.status_code == 200
     result = r.json()
     assert result["personas"] == [
-        {"id": "company", "name": "ex"},
-        {"id": "tech", "name": "React, WP"},
+        {
+            "id": "company",
+            "name": "ex",
+            "role": "unknown",
+            "goal": "unknown",
+            "challenge": "unknown",
+        },
+        {
+            "id": "tech",
+            "name": "React, WP",
+            "role": "unknown",
+            "goal": "unknown",
+            "challenge": "unknown",
+        },
     ]
 
 
