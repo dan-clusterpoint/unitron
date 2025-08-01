@@ -42,9 +42,32 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
 
   const insight = (data as any)?.insight ?? {}
 
-  const actionRaw = insight.actions ?? []
-  const evidenceRaw = insight.evidence ?? ''
+  if (insight.evidence && typeof insight.evidence === 'object') {
+    const ev = insight.evidence as any
+    const ins = ev.insights
+    if (ins == null) ev.insights = []
+    else if (!Array.isArray(ins)) ev.insights = [ins]
+  }
+
+  let actionRaw = insight.actions ?? []
+  let evidenceRaw = insight.evidence ?? ''
   const personaRaw = (data as any)?.personas ?? []
+  let extraPersonaRaw: unknown = null
+
+  const actionEmpty =
+    (Array.isArray(actionRaw) && actionRaw.length === 0) ||
+    (actionRaw && typeof actionRaw === 'object' && !Array.isArray(actionRaw) && Object.keys(actionRaw).length === 0)
+  if (
+    actionEmpty &&
+    evidenceRaw &&
+    typeof evidenceRaw === 'object' &&
+    'NextBestAction' in (evidenceRaw as any)
+  ) {
+    const evObj = evidenceRaw as any
+    extraPersonaRaw = evObj.Persona
+    actionRaw = [evObj.NextBestAction]
+    evidenceRaw = evObj.evidence ?? ''
+  }
 
   let evidence = ''
   if (typeof evidenceRaw === 'string') evidence = evidenceRaw
@@ -96,6 +119,38 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
         goals: 'unknown',
       }
     })
+  }
+
+  if (extraPersonaRaw != null) {
+    const i = personas.length
+    const p = extraPersonaRaw as any
+    if (typeof p === 'string')
+      personas.push({
+        id: String(i),
+        name: p,
+        demographics: 'unknown',
+        needs: 'unknown',
+        goals: 'unknown',
+      })
+    else if (p && typeof p === 'object') {
+      const {
+        id = String(i),
+        name = '',
+        demographics = 'unknown',
+        needs = 'unknown',
+        goals = 'unknown',
+        ...rest
+      } = p as any
+      personas.push({ id: String(id), name, demographics, needs, goals, ...rest })
+    } else {
+      personas.push({
+        id: String(i),
+        name: String(p),
+        demographics: 'unknown',
+        needs: 'unknown',
+        goals: 'unknown',
+      })
+    }
   }
 
   let actions: Action[] = []
