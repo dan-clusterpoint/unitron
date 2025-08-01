@@ -105,7 +105,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /insight` – body `{"text": "notes"}` proxies to `INSIGHT_URL` and returns `{"markdown": "...", "degraded": false}`.
+* `POST /insight` – body `{"text": "notes"}` proxies to `INSIGHT_URL/insight` and returns `{"markdown": "...", "degraded": false}`.
 * `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `30`s).
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.

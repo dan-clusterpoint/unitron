@@ -56,10 +56,26 @@ logger = logging.getLogger(__name__)
 
 # Simple in-memory metrics
 metrics: dict[str, Any] = {
-    "generate-insights": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "generate-insights": {
+        "requests": 0,
+        "scope": 0,
+        "sources": 0,
+        "duration": 0.0,
+    },
     "research": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
-    "postprocess-report": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
-    "insight-and-personas": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "postprocess-report": {
+        "requests": 0,
+        "scope": 0,
+        "sources": 0,
+        "duration": 0.0,
+    },
+    "insight-and-personas": {
+        "requests": 0,
+        "scope": 0,
+        "sources": 0,
+        "duration": 0.0,
+    },
+    "insight": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
     "data_gaps": 0,
 }
 
@@ -233,6 +249,76 @@ async def research(data: dict) -> JSONResponse:
     except (ValidationError, Exception):
         raise HTTPException(status_code=400, detail="Invalid response")
     return JSONResponse(result)
+
+
+@app.post("/insight", response_model=MarkdownResponse)
+async def insight(data: dict[str, Any]) -> JSONResponse:
+    """Return markdown insights for text or URL-based payloads."""
+
+    if "text" in data:
+        try:
+            req = _validate_with_schema(data, InsightRequest)
+        except (ValidationError, Exception):
+            raise HTTPException(status_code=400, detail="Invalid request")
+        if not req.text.strip():
+            raise HTTPException(status_code=400, detail="Empty text")
+        sanitized = _sanitize(req.text)
+        logger.debug("insight text request: %s", redact(sanitized))
+        start = time.perf_counter()
+        try:
+            result = await orchestrator.generate_report(
+                f"Generate concise insights.\n{sanitized}"
+            )
+        except Exception:  # noqa: BLE001
+            raise HTTPException(status_code=500, detail="Failed to generate insights")
+        _append_size_warning(result)
+        duration = time.perf_counter() - start
+        scope = len(sanitized)
+        sources = len(re.findall(r"https?://", json.dumps(result)))
+        gap_count = json.dumps(result).count("[Data Gap]")
+        _record_metrics("generate-insights", scope, sources, duration, gap_count)
+        logger.debug("insight text response: %s", redact(json.dumps(result)))
+        return JSONResponse(result)
+
+    try:
+        req = _validate_with_schema(data, InsightPersonaRequest)
+    except (ValidationError, Exception):
+        raise HTTPException(status_code=400, detail="Invalid request")
+
+    logger.debug("insight request: %s", redact(json.dumps(req.model_dump())))
+    start = time.perf_counter()
+    company = {"url": req.url}
+    tech: dict[str, Any] = {"martech": req.martech or {}, "cms": req.cms or []}
+    if req.cms_manual:
+        tech["cms_manual"] = req.cms_manual
+
+    prompt = orchestrator.build_prompt(
+        "Generate next-best-action insights.",
+        company=company,
+        technology=tech,
+        evidence_standards=req.evidence_standards,
+        credibility_scoring=req.credibility_scoring,
+        deliverable_guidelines=req.deliverable_guidelines,
+        audience=req.audience,
+        preferences=req.preferences,
+    )
+
+    try:
+        result = await orchestrator.generate_report(prompt)
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail="Failed to generate insight")
+
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(json.dumps(req.model_dump()))
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("insight", scope, sources, duration, gap_count)
+    logger.debug("insight response: %s", redact(json.dumps(result)))
+    return JSONResponse(result)
+
+
+app.add_api_route("/insight/", insight, methods=["POST"], include_in_schema=False)
 
 
 async def _generate_alt_text(description: str) -> str:

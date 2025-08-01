@@ -567,7 +567,7 @@ async def test_startup_fallback(monkeypatch):
     assert services.martech.app.fingerprints == {}
     assert services.martech.app.cms_fingerprints == {}
 
-    async def fake_post(url: str, data: dict, service: str):
+    async def fake_post(url: str, data: dict, service: str, **kwargs):
         if service == "martech":
             resp = client.post("/analyze", json=data)
             return resp.json(), False

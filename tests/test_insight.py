@@ -55,6 +55,33 @@ def test_generate_insights(monkeypatch):
     assert data["markdown"] == "Hello insight"
 
 
+def test_insight_endpoint(monkeypatch):
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "Hello markdown"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
+    )
+
+    payload = {"url": "https://ex.com", "martech": {}, "cms": []}
+    r = client.post("/insight", json=payload)
+    assert r.status_code == 200
+    assert r.json()["markdown"] == "Hello markdown"
+
+
+def test_insight_trailing_slash(monkeypatch):
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "Tolerant"}
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
+    )
+
+    r = client.post("/insight/", json={"text": "foo"})
+    assert r.status_code == 200
+    assert r.json()["markdown"] == "Tolerant"
+
+
 def test_research(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
         return {"markdown": "Research result"}
