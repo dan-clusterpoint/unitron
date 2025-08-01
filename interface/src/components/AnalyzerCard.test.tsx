@@ -309,7 +309,13 @@ test('shows validation error and skips POST on invalid payload', async () => {
   server.use(
     http.post('/insight', async ({ request }) => {
       const body = await request.json()
-      if (!('text' in body)) spy()
+      if (
+        body &&
+        typeof body === 'object' &&
+        !Array.isArray(body) &&
+        !('text' in body)
+      )
+        spy()
       return Response.json({})
     }),
   )
