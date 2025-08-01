@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
+from fastapi.testclient import TestClient
 import base64
 import pytest
 import asyncio
 import time
+import types
 
 from services.insight.app import app
 import services.insight.app as insight_mod
-import types
 
 client = TestClient(app)
 
@@ -41,91 +42,45 @@ def test_options_respects_ui_origin(monkeypatch):
 
 
 def test_generate_insights(monkeypatch):
-    class DummyResp:
-        def __init__(self, content: str) -> None:
-            message_obj = type("obj", (), {"content": content})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "Hello insight"}
 
-    async def fake_create(**kwargs):
-        return DummyResp("Hello insight")
-
-    class DummyChat:
-        completions = type("obj", (), {"create": staticmethod(fake_create)})()
-
-    class DummyClient:
-        def __init__(self, *a, **kw) -> None:
-            self.chat = DummyChat
-
-    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
-    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
-    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
-    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
-    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
+    )
 
     r = client.post("/generate-insights", json={"text": "  some text\n"})
     assert r.status_code == 200
     data = r.json()
-    assert data["insight"] == "Hello insight"
-    assert data["degraded"] is False
+    assert data["markdown"] == "Hello insight"
 
 
 def test_research(monkeypatch):
-    class DummyResp:
-        def __init__(self, content: str) -> None:
-            message_obj = type("obj", (), {"content": content})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "Research result"}
 
-    async def fake_create(**kwargs):
-        return DummyResp("Research result")
-
-    class DummyChat:
-        completions = type("obj", (), {"create": staticmethod(fake_create)})()
-
-    class DummyClient:
-        def __init__(self, *a, **kw) -> None:
-            self.chat = DummyChat
-
-    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
-    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
-    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
-    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
+    )
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
     data = r.json()
-    assert data["summary"] == "Research result"
-    assert data["degraded"] is False
+    assert data["markdown"] == "Research result"
 
 
 def test_research_trim(monkeypatch):
-    class DummyResp:
-        def __init__(self, content: str) -> None:
-            message_obj = type("obj", (), {"content": content})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "Trim me"}
 
-    async def fake_create(**kwargs):
-        return DummyResp("  Trim me  \n")
-
-    class DummyChat:
-        completions = type("obj", (), {"create": staticmethod(fake_create)})()
-
-    class DummyClient:
-        def __init__(self, *a, **kw) -> None:
-            self.chat = DummyChat
-
-    dummy_module = types.SimpleNamespace(
-        AsyncOpenAI=lambda api_key=None: DummyClient(),
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
     )
-    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
-    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
-    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
-    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
     data = r.json()
-    assert data["summary"] == "Trim me"
-    assert data["degraded"] is False
+    assert data["markdown"] == "Trim me"
 
 
 def test_research_validation_error():
@@ -192,26 +147,12 @@ def test_postprocess_report(monkeypatch):
 
 def test_metrics_and_warnings(monkeypatch):
     huge = "[Data Gap]" + "x" * (260 * 1024)
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": huge}
 
-    class DummyResp:
-        def __init__(self, content: str) -> None:
-            message_obj = type("obj", (), {"content": content})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
-
-    async def fake_create(**kwargs):
-        return DummyResp(huge)
-
-    class DummyChat:
-        completions = type("obj", (), {"create": staticmethod(fake_create)})()
-
-    class DummyClient:
-        def __init__(self, *a, **kw) -> None:
-            self.chat = DummyChat
-
-    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
-    monkeypatch.setattr(insight_mod, "openai", dummy_module, raising=False)
-    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
-    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "generate_report", fake_report, raising=False
+    )
 
     r = client.post("/generate-insights", json={"text": "info"})
     assert r.status_code == 200

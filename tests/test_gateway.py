@@ -370,14 +370,14 @@ def test_insight_success(monkeypatch):
 
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
-        return httpx.Response(200, json={"insight": "Hi"})
+        return httpx.Response(200, json={"markdown": "Hi"})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
     r = client.post("/insight", json={"text": "Hello"})
     assert r.status_code == 200
-    assert r.json() == {"result": {"insight": "Hi"}, "degraded": False}
+    assert r.json() == {"result": {"markdown": "Hi"}, "degraded": False}
     assert captured["path"] == "/generate-insights"
 
 

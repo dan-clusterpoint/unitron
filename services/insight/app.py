@@ -109,9 +109,8 @@ class ReadyResponse(BaseModel):
 class ResearchRequest(BaseModel):
     topic: str
 
-
-class ResearchResponse(BaseModel):
-    summary: str
+class MarkdownResponse(BaseModel):
+    markdown: str
 
 
 class InsightPersonaRequest(BaseModel):
@@ -186,22 +185,13 @@ async def generate_insights(req: InsightRequest) -> JSONResponse:
     sanitized = _sanitize(req.text)
     logger.debug("generate-insights request: %s", redact(sanitized))
     start = time.perf_counter()
-    if not os.getenv("OPENAI_API_KEY") or openai is None:
-        raise HTTPException(status_code=503, detail="OpenAI not configured")
     try:
-        content, degraded = await orchestrator.call_openai_with_retry(
-            [
-                {"role": "system", "content": "Generate concise insights."},
-                {"role": "user", "content": sanitized},
-            ],
-            max_tokens=100,
+        result = await orchestrator.generate_report(
+            f"Generate concise insights.\n{sanitized}"
         )
-    except RuntimeError:
-        raise HTTPException(status_code=503, detail="OpenAI not configured")
     except Exception:  # noqa: BLE001
         raise HTTPException(status_code=500, detail="Failed to generate insights")
 
-    result = {"insight": content, "degraded": degraded}
     _append_size_warning(result)
     duration = time.perf_counter() - start
     scope = len(sanitized)
@@ -224,28 +214,13 @@ async def research(data: dict) -> JSONResponse:
     sanitized = _sanitize(req.topic)
     logger.debug("research request: %s", redact(sanitized))
     start = time.perf_counter()
-    if not os.getenv("OPENAI_API_KEY") or openai is None:
-        raise HTTPException(status_code=503, detail="OpenAI not configured")
     try:
-        content, degraded = await orchestrator.call_openai_with_retry(
-            [
-                {
-                    "role": "system",
-                    "content": "Provide a short research summary.",
-                },
-                {"role": "user", "content": sanitized},
-            ],
-            max_tokens=150,
+        result = await orchestrator.generate_report(
+            f"Provide a short research summary.\n{sanitized}"
         )
-    except RuntimeError:
-        raise HTTPException(status_code=503, detail="OpenAI not configured")
     except Exception:  # noqa: BLE001
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to generate research",
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate research")
 
-    result = {"summary": content, "degraded": degraded}
     _append_size_warning(result)
     duration = time.perf_counter() - start
     scope = len(sanitized)
@@ -254,7 +229,7 @@ async def research(data: dict) -> JSONResponse:
     _record_metrics("research", scope, sources, duration, gap_count)
     logger.debug("research response: %s", redact(json.dumps(result)))
     try:
-        _validate_with_schema(result, ResearchResponse)
+        _validate_with_schema(result, MarkdownResponse)
     except (ValidationError, Exception):
         raise HTTPException(status_code=400, detail="Invalid response")
     return JSONResponse(result)
