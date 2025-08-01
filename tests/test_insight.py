@@ -360,6 +360,9 @@ def test_insight_and_personas_warnings(monkeypatch):
             "role": "unknown",
             "goal": "unknown",
             "challenge": "unknown",
+            "demographics": "unknown",
+            "needs": "unknown",
+            "goals": "unknown",
         },
         {
             "id": "tech",
@@ -367,6 +370,9 @@ def test_insight_and_personas_warnings(monkeypatch):
             "role": "unknown",
             "goal": "unknown",
             "challenge": "unknown",
+            "demographics": "unknown",
+            "needs": "unknown",
+            "goals": "unknown",
         },
     ]
     assert "cms_manual" not in result
@@ -403,6 +409,9 @@ def test_insight_and_personas_empty_personas(monkeypatch):
             "role": "unknown",
             "goal": "unknown",
             "challenge": "unknown",
+            "demographics": "unknown",
+            "needs": "unknown",
+            "goals": "unknown",
         },
         {
             "id": "tech",
@@ -410,6 +419,9 @@ def test_insight_and_personas_empty_personas(monkeypatch):
             "role": "unknown",
             "goal": "unknown",
             "challenge": "unknown",
+            "demographics": "unknown",
+            "needs": "unknown",
+            "goals": "unknown",
         },
     ]
 

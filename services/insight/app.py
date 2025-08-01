@@ -433,6 +433,9 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                     "role": "unknown",
                     "goal": "unknown",
                     "challenge": "unknown",
+                    "demographics": "unknown",
+                    "needs": "unknown",
+                    "goals": "unknown",
                 },
                 {
                     "id": "tech",
@@ -440,6 +443,9 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                     "role": "unknown",
                     "goal": "unknown",
                     "challenge": "unknown",
+                    "demographics": "unknown",
+                    "needs": "unknown",
+                    "goals": "unknown",
                 },
             ]
 
