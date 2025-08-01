@@ -53,18 +53,48 @@ export function parseInsightPayload(payload: unknown): ParsedInsight {
   let personas: Persona[] = []
   if (Array.isArray(personaRaw)) {
     personas = personaRaw.map((p, i) => {
-      if (typeof p === 'string') return { id: String(i), name: p }
+      if (typeof p === 'string')
+        return { id: String(i), name: p, demographics: 'unknown', needs: 'unknown', goals: 'unknown' }
       if (p && typeof p === 'object') {
-        const { id = String(i), name = '', demographics, needs, goals, ...rest } = p as any
+        const {
+          id = String(i),
+          name = '',
+          demographics = 'unknown',
+          needs = 'unknown',
+          goals = 'unknown',
+          ...rest
+        } = p as any
         return { id: String(id), name, demographics, needs, goals, ...rest }
       }
-      return { id: String(i), name: String(p) }
+      return {
+        id: String(i),
+        name: String(p),
+        demographics: 'unknown',
+        needs: 'unknown',
+        goals: 'unknown',
+      }
     })
   } else if (personaRaw && typeof personaRaw === 'object') {
     personas = Object.entries(personaRaw).map(([k, v]) => {
-      if (typeof v === 'string') return { id: k, name: v }
-      if (v && typeof v === 'object') return { id: k, ...(v as any) }
-      return { id: k, name: String(v) }
+      if (typeof v === 'string')
+        return { id: k, name: v, demographics: 'unknown', needs: 'unknown', goals: 'unknown' }
+      if (v && typeof v === 'object') {
+        const {
+          name = '',
+          demographics = 'unknown',
+          needs = 'unknown',
+          goals = 'unknown',
+          ...rest
+        } = v as any
+        return { id: k, name, demographics, needs, goals, ...rest }
+      }
+      return {
+        id: k,
+        name: String(v),
+        demographics: 'unknown',
+        needs: 'unknown',
+        goals: 'unknown',
+      }
     })
   }
 

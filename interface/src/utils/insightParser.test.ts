@@ -4,7 +4,17 @@ import { parseInsightPayload } from './insightParser'
 test('converts persona map to array', () => {
   const raw = { insight: { actions: [], evidence: '' }, personas: { p1: { name: 'P1' } }, degraded: false }
   const parsed = parseInsightPayload(raw)
-  expect(parsed.personas).toEqual([{ id: 'p1', name: 'P1' }])
+  expect(parsed.personas).toEqual([
+    { id: 'p1', name: 'P1', demographics: 'unknown', needs: 'unknown', goals: 'unknown' },
+  ])
+})
+
+test('defaults missing persona fields to unknown', () => {
+  const raw = { insight: { actions: [], evidence: '' }, personas: [{ id: 'p1', name: 'P1' }], degraded: false }
+  const parsed = parseInsightPayload(raw)
+  expect(parsed.personas).toEqual([
+    { id: 'p1', name: 'P1', demographics: 'unknown', needs: 'unknown', goals: 'unknown' },
+  ])
 })
 
 test('converts action map to array', () => {
@@ -24,7 +34,9 @@ test('parses canonical fields', () => {
   expect(parsed).toEqual({
     actions: [{ id: '1', title: 'T', reasoning: 'R', benefit: 'B' }],
     evidence: 'E',
-    personas: [{ id: 'p1', name: 'P1' }],
+    personas: [
+      { id: 'p1', name: 'P1', demographics: 'unknown', needs: 'unknown', goals: 'unknown' },
+    ],
     degraded: false,
   })
 })
