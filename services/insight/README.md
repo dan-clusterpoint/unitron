@@ -7,8 +7,8 @@ It runs at `http://localhost:8083` when using Docker Compose.
 
 - `GET /health` – liveness probe returning `{ "status": "ok" }`.
 - `GET /ready` – always returns `{ "ready": true }`.
-- `POST /generate-insights` – body `{ "text": "notes" }` returns `{ "insight": "..." }`.
-- `POST /research` – body `{ "topic": "AI" }` returns `{ "summary": "..." }`.
+- `POST /generate-insights` – body `{ "text": "notes" }` returns `{ "markdown": "..." }`.
+- `POST /research` – body `{ "topic": "AI" }` returns `{ "markdown": "..." }`.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.
 - `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS" }`
@@ -59,7 +59,7 @@ Expected response snippet:
 
 ```json
 {
-  "summary": "..."
+  "markdown": "..."
 }
 ```
 

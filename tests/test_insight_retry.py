@@ -15,7 +15,10 @@ def test_retry_rate_limit(monkeypatch):
         attempts["n"] += 1
         if attempts["n"] <= 2:
             return httpx.Response(429)
-        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": '{"markdown": "ok"}'}}]},
+        )
 
     transport = httpx.MockTransport(handler)
 
@@ -46,6 +49,5 @@ def test_retry_rate_limit(monkeypatch):
     r = client.post("/generate-insights", json={"text": "hi"})
     assert r.status_code == 200
     data = r.json()
-    assert data["insight"] == "ok"
-    assert data["degraded"] is False
+    assert data["markdown"] == "ok"
     assert attempts["n"] == 3

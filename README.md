@@ -261,8 +261,8 @@ Endpoints:
 
 * `GET /health` – liveness probe.
 * `GET /ready` – always returns `{"ready": true}`.
-* `POST /generate-insights` – body `{"text": "your notes"}` returns `{"insight": "..."}`.
-* `POST /research` – body `{"topic": "AI"}` returns `{"summary": "..."}`.
+* `POST /generate-insights` – body `{"text": "your notes"}` returns `{"markdown": "..."}`.
+* `POST /research` – body `{"topic": "AI"}` returns `{"markdown": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
 * `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }` returns `{ "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. This endpoint runs the insight and persona prompts concurrently for faster replies.
 
@@ -281,7 +281,7 @@ Expected response:
 
 ```json
 {
-  "summary": "..."
+  "markdown": "..."
 }
 ```
 
