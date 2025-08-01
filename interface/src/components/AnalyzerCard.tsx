@@ -64,6 +64,7 @@ export default function AnalyzerCard({
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
   const [insightMarkdown, setInsightMarkdown] = useState<string | null>(null)
+  const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -78,7 +79,7 @@ export default function AnalyzerCard({
     const text = result.property?.notes.join('\n') || ''
     setInsightLoading(true)
     setInsightError(null)
-    apiFetch<{ markdown?: string }>('/insight', {
+    apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
@@ -97,6 +98,7 @@ export default function AnalyzerCard({
     if (!result) return
     setGenerating(true)
     setInsightMarkdown(null)
+    setInsightMarkdownDegraded(false)
     setGenError(null)
     setValidationError(null)
     try {
@@ -122,7 +124,7 @@ export default function AnalyzerCard({
         setValidationError(parsed.error.errors.map((e) => e.message).join(', '))
         return
       }
-      const data = await apiFetch<{ markdown?: string; degraded: boolean }>('/insight', {
+      const data = await apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,6 +133,7 @@ export default function AnalyzerCard({
         }),
       })
       setInsightMarkdown((data.markdown ?? '').trim())
+      setInsightMarkdownDegraded(data.degraded)
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
@@ -236,7 +239,7 @@ export default function AnalyzerCard({
             </button>
             {(generating || insightMarkdown !== null) && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightMarkdown markdown={insightMarkdown ?? ''} loading={generating} />
+                <InsightMarkdown markdown={insightMarkdown ?? ''} loading={generating} degraded={insightMarkdownDegraded} />
               </section>
             )}
             {validationError && (

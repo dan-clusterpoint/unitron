@@ -24,3 +24,8 @@ test('shows fallback when markdown empty', () => {
   render(<InsightMarkdown markdown="" />)
   expect(screen.getByText('Analysis unavailable')).toBeInTheDocument()
 })
+
+test('shows degraded banner', () => {
+  render(<InsightMarkdown markdown="# H" degraded />)
+  expect(screen.getByText(/Partial results/)).toBeInTheDocument()
+})

@@ -4,45 +4,36 @@ import asyncio
 import json
 import logging
 import os
+import re
 from typing import Any
-from json import JSONDecodeError
 
-try:
+try:  # Optional dependency
     import openai
 except Exception:  # noqa: BLE001
     openai = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
-# Default token limit for OpenAI responses
-OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "900"))
+# Token and temperature defaults
+OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "1100"))
+OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.3"))
 
-# Markdown outline for model responses.
+# Markdown outline for the orchestrator
 MARKDOWN_OUTLINE = """
-```markdown
-## Evidence
-- Summarize the findings in 1-2 sentences.
+## Executive Summary
+*One sentence.*
 
-## Company
-- Key attributes of the company.
-
-## Technology
-- Relevant technologies discovered.
+## Next-Best Actions
+### {Action 1}
+- **Reasoning:** …
+- **Benefit:** …
 
 ## Personas
-- id: string
-  name: string
-  role: string
-  goal: string
-  challenge: string
+| ID | Name | Role | Goal | Challenge |
+|----|------|------|------|-----------|
+| …  | …    | …    | …    | …         |
 
-## Next Best Actions
-- title: string
-  description: string
-  action: string
-  source: url
-  credibilityScore: number
-```
+If no actions, write: _No recommended actions could be generated for this analysis._
 """
 
 
@@ -51,8 +42,9 @@ async def call_openai_with_retry(
     *,
     max_tokens: int | None = None,
     model: str | None = None,
-) -> tuple[str, bool]:
-    """Call OpenAI with retry and return ``(content, degraded)``."""
+    stream: bool = False,
+) -> tuple[str, str, bool]:
+    """Call OpenAI with retry and return ``(content, finish_reason, degraded)``."""
 
     if openai is None:
         raise RuntimeError("OpenAI library not available")
@@ -65,15 +57,32 @@ async def call_openai_with_retry(
 
     client = openai.AsyncOpenAI(api_key=api_key)
     delays = [1, 2, 4]
+    params: dict[str, Any] = {
+        "model": selected_model,
+        "messages": messages,
+        "temperature": OPENAI_TEMPERATURE,
+    }
+    if max_tokens is not None:
+        params["max_tokens"] = max_tokens
+
     for attempt in range(3):
         try:
-            resp = await client.chat.completions.create(
-                model=selected_model,
-                messages=messages,
-                **({"max_tokens": max_tokens} if max_tokens is not None else {}),
-            )
-            content = resp.choices[0].message.content.strip()
-            return content, False
+            if stream:
+                content = ""
+                finish_reason = "stop"
+                events = await client.chat.completions.create(stream=True, **params)
+                async for event in events:
+                    delta = event.choices[0].delta.get("content") if hasattr(event.choices[0], "delta") else None
+                    if delta:
+                        content += delta
+                    fr = getattr(event.choices[0], "finish_reason", None)
+                    if fr:
+                        finish_reason = fr
+                return content.strip(), finish_reason, False
+            resp = await client.chat.completions.create(**params)
+            content = resp.choices[0].message.content or ""
+            finish_reason = getattr(resp.choices[0], "finish_reason", "stop")
+            return content.strip(), finish_reason, False
         except Exception as exc:  # noqa: BLE001
             status = getattr(exc, "status_code", getattr(exc, "status", None))
             if status not in (429, 500):
@@ -81,7 +90,63 @@ async def call_openai_with_retry(
             if attempt < 2:
                 await asyncio.sleep(delays[attempt])
     logger.warning("OpenAI request failed after retries")
-    return "", True
+    return "", "error", True
+
+
+FENCE_RE = re.compile(r"```(?:markdown|md)?\n(.*?)```", re.DOTALL | re.IGNORECASE)
+
+
+def _extract_markdown(text: str) -> tuple[str, bool]:
+    """Return extracted markdown and whether degradation occurred."""
+
+    degraded = False
+    stripped = text.strip()
+    match = FENCE_RE.search(stripped)
+    if match:
+        markdown = match.group(1).strip()
+    else:
+        if "```" in stripped:
+            degraded = True
+        markdown = stripped
+
+    if not markdown or len(markdown) < 10 or not re.search(r"(^|\n)[#*-]", markdown):
+        degraded = True
+    return markdown, degraded
+
+
+async def generate_report(prompt: str, *, timeout: int = 30) -> dict[str, Any]:
+    """Return ``{"markdown": str, "degraded": bool}`` from the model response."""
+
+    messages = [
+        {"role": "system", "content": "Return GitHub-flavoured Markdown."},
+        {"role": "user", "content": prompt},
+    ]
+    try:
+        content, finish_reason, degraded_call = await asyncio.wait_for(
+            call_openai_with_retry(
+                messages,
+                max_tokens=OPENAI_MAX_TOKENS,
+            ),
+            timeout=timeout,
+        )
+    except Exception:  # noqa: BLE001
+        logger.error("OpenAI request failed", exc_info=True)
+        return {"markdown": "", "degraded": True}
+
+    logger.info(
+        "finish_reason=%s preview=%s",
+        finish_reason,
+        content[:300],
+    )
+
+    try:
+        markdown, degraded_extract = _extract_markdown(content)
+    except Exception:  # noqa: BLE001
+        logger.exception("Markdown extraction failed")
+        return {"markdown": content, "degraded": True}
+
+    degraded = degraded_call or degraded_extract or finish_reason == "length"
+    return {"markdown": markdown, "degraded": degraded}
 
 
 def build_prompt(
@@ -120,53 +185,3 @@ def build_prompt(
     prompt += MARKDOWN_OUTLINE
     return prompt
 
-
-def _extract_json_block(text: str) -> str:
-    """Return ``text`` minus surrounding ```json fences, if present."""
-
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if len(lines) >= 3 and lines[0].startswith("```") and lines[-1].startswith("```"):
-            inner = "\n".join(lines[1:-1]).strip()
-            if inner.lower().startswith("json\n"):
-                inner = inner.split("\n", 1)[1].strip()
-            return inner
-    return stripped
-
-
-async def generate_report(prompt: str, *, timeout: int = 30) -> dict[str, Any]:
-    """Return ``{"markdown": md}`` from the model response.
-
-    The helper delegates to :func:`call_openai_with_retry`, strips surrounding
-    code fences, and extracts the ``markdown`` field from the JSON payload. On
-    JSON decode failures or missing/empty ``markdown`` content, a degraded
-    message is returned and the raw text is logged for diagnostics.
-    """
-
-    messages = [
-        {"role": "system", "content": "Return JSON only."},
-        {"role": "user", "content": prompt},
-    ]
-    try:
-        content, degraded = await asyncio.wait_for(
-            call_openai_with_retry(messages, max_tokens=OPENAI_MAX_TOKENS),
-            timeout=timeout,
-        )
-    except Exception:  # noqa: BLE001
-        logger.error("OpenAI request failed", exc_info=True)
-        return {"markdown": "_Degraded: model returned invalid output._"}
-
-    if degraded:
-        logger.warning("OpenAI request degraded: %s", content)
-        return {"markdown": "_Degraded: model returned invalid output._"}
-
-    try:
-        data = json.loads(_extract_json_block(content))
-        md = data.get("markdown")
-        if not md:
-            raise JSONDecodeError("missing markdown", content, 0)
-        return {"markdown": md}
-    except JSONDecodeError:
-        logger.warning("Invalid model output: %s", content)
-        return {"markdown": "_Degraded: model returned invalid output._"}

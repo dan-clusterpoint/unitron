@@ -17,7 +17,7 @@ def test_retry_rate_limit(monkeypatch):
             return httpx.Response(429)
         return httpx.Response(
             200,
-            json={"choices": [{"message": {"content": '{"markdown": "ok"}'}}]},
+            json={"choices": [{"message": {"content": "ok"}, "finish_reason": "stop"}]},
         )
 
     transport = httpx.MockTransport(handler)
@@ -32,9 +32,9 @@ def test_retry_rate_limit(monkeypatch):
                 err = Exception("rate limit")
                 err.status_code = 429
                 raise err
-            data = resp.json()["choices"][0]["message"]["content"]
-            message = type("obj", (), {"content": data})()
-            return type("obj", (), {"choices": [type("obj", (), {"message": message})()]})
+            choice = resp.json()["choices"][0]
+            message = type("obj", (), {"content": choice["message"]["content"], "finish_reason": choice.get("finish_reason")})()
+            return type("obj", (), {"choices": [type("obj", (), {"message": message, "finish_reason": message.finish_reason})()]})
 
     class DummyClient:
         def __init__(self, *a, **kw) -> None:
@@ -49,5 +49,5 @@ def test_retry_rate_limit(monkeypatch):
     r = client.post("/generate-insights", json={"text": "hi"})
     assert r.status_code == 200
     data = r.json()
-    assert data["markdown"] == "ok"
+    assert data == {"markdown": "ok", "degraded": True}
     assert attempts["n"] == 3

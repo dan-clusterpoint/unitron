@@ -290,8 +290,8 @@ async def insight(data: dict[str, Any]) -> JSONResponse:
             detail_json = {"detail": str(exc.detail)}
         return JSONResponse(detail_json, status_code=exc.status_code)
 
-    if degraded or not insight_data:
-        return JSONResponse({"markdown": "_Degraded: insight service unavailable._"})
+    if insight_data is None:
+        return JSONResponse({"markdown": "", "degraded": True}, status_code=503)
     return JSONResponse(insight_data)
 
 
@@ -301,8 +301,8 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     research_data, degraded = await _post_with_retry(
         f"{INSIGHT_URL}/research", data, "insight"
     )
-    if degraded or not research_data:
-        return JSONResponse({"markdown": "_Degraded: insight service unavailable._"})
+    if research_data is None:
+        return JSONResponse({"markdown": "", "degraded": True}, status_code=503)
     return JSONResponse(research_data)
 
 

@@ -305,14 +305,14 @@ def test_research_success(monkeypatch):
 
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
-        return httpx.Response(200, json={"markdown": "Hi"})
+        return httpx.Response(200, json={"markdown": "Hi", "degraded": False})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
     r = client.post("/research", json={"foo": 1})
     assert r.status_code == 200
-    assert r.json() == {"markdown": "Hi"}
+    assert r.json() == {"markdown": "Hi", "degraded": False}
     assert "```" not in r.json()["markdown"]
     assert captured["path"] == "/research"
 
@@ -334,9 +334,8 @@ def test_research_degraded(monkeypatch):
     before_code = gateway_app.metrics["insight"]["codes"].get("503", 0)
 
     r = client.post("/research", json={"foo": "bar"})
-    assert r.status_code == 200
-    assert r.json()["markdown"].startswith("_Degraded")
-    assert "```" not in r.json()["markdown"]
+    assert r.status_code == 503
+    assert r.json() == {"markdown": "", "degraded": True}
     assert captured["path"] == "/research"
     assert gateway_app.metrics["insight"]["failure"] == before + 1
     assert gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
@@ -368,14 +367,14 @@ def test_insight_success(monkeypatch):
 
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
-        return httpx.Response(200, json={"markdown": "Hi"})
+        return httpx.Response(200, json={"markdown": "Hi", "degraded": False})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
     r = client.post("/insight", json={"text": "Hello"})
     assert r.status_code == 200
-    assert r.json() == {"markdown": "Hi"}
+    assert r.json() == {"markdown": "Hi", "degraded": False}
     assert "```" not in r.json()["markdown"]
     assert captured["path"] == "/insight"
 

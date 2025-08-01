@@ -244,6 +244,32 @@ test('shows fallback when markdown empty', async () => {
   await screen.findByText('Analysis unavailable')
 })
 
+test('shows degraded banner when insight degraded', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () => Response.json({ markdown: 'Hi', degraded: true })),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByText(/Partial results/)
+})
+
 test('shows error when generation fails', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
