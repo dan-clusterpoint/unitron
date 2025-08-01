@@ -6,6 +6,9 @@ export default defineConfig(({ mode }) => {
   console.log('🛠 VITE_API_BASE_URL at config time →', env.VITE_API_BASE_URL)
   return {
     plugins: [react()],
+    optimizeDeps: {
+      include: ['@uiw/react-markdown-preview', 'dompurify'],
+    },
     test: {
       environment: 'jsdom',
       globals: true,
