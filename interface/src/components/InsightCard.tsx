@@ -1,51 +1,14 @@
-import { useState } from 'react'
 import { marked } from 'marked'
-import type { ParsedInsight, Action } from '../utils/insightParser'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from './ui/card'
-import { Badge } from './ui/badge'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from './ui/accordion'
-import Sheet from './ui/sheet'
-import { downloadBase64 } from '../utils'
-
-function actionsToMarkdown(actions: Action[]): string {
-  return actions
-    .map((a, i) => {
-      const lines = [`### ${i + 1}. ${a.title}`]
-      if (a.reasoning) lines.push(a.reasoning)
-      if (a.benefit) lines.push(`**Benefit:** ${a.benefit}`)
-      return lines.join('\n')
-    })
-    .join('\n\n')
-}
-
-function renderValue(v: unknown): string {
-  return v === undefined || v === null || v === '' ? 'Not provided' : String(v)
-}
+import { Card, CardContent } from './ui/card'
+import { useState } from 'react'
 
 export interface InsightCardProps {
-  insight: ParsedInsight
+  markdown: string
   loading?: boolean
 }
 
-export default function InsightCard({ insight, loading = false }: InsightCardProps) {
-  const { evidence, actions, personas } = insight
+export default function InsightCard({ markdown, loading = false }: InsightCardProps) {
   const [copied, setCopied] = useState(false)
-  const [open, setOpen] = useState(false)
-  const safeActions = Array.isArray(actions) ? actions : []
-  const safePersonas = Array.isArray(personas) ? personas : []
-  const evidenceText = evidence?.trim()
-  const markdown = actionsToMarkdown(safeActions)
-  const html = marked.parse(markdown)
 
   async function copyToClipboard() {
     try {
@@ -53,15 +16,8 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch {
-      // ignore clipboard errors
+      /* ignore */
     }
-  }
-
-  function onDownload() {
-    const encoded = typeof btoa === 'function'
-      ? btoa(markdown)
-      : Buffer.from(markdown, 'utf-8').toString('base64')
-    downloadBase64(encoded, 'actions.md')
   }
 
   if (loading) {
@@ -76,95 +32,20 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
     )
   }
 
-  const hasActions = safeActions.length > 0
-  const hasPersonas = safePersonas.length > 0
+  const content = markdown.trim()
+    ? <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: marked.parse(markdown) }} />
+    : <p>Analysis unavailable</p>
 
   return (
     <Card className="space-y-4">
-      {evidenceText && (
-        <CardHeader>
-          <CardTitle>Insight</CardTitle>
-        </CardHeader>
-      )}
-      {evidenceText && (
-        <CardContent>
-          <p className="prose max-w-none">{evidenceText}</p>
-        </CardContent>
-      )}
-      {hasActions ? (
-        <CardContent>
-          <Accordion
-            type="multiple"
-            defaultValue={safeActions.map((a) => a.id)}
-            className="w-full"
-          >
-            {safeActions.map((a) => (
-              <AccordionItem key={a.id} value={a.id}>
-                <AccordionTrigger>{a.title}</AccordionTrigger>
-                <AccordionContent>
-                  {a.reasoning && <p>{a.reasoning}</p>}
-                  {a.benefit && (
-                    <Badge className="mt-2 inline-block">{a.benefit}</Badge>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </CardContent>
-      ) : (
-        <CardContent>
-          No recommended actions were generated for this analysis.
-        </CardContent>
-      )}
-      {hasPersonas ? (
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {safePersonas.map((p) => (
-              <div key={p.id} className="flex items-start space-x-2 border rounded p-2">
-                <img
-                  src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
-                    p.name || p.id,
-                  )}`}
-                  alt={p.name || p.id}
-                  className="w-8 h-8 rounded-full"
-                />
-                <div className="space-y-1">
-                  <div className="font-semibold">{p.name || p.id}</div>
-                  {Object.entries(p)
-                    .filter(([k]) => k !== 'id' && k !== 'name')
-                    .map(([k, v]) => (
-                      <div key={k} className="text-sm text-gray-600">
-                        <span className="font-medium capitalize">{k}:</span>{' '}
-                        {renderValue(v)}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      ) : (
-        <CardContent>No data</CardContent>
-      )}
-      {hasActions && (
+      <CardContent>{content}</CardContent>
+      {markdown.trim() && (
         <CardContent className="flex gap-2">
           <button className="btn-primary text-sm" onClick={copyToClipboard}>
-            {copied ? 'Copied' : 'Copy Actions'}
-          </button>
-          <button className="btn-primary text-sm" onClick={() => setOpen(true)}>
-            View Markdown
+            {copied ? 'Copied' : 'Copy Markdown'}
           </button>
         </CardContent>
       )}
-      <Sheet open={open} onClose={() => setOpen(false)}>
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-        <button className="btn-primary mt-4" onClick={onDownload}>
-          Download Markdown
-        </button>
-      </Sheet>
     </Card>
   )
 }

@@ -5,7 +5,6 @@ import CmsResults from './CmsResults'
 import InsightCard from './InsightCard'
 import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
-import { parseInsightPayload, type ParsedInsight } from '../utils/insightParser'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 
@@ -64,14 +63,14 @@ export default function AnalyzerCard({
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState<string | null>(null)
-  const [parsedInsight, setParsedInsight] = useState<ParsedInsight | null>(null)
+  const [insightMarkdown, setInsightMarkdown] = useState<string | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!result) {
       setInsight(null)
-      setParsedInsight(null)
+      setInsightMarkdown(null)
       setGenError(null)
       setInsightError(null)
       return
@@ -97,7 +96,7 @@ export default function AnalyzerCard({
   async function onGenerate() {
     if (!result) return
     setGenerating(true)
-    setParsedInsight(null)
+    setInsightMarkdown(null)
     setGenError(null)
     setValidationError(null)
     try {
@@ -131,7 +130,7 @@ export default function AnalyzerCard({
           ...(manualCms ? { cms_manual: manualCms } : {}),
         }),
       })
-      setParsedInsight(parseInsightPayload(data))
+      setInsightMarkdown((data.markdown ?? '').trim())
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
@@ -235,12 +234,9 @@ export default function AnalyzerCard({
             >
               {generating ? 'Generating...' : 'Generate Insights'}
             </button>
-            {(generating || parsedInsight) && (
+            {(generating || insightMarkdown !== null) && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightCard
-                  insight={parsedInsight || { actions: [], evidence: '', personas: [], degraded: false }}
-                  loading={generating}
-                />
+                <InsightCard markdown={insightMarkdown ?? ''} loading={generating} />
               </section>
             )}
             {validationError && (
