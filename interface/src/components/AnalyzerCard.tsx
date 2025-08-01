@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
-import InsightCard from './InsightCard'
+import InsightMarkdown from './InsightMarkdown'
 import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
@@ -236,7 +236,7 @@ export default function AnalyzerCard({
             </button>
             {(generating || insightMarkdown !== null) && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightCard markdown={insightMarkdown ?? ''} loading={generating} />
+                <InsightMarkdown markdown={insightMarkdown ?? ''} loading={generating} />
               </section>
             )}
             {validationError && (
