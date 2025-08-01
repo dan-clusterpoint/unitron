@@ -512,7 +512,8 @@ async def test_generate_report_concurrent(monkeypatch):
 
     class DummyResp:
         def __init__(self) -> None:
-            message_obj = type("obj", (), {"content": "{}"})()
+            content = '{"markdown": "hi"}'
+            message_obj = type("obj", (), {"content": content})()
             self.choices = [type("obj", (), {"message": message_obj})()]
 
     async def fake_create(**_kwargs):
@@ -555,10 +556,12 @@ def test_insight_and_personas_invalid_field():
 
 
 @pytest.mark.asyncio
-async def test_generate_report_json_error(monkeypatch):
+async def test_generate_report_json(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            json_snippet = "```json\n{\"foo\": \"bar\"}\n```"
+            json_snippet = """```json
+{"markdown": "bar"}
+```"""
             message_obj = type("obj", (), {"content": json_snippet})()
             self.choices = [type("obj", (), {"message": message_obj})()]
 
@@ -578,14 +581,17 @@ async def test_generate_report_json_error(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"foo": "bar"}
+    assert result == {"markdown": "bar"}
 
 
 @pytest.mark.asyncio
 async def test_generate_report_fenced_json(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            content = "```json\njson\n{ \"foo\": \"bar\" }\n```"
+            content = """```json
+json
+{"markdown": "bar"}
+```"""
             message_obj = type("obj", (), {"content": content})()
             self.choices = [type("obj", (), {"message": message_obj})()]
 
@@ -605,4 +611,30 @@ async def test_generate_report_fenced_json(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"foo": "bar"}
+    assert result == {"markdown": "bar"}
+
+
+@pytest.mark.asyncio
+async def test_generate_report_invalid_json(monkeypatch):
+    class DummyResp:
+        def __init__(self) -> None:
+            message_obj = type("obj", (), {"content": "not json"})()
+            self.choices = [type("obj", (), {"message": message_obj})()]
+
+    async def fake_create(**_kwargs):
+        return DummyResp()
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_create)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
+
+    result = await insight_mod.orchestrator.generate_report("prompt")
+    assert result == {"markdown": "_Degraded: model returned invalid output._"}
