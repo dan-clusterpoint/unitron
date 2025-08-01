@@ -16,7 +16,7 @@ export const server = setupServer(
     }),
   ),
   http.post('/insight', () =>
-    Response.json({ result: { insight: 'Test insight' } }),
+    Response.json({ markdown: 'Test insight' }),
   ),
 )
 

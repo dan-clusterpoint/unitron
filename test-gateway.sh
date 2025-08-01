@@ -35,3 +35,10 @@ if [ $? -eq 0 ]; then
 else
   echo "FAIL"
 fi
+
+curl -X POST "$GATEWAY_URL/insight" -d '{"text":"hi"}' -H 'Content-Type: application/json'
+if [ $? -eq 0 ]; then
+  echo "PASS"
+else
+  echo "FAIL"
+fi

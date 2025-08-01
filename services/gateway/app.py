@@ -157,7 +157,11 @@ async def ready() -> JSONResponse:
 
 
 async def _post_with_retry(
-    url: str, data: dict[str, Any], service: str
+    url: str,
+    data: dict[str, Any],
+    service: str,
+    *,
+    pass_status: bool = False,
 ) -> tuple[dict[str, Any] | None, bool]:
     """POST ``data`` to ``url`` with one retry on failure.
 
@@ -181,7 +185,8 @@ async def _post_with_retry(
                 last_detail = resp.text
                 if resp.status_code == 503:
                     break
-                raise HTTPException(status_code=502, detail=resp.text)
+                status = resp.status_code if pass_status else 502
+                raise HTTPException(status_code=status, detail=resp.text)
             record_success(service, duration, resp.status_code)
             logger.debug("RESPONSE %s body=%s", url, redact(resp.text))
             return resp.json(), False
@@ -203,7 +208,7 @@ async def _post_with_retry(
     record_failure(service, last_code)
     if last_code == 503:
         return None, True
-    status = 502
+    status = last_code if pass_status and last_code else 502
     detail = f"{service} service unavailable"
     if isinstance(last_exc, HTTPException):
         status = last_exc.status_code
@@ -274,9 +279,17 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 @app.post("/insight")
 async def insight(data: dict[str, Any]) -> JSONResponse:
     """Proxy insight generation to the insight service."""
-    insight_data, degraded = await _post_with_retry(
-        INSIGHT_URL, data, "insight"
-    )
+    try:
+        insight_data, degraded = await _post_with_retry(
+            f"{INSIGHT_URL}/insight", data, "insight", pass_status=True
+        )
+    except HTTPException as exc:
+        try:
+            detail_json = json.loads(str(exc.detail))
+        except Exception:  # noqa: BLE001
+            detail_json = {"detail": str(exc.detail)}
+        return JSONResponse(detail_json, status_code=exc.status_code)
+
     if degraded or not insight_data:
         return JSONResponse({"markdown": "_Degraded: insight service unavailable._"})
     return JSONResponse(insight_data)

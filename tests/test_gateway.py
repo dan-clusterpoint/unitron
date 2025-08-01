@@ -377,7 +377,7 @@ def test_insight_success(monkeypatch):
     assert r.status_code == 200
     assert r.json() == {"markdown": "Hi"}
     assert "```" not in r.json()["markdown"]
-    assert captured["path"] == "/"
+    assert captured["path"] == "/insight"
 
 
 def test_insight_error_detail(monkeypatch):
@@ -391,9 +391,25 @@ def test_insight_error_detail(monkeypatch):
     _set_mock_transport(monkeypatch, transport)
 
     r = client.post("/insight", json={"text": ""})
-    assert r.status_code == 502
-    assert r.json()["detail"] == "bad input"
-    assert captured["path"] == "/"
+    assert r.status_code == 400
+    assert r.json() == {"detail": "bad input"}
+    assert captured["path"] == "/insight"
+
+
+def test_insight_json_error_passthrough(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(404, json={"detail": "Not Found"})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/insight", json={"text": "hi"})
+    assert r.status_code == 404
+    assert r.json() == {"detail": "Not Found"}
+    assert captured["path"] == "/insight"
 
 
 def test_insight_timeout(monkeypatch):
@@ -417,7 +433,7 @@ def test_insight_timeout(monkeypatch):
     start = time.perf_counter()
     r = client.post("/insight", json={"text": "hi"})
     duration = time.perf_counter() - start
-    assert r.status_code == 502
+    assert r.status_code == 400
     assert r.json()["detail"] == "slow"
     assert recorded["timeout"] == 30
     assert duration >= 5.1

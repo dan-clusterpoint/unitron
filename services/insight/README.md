@@ -8,6 +8,8 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `GET /health` – liveness probe returning `{ "status": "ok" }`.
 - `GET /ready` – always returns `{ "ready": true }`.
 - `POST /generate-insights` – body `{ "text": "notes" }` returns `{ "markdown": "..." }`.
+- `POST /insight` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }`
+  returns `{ "markdown": "..." }`.
 - `POST /research` – body `{ "topic": "AI" }` returns `{ "markdown": "..." }`.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.

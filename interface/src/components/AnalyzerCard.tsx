@@ -78,13 +78,13 @@ export default function AnalyzerCard({
     const text = result.property?.notes.join('\n') || ''
     setInsightLoading(true)
     setInsightError(null)
-    apiFetch<{ result: { insight?: string } }>('/insight', {
+    apiFetch<{ markdown?: string }>('/insight', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     })
       .then(async (d) => {
-        const summary = d.result.insight || ''
+        const summary = d.markdown || ''
         setInsight(summary)
       })
       .catch((e) => {
