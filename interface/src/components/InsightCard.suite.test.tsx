@@ -50,4 +50,19 @@ describe('InsightCard', () => {
     await userEvent.click(screen.getByText('Copy Actions'))
     expect(write).toHaveBeenCalled()
   })
+
+  test('renders Not provided for missing persona fields', () => {
+    const insight: ParsedInsight = {
+      evidence: '',
+      personas: [
+        { id: 'p1', name: 'P1', demographics: '', company: null },
+      ],
+      actions: [],
+      degraded: false,
+    }
+    render(<InsightCard insight={insight} />)
+    screen.getByText(/demographics/i)
+    screen.getByText(/company/i)
+    expect(screen.getAllByText('Not provided')).toHaveLength(2)
+  })
 })

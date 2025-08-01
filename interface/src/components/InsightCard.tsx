@@ -28,6 +28,10 @@ function actionsToMarkdown(actions: Action[]): string {
     .join('\n\n')
 }
 
+function renderValue(v: unknown): string {
+  return v === undefined || v === null || v === '' ? 'Not provided' : String(v)
+}
+
 export interface InsightCardProps {
   insight: ParsedInsight
   loading?: boolean
@@ -130,7 +134,7 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
                     .map(([k, v]) => (
                       <div key={k} className="text-sm text-gray-600">
                         <span className="font-medium capitalize">{k}:</span>{' '}
-                        {String(v)}
+                        {renderValue(v)}
                       </div>
                     ))}
                 </div>

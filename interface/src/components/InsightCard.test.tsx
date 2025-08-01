@@ -24,6 +24,21 @@ test('renders evidence, actions and personas', () => {
   screen.getByText('buyer')
 })
 
+test('renders Not provided for missing persona fields', () => {
+  const insight: ParsedInsight = {
+    evidence: '',
+    personas: [
+      { id: 'p1', name: 'P1', demographics: '', company: null },
+    ],
+    actions: [],
+    degraded: false,
+  }
+  render(<InsightCard insight={insight} />)
+  screen.getByText(/demographics/i)
+  screen.getByText(/company/i)
+  expect(screen.getAllByText('Not provided')).toHaveLength(2)
+})
+
 test('copies markdown to clipboard and opens sheet', async () => {
   const write = vi.fn()
   Object.assign(navigator as any, { clipboard: { writeText: write } })
