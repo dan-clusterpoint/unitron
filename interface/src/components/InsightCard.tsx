@@ -43,6 +43,7 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
   const [open, setOpen] = useState(false)
   const safeActions = Array.isArray(actions) ? actions : []
   const safePersonas = Array.isArray(personas) ? personas : []
+  const evidenceText = evidence?.trim()
   const markdown = actionsToMarkdown(safeActions)
   const html = marked.parse(markdown)
 
@@ -80,14 +81,14 @@ export default function InsightCard({ insight, loading = false }: InsightCardPro
 
   return (
     <Card className="space-y-4">
-      {evidence && (
+      {evidenceText && (
         <CardHeader>
           <CardTitle>Insight</CardTitle>
         </CardHeader>
       )}
-      {evidence && (
+      {evidenceText && (
         <CardContent>
-          <p className="prose max-w-none">{evidence}</p>
+          <p className="prose max-w-none">{evidenceText}</p>
         </CardContent>
       )}
       {hasActions ? (

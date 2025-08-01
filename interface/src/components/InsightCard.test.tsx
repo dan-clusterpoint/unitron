@@ -90,3 +90,17 @@ test('shows fallback message when no actions', () => {
   screen.getByText('P1')
   screen.getByText('No recommended actions were generated for this analysis.')
 })
+
+test.each(['', '   '])(
+  'omits Insight heading when evidence is %p',
+  (evidence) => {
+    const insight: ParsedInsight = {
+      evidence,
+      personas: [],
+      actions: [],
+      degraded: false,
+    }
+    render(<InsightCard insight={insight} />)
+    expect(screen.queryByText('Insight')).toBeNull()
+  },
+)
