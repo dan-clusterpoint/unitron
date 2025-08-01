@@ -15,54 +15,33 @@ except Exception:  # noqa: BLE001
 logger = logging.getLogger(__name__)
 
 # Default token limit for OpenAI responses
-OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "800"))
+OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "900"))
 
-# Canonical schema used when prompting the LLM. The example combines a
-# TypeScript interface and JSON snippet so tests can verify the keys
-# are present in the service response.
-NEXT_BEST_ACTION_EXAMPLE = """
-```ts
-interface NextBestAction {
-  title: string;
-  description: string;
-  action: string;
-  source: { url: string };
-  credibilityScore: number;
-}
-```
+# Markdown outline for model responses.
+MARKDOWN_OUTLINE = """
+```markdown
+## Evidence
+- Summarize the findings in 1-2 sentences.
 
-```json
-{
-  "title": "Improve caching",
-  "description": "Use caching to reduce load",
-  "action": "Add HTTP cache middleware",
-  "source": { "url": "https://example.com" },
-  "credibilityScore": 0.9
-}
-```
-"""
+## Company
+- Key attributes of the company.
 
-# Example persona schema with all fields populated. Unknown attributes use
-# the literal string "unknown" to ensure every key has a value.
-PERSONA_EXAMPLE = """
-```ts
-interface Persona {
-  id: string;
-  name: string;
-  role: string;
-  goal: string;
-  challenge: string;
-}
-```
+## Technology
+- Relevant technologies discovered.
 
-```json
-{
-  "id": "P1",
-  "name": "Jane Doe",
-  "role": "CTO",
-  "goal": "Improve developer productivity",
-  "challenge": "unknown"
-}
+## Personas
+- id: string
+  name: string
+  role: string
+  goal: string
+  challenge: string
+
+## Next Best Actions
+- title: string
+  description: string
+  action: string
+  source: url
+  credibilityScore: number
 ```
 """
 
@@ -136,12 +115,9 @@ def build_prompt(
         f"Company: {company_text}\n"
         f"Technology: {tech_text}\n"
         f"Question: {question}\n"
-        "Respond only with a JSON payload. Always include an evidence field summarizing the findings in 1-2 sentences. Provide company, technology and user personas. Fill every persona attribute; use the literal string \"unknown\" when data is not available."
+        "Return ONLY GitHub-flavoured Markdown using the following outline:\n"
     )
-    prompt += "\n" + NEXT_BEST_ACTION_EXAMPLE
-    prompt += "\n" + PERSONA_EXAMPLE
-    prompt += ("\nReply only with JSON matching the above structure inside a"
-               " ```json code block. Keep empty arrays/objects.")
+    prompt += MARKDOWN_OUTLINE
     return prompt
 
 
