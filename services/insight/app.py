@@ -477,6 +477,7 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                 insight_text = ""
 
         evidence_text = ""
+        evidence_obj: Any
         if isinstance(insight_text, dict):
             evidence_text = insight_text.pop("evidence", "") or ""
             persona_obj = insight_text.pop("Persona", None)
@@ -493,10 +494,17 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
                 }
                 persona_defaults.update(persona_obj)
                 personas_list.append(persona_defaults)
-        elif isinstance(insight_raw, dict):
-            evidence_text = insight_raw.get("evidence", "") or ""
+            if actions or evidence_text:
+                evidence_obj = {"insights": actions, "evidence": evidence_text}
+            else:
+                evidence_obj = insight_text
+        else:
+            if isinstance(insight_raw, dict):
+                evidence_text = insight_raw.get("evidence", "") or ""
+            elif isinstance(insight_text, str):
+                evidence_text = insight_text
+            evidence_obj = {"insights": actions, "evidence": evidence_text}
 
-        evidence_obj = {"insights": actions, "evidence": evidence_text}
         insight_obj = {"actions": actions, "evidence": evidence_obj}
 
         degraded = False
