@@ -237,7 +237,7 @@ def test_insight_and_personas(monkeypatch):
                     "credibilityScore": 0.5,
                 }
             ],
-            "summary": "I",
+            "evidence": "I",
         }
 
     monkeypatch.setattr(
@@ -275,7 +275,10 @@ def test_insight_and_personas(monkeypatch):
     ):
         assert key in act
     assert "url" in act["source"]
-    assert data["insight"]["evidence"] == "I"
+    assert data["insight"]["evidence"] == {
+        "insights": actions,
+        "evidence": "I",
+    }
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
     assert "cms_manual" not in data
     assert data["degraded"] is False
@@ -330,8 +333,63 @@ def test_insight_and_personas_action_dict(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert data["insight"]["actions"] == [{"title": "T1", "action": "A1"}]
-    assert data["insight"]["evidence"] == ""
+    assert data["insight"]["evidence"] == {
+        "insights": [{"title": "T1", "action": "A1"}],
+        "evidence": "",
+    }
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
+
+
+def test_insight_and_personas_next_best_action(monkeypatch):
+    async def fake_report(prompt: str, **_kwargs):
+        if "buyer personas" in prompt.lower():
+            return {"generated_buyer_personas": {"P0": {"name": "P0"}}}
+        return {
+            "NextBestAction": {"title": "T1", "action": "A1"},
+            "evidence": "EV",
+            "Persona": {"name": "PN"},
+        }
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator,
+        "generate_report",
+        fake_report,
+    )
+
+    r = client.post(
+        "/insight-and-personas",
+        json={
+            "url": "https://ex",
+            "martech": {},
+            "cms": [],
+            "evidence_standards": "s",
+            "credibility_scoring": "c",
+            "deliverable_guidelines": "d",
+            "audience": "a",
+            "preferences": "p",
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["insight"]["actions"] == [{"title": "T1", "action": "A1"}]
+    assert data["insight"]["evidence"] == {
+        "insights": [{"title": "T1", "action": "A1"}],
+        "evidence": "EV",
+    }
+    personas = data["personas"]
+    assert any(p["name"] == "P0" for p in personas)
+    extracted = next(p for p in personas if p["name"] == "PN")
+    assert extracted["name"] == "PN"
+    for field in [
+        "id",
+        "role",
+        "goal",
+        "challenge",
+        "demographics",
+        "needs",
+        "goals",
+    ]:
+        assert extracted[field] == "unknown"
 
 
 def test_insight_and_personas_warnings(monkeypatch):

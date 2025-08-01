@@ -451,24 +451,53 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
 
         actions: list[Any] = []
         if isinstance(insight_raw, dict):
-            for key in ("actions", "action_items", "next_best_actions"):
+            for key in (
+                "actions",
+                "action_items",
+                "next_best_actions",
+                "NextBestAction",
+            ):
                 if key in insight_raw:
                     val = insight_raw[key]
-                    if isinstance(val, list):
+                    if key == "NextBestAction" and val is not None:
+                        actions = [val]
+                    elif isinstance(val, list):
                         actions = val
                     elif val is not None:
                         actions = [val]
                     break
 
-        if (
-            not actions
-            and isinstance(insight_text, dict)
-            and {"title", "action"}.issubset(insight_text.keys())
-        ):
-            actions = [insight_text]
-            insight_text = ""
+        if not actions and isinstance(insight_text, dict):
+            if "NextBestAction" in insight_text:
+                val = insight_text.pop("NextBestAction")
+                if val is not None:
+                    actions = [val]
+            elif {"title", "action"}.issubset(insight_text.keys()):
+                actions = [insight_text]
+                insight_text = ""
 
-        insight_obj = {"actions": actions, "evidence": insight_text}
+        evidence_text = ""
+        if isinstance(insight_text, dict):
+            evidence_text = insight_text.pop("evidence", "") or ""
+            persona_obj = insight_text.pop("Persona", None)
+            if isinstance(persona_obj, dict):
+                persona_defaults = {
+                    "id": "unknown",
+                    "name": "unknown",
+                    "role": "unknown",
+                    "goal": "unknown",
+                    "challenge": "unknown",
+                    "demographics": "unknown",
+                    "needs": "unknown",
+                    "goals": "unknown",
+                }
+                persona_defaults.update(persona_obj)
+                personas_list.append(persona_defaults)
+        elif isinstance(insight_raw, dict):
+            evidence_text = insight_raw.get("evidence", "") or ""
+
+        evidence_obj = {"insights": actions, "evidence": evidence_text}
+        insight_obj = {"actions": actions, "evidence": evidence_obj}
 
         degraded = False
         if (
