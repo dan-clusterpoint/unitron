@@ -377,8 +377,8 @@ def test_insight_success(monkeypatch):
 
     r = client.post("/insight", json={"text": "Hello"})
     assert r.status_code == 200
-    assert r.json() == {"result": {"markdown": "Hi"}, "degraded": False}
-    assert captured["path"] == "/generate-insights"
+    assert r.json() == {"markdown": "Hi", "degraded": False}
+    assert captured["path"] == "/"
 
 
 def test_insight_error_detail(monkeypatch):
@@ -394,52 +394,7 @@ def test_insight_error_detail(monkeypatch):
     r = client.post("/insight", json={"text": ""})
     assert r.status_code == 502
     assert r.json()["detail"] == "bad input"
-    assert captured["path"] == "/generate-insights"
-
-
-def test_generate_insight_and_personas_success(monkeypatch):
-    captured = {}
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        import json
-
-        captured["path"] = request.url.path
-        captured["body"] = json.loads(request.content.decode())
-        return httpx.Response(200, json={"ok": True})
-
-    transport = httpx.MockTransport(handler)
-    _set_mock_transport(monkeypatch, transport)
-
-    payload = {"foo": 1, "evidence_standards": "x"}
-    r = client.post("/generate-insight-and-personas", json=payload)
-    assert r.status_code == 200
-    assert r.json() == {"result": {"ok": True}, "degraded": False}
-    assert captured["path"] == "/insight-and-personas"
-    assert captured["body"] == payload
-
-    metrics_data = gateway_app.metrics
-    assert metrics_data["insight"]["success"] >= 1
-
-
-def test_generate_insight_and_personas_degraded(monkeypatch):
-    captured = {}
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        captured["path"] = request.url.path
-        return httpx.Response(503)
-
-    transport = httpx.MockTransport(handler)
-    _set_mock_transport(monkeypatch, transport)
-
-    before = gateway_app.metrics["insight"]["failure"]
-    before_code = gateway_app.metrics["insight"]["codes"].get("503", 0)
-
-    r = client.post("/generate-insight-and-personas", json={"foo": "bar"})
-    assert r.status_code == 200
-    assert r.json()["degraded"] is True
-    assert captured["path"] == "/insight-and-personas"
-    assert gateway_app.metrics["insight"]["failure"] == before + 1
-    assert gateway_app.metrics["insight"]["codes"].get("503", 0) == before_code + 1
+    assert captured["path"] == "/"
 
 
 def test_insight_timeout(monkeypatch):

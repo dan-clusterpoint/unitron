@@ -149,9 +149,9 @@ test('displays insight text', async () => {
 test('shows skeleton while generating', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/generate-insight-and-personas', async () => {
+    http.post('/insight', async () => {
       await new Promise((r) => setTimeout(r, 50))
-      return Response.json({ result: { evidence: 'done', actions: [], personas: [], degraded: false } })
+      return Response.json({ markdown: 'done', degraded: false })
     }),
   )
   render(
@@ -178,7 +178,7 @@ test('shows skeleton while generating', async () => {
 test('shows generated details on success', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/generate-insight-and-personas', async ({ request }) => {
+    http.post('/insight', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({
         url: 'https://example.com',
@@ -195,18 +195,7 @@ test('shows generated details on success', async () => {
         audience: ORG_CONTEXT.audience ?? '',
         preferences: ORG_CONTEXT.preferences ?? '',
       })
-      return Response.json({
-        result: {
-          insight: {
-            evidence: 'Flow',
-            actions: {
-              a1: { title: 'Do it', reasoning: 'why', benefit: 'gain' },
-            },
-          },
-          personas: { p1: { name: 'P1', demographics: 'buyer' } },
-          degraded: false,
-        },
-      })
+      return Response.json({ markdown: 'Flow', degraded: false })
     }),
   )
   render(
@@ -227,18 +216,13 @@ test('shows generated details on success', async () => {
   await screen.findByText('Test insight')
   const btn = screen.getByRole('button', { name: /generate insights/i })
   await userEvent.click(btn)
-  await screen.findByText('Do it')
-  screen.getByText('why')
-  screen.getByText('gain')
-  screen.getByText('Flow')
-  screen.getByText('P1')
-  screen.getByText('buyer')
+  await screen.findByText('Flow')
 })
 
 test('shows error when generation fails', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/generate-insight-and-personas', () => new Response(null, { status: 500 }))
+    http.post('/insight', () => new Response(null, { status: 500 }))
   )
   render(
     <AnalyzerCard
@@ -297,9 +281,9 @@ test('shows validation error and skips POST on invalid payload', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   const spy = vi.fn()
   server.use(
-    http.post('/generate-insight-and-personas', () => {
+    http.post('/insight', () => {
       spy()
-      return Response.json({ result: {} })
+      return Response.json({})
     }),
   )
   const badResult: AnalyzeResult = {

@@ -105,35 +105,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /generate-insight-and-personas` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}` proxies to the insight service and returns `{"insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false}`. The gateway performs both OpenAI calls concurrently and enforces a 30 s timeout.
+* `POST /insight` – body `{"text": "notes"}` proxies to `INSIGHT_URL` and returns `{"markdown": "...", "degraded": false}`.
 * `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `30`s).
-
-Request schema:
-
-```json
-{
-  "url": "https://example.com",
-  "martech": {},
-  "cms": [],
-  "cms_manual": "WordPress",
-  "evidence_standards": "Use peer-reviewed data when available",
-  "credibility_scoring": "Score evidence 1-5 based on reliability",
-  "deliverable_guidelines": "Write deliverables in plain language",
-  "audience": "CTO and senior engineers",
-  "preferences": "Focus on open-source solutions"
-}
-```
-
-Response schema:
-
-```json
-{
-  "insight": "text",
-  "personas": [{"id": "P1"}],
-  "cms_manual": "WordPress",
-  "degraded": false
-}
-```
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
 `INSIGHT_TIMEOUT` sets the POST timeout (seconds) when contacting the insight service and defaults to `30`.
@@ -146,13 +119,6 @@ curl -X POST http://localhost:8080/analyze \
   -d '{"url": "https://example.com"}'
 ```
 
-Example (generate with manual CMS):
-
-```bash
-curl -X POST http://localhost:8080/generate-insight-and-personas \
-  -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}'
-```
 
 ### Martech analyzer service
 The martech service exposes several endpoints:
@@ -232,23 +198,6 @@ python‑wappalyzer. It is disabled by default to keep startup fast.
 
 ### Manual CMS input
 
-The `/generate-insight-and-personas` endpoint lets you provide a `cms_manual` string when the
-analyzer cannot detect a CMS. Optional keys `evidence_standards`, `credibility_scoring`,
-`deliverable_guidelines`, `audience` and `preferences` customize how the insight
-service writes the report. The gateway forwards these values to the martech service
-which in turn calls the insight service so personas can still reference a specific
-platform and follow your guidelines.
-
-The React interface exposes a dropdown for this field only when the analysis
-returns an empty CMS list.
-
-Example request:
-
-```bash
-curl -X POST http://localhost:8080/generate-insight-and-personas \
-  -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "Drupal", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}'
-```
 
 Set `CMS_MANUAL_LOG_PATH` to a file path to record submitted `cms_manual`
 values. Reviewing these logs helps refine `cms_fingerprints.yaml` with real

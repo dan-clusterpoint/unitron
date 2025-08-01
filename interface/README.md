@@ -34,14 +34,14 @@ The interface **requires** `VITE_API_BASE_URL` in `.env` so it knows where the
 API is running. The template now defaults to `http://localhost:8080`. Update
 this value to point at your deployed gateway as needed.
 
-The gateway's `/insight` endpoint calls `/generate-insights` on the insight service.
+The gateway's `/insight` endpoint proxies to `INSIGHT_URL`.
 Make sure `OPENAI_API_KEY` is set in that service's environment so it can reach the OpenAI API.
 
 ## Insight display
 
 The analysis result now includes an "Executive Summary" showing a short
 insight fetched from the gateway. When a user clicks **Generate
-Insights** the frontend calls `/generate-insight-and-personas`.
+Insights** the frontend calls `/insight`.
 `parseInsightPayload` in `src/utils` maps the canonical response fields
 so components consume a consistent structure. The parsed result is then
 passed to `InsightCard` which renders the summary, recommended actions
