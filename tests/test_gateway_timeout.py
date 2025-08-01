@@ -19,7 +19,7 @@ def _set_mock_transport(monkeypatch, handler: httpx.MockTransport) -> None:
 def test_insight_waits_for_25_seconds(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
         await asyncio.sleep(25)
-        return httpx.Response(200, json={"ok": True})
+        return httpx.Response(200, json={"markdown": "hi"})
 
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
@@ -29,5 +29,5 @@ def test_insight_waits_for_25_seconds(monkeypatch):
     duration = time.perf_counter() - start
 
     assert r.status_code == 200
-    assert r.json() == {"ok": True, "degraded": False}
+    assert r.json() == {"markdown": "hi"}
     assert duration >= 25
