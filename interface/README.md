@@ -41,8 +41,5 @@ Make sure `OPENAI_API_KEY` is set in that service's environment so it can reach 
 
 The analysis result now includes an "Executive Summary" showing a short
 insight fetched from the gateway. When a user clicks **Generate
-Insights** the frontend calls `/insight`.
-`parseInsightPayload` in `src/utils` maps the canonical response fields
-so components consume a consistent structure. The parsed result is then
-passed to `InsightCard` which renders the summary, recommended actions
-and any personas.
+Insights** the frontend calls `/insight` which returns markdown. The
+markdown is rendered directly by `InsightCard`.

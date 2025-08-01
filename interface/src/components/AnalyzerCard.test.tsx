@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../setupTests'
 import { http } from 'msw'
@@ -141,8 +141,7 @@ test('displays insight text', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
   expect(btn).toBeEnabled()
 })
 
@@ -169,8 +168,8 @@ test('shows skeleton while generating', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
   await screen.findByTestId('insight-skeleton')
 })
@@ -213,10 +212,36 @@ test('shows generated details on success', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
   await screen.findByText('Flow')
+})
+
+test('shows fallback when markdown empty', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () => Response.json({ markdown: '', degraded: false })),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByText('Analysis unavailable')
 })
 
 test('shows error when generation fails', async () => {
@@ -239,10 +264,11 @@ test('shows error when generation fails', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
-  await screen.findByText('HTTP 500')
+  const errs = await screen.findAllByText('HTTP 500')
+  expect(errs.length).toBeGreaterThan(0)
 })
 
 test('shows insight error and button enabled on insight failure', async () => {
@@ -281,8 +307,9 @@ test('shows validation error and skips POST on invalid payload', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   const spy = vi.fn()
   server.use(
-    http.post('/insight', () => {
-      spy()
+    http.post('/insight', async ({ request }) => {
+      const body = await request.json()
+      if (!('text' in body)) spy()
       return Response.json({})
     }),
   )
@@ -306,8 +333,8 @@ test('shows validation error and skips POST on invalid payload', async () => {
       result={{ ...badResult, cms: [] }}
     />,
   )
-  await screen.findByText('Test insight')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
   await screen.findByText(/Expected string/i)
   expect(spy).not.toHaveBeenCalled()
