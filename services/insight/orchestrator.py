@@ -135,15 +135,13 @@ def _extract_json_block(text: str) -> str:
     return stripped
 
 
-async def generate_report(
-    prompt: str, *, timeout: int = 30, retries: int = 2
-) -> dict[str, Any]:
-    """Call OpenAI with ``prompt`` and return parsed JSON.
+async def generate_report(prompt: str, *, timeout: int = 30) -> dict[str, Any]:
+    """Return ``{"markdown": md}`` from the model response.
 
-    Timeouts and transient errors trigger retries. If the response cannot be
-    parsed as JSON, the raw ``content`` is returned as
-    ``{"insight": content, "degraded": True}``. On other failures the return
-    value includes ``{"error": "[Data Gap]"}``.
+    The helper delegates to :func:`call_openai_with_retry`, strips surrounding
+    code fences, and extracts the ``markdown`` field from the JSON payload. On
+    JSON decode failures or missing/empty ``markdown`` content, a degraded
+    message is returned and the raw text is logged for diagnostics.
     """
 
     messages = [
@@ -157,11 +155,18 @@ async def generate_report(
         )
     except Exception:  # noqa: BLE001
         logger.error("OpenAI request failed", exc_info=True)
-        return {"error": "[Data Gap]"}
+        return {"markdown": "_Degraded: model returned invalid output._"}
 
     if degraded:
-        return {"error": "[Data Gap]"}
+        logger.warning("OpenAI request degraded: %s", content)
+        return {"markdown": "_Degraded: model returned invalid output._"}
+
     try:
-        return json.loads(_extract_json_block(content))
+        data = json.loads(_extract_json_block(content))
+        md = data.get("markdown")
+        if not md:
+            raise JSONDecodeError("missing markdown", content, 0)
+        return {"markdown": md}
     except JSONDecodeError:
-        return {"insight": content, "degraded": True}
+        logger.warning("Invalid model output: %s", content)
+        return {"markdown": "_Degraded: model returned invalid output._"}
