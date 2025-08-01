@@ -43,7 +43,7 @@ def test_options_respects_ui_origin(monkeypatch):
 
 def test_generate_insights(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": "Hello insight"}
+        return {"markdown": "Hello insight", "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -52,12 +52,12 @@ def test_generate_insights(monkeypatch):
     r = client.post("/generate-insights", json={"text": "  some text\n"})
     assert r.status_code == 200
     data = r.json()
-    assert data["markdown"] == "Hello insight"
+    assert data == {"markdown": "Hello insight", "degraded": False}
 
 
 def test_insight_endpoint(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": "Hello markdown"}
+        return {"markdown": "Hello markdown", "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -66,12 +66,12 @@ def test_insight_endpoint(monkeypatch):
     payload = {"url": "https://ex.com", "martech": {}, "cms": []}
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
-    assert r.json()["markdown"] == "Hello markdown"
+    assert r.json() == {"markdown": "Hello markdown", "degraded": False}
 
 
 def test_insight_trailing_slash(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": "Tolerant"}
+        return {"markdown": "Tolerant", "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -79,12 +79,12 @@ def test_insight_trailing_slash(monkeypatch):
 
     r = client.post("/insight/", json={"text": "foo"})
     assert r.status_code == 200
-    assert r.json()["markdown"] == "Tolerant"
+    assert r.json() == {"markdown": "Tolerant", "degraded": False}
 
 
 def test_research(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": "Research result"}
+        return {"markdown": "Research result", "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -93,12 +93,12 @@ def test_research(monkeypatch):
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
     data = r.json()
-    assert data["markdown"] == "Research result"
+    assert data == {"markdown": "Research result", "degraded": False}
 
 
 def test_research_trim(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": "Trim me"}
+        return {"markdown": "Trim me", "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -107,7 +107,7 @@ def test_research_trim(monkeypatch):
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
     data = r.json()
-    assert data["markdown"] == "Trim me"
+    assert data == {"markdown": "Trim me", "degraded": False}
 
 
 def test_research_validation_error():
@@ -175,7 +175,7 @@ def test_postprocess_report(monkeypatch):
 def test_metrics_and_warnings(monkeypatch):
     huge = "[Data Gap]" + "x" * (260 * 1024)
     async def fake_report(prompt: str, **_kwargs):
-        return {"markdown": huge}
+        return {"markdown": huge, "degraded": False}
 
     monkeypatch.setattr(
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
@@ -477,9 +477,9 @@ async def test_generate_report_concurrent(monkeypatch):
 
     class DummyResp:
         def __init__(self) -> None:
-            content = '{"markdown": "hi"}'
-            message_obj = type("obj", (), {"content": content})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+            content = "hi"
+            message_obj = type("obj", (), {"content": content, "finish_reason": "stop"})()
+            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
 
     async def fake_create(**_kwargs):
         await asyncio.sleep(sleep_dur)
@@ -524,11 +524,11 @@ def test_insight_and_personas_invalid_field():
 async def test_generate_report_json(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            json_snippet = """```json
+            self.json_snippet = """```json
 {"markdown": "bar"}
 ```"""
-            message_obj = type("obj", (), {"content": json_snippet})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+            message_obj = type("obj", (), {"content": self.json_snippet, "finish_reason": "stop"})()
+            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
 
     async def fake_create(**_kwargs):
         return DummyResp()
@@ -546,18 +546,17 @@ async def test_generate_report_json(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"markdown": "bar"}
-    assert "```" not in result["markdown"]
+    expected = "```json\n{\"markdown\": \"bar\"}\n```"
+    assert result["markdown"] == expected
+    assert result["degraded"] is True
+
 
 
 @pytest.mark.asyncio
-async def test_generate_report_fenced_json(monkeypatch):
+async def test_generate_report_fenced_markdown(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            content = """```json
-json
-{"markdown": "bar"}
-```"""
+            content = """```markdown\n# Title\nBody text\n```"""
             message_obj = type("obj", (), {"content": content})()
             self.choices = [type("obj", (), {"message": message_obj})()]
 
@@ -577,16 +576,15 @@ json
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"markdown": "bar"}
-    assert "```" not in result["markdown"]
+    assert result == {"markdown": "# Title\nBody text", "degraded": False}
 
 
 @pytest.mark.asyncio
-async def test_generate_report_invalid_json(monkeypatch):
+async def test_generate_report_short_text(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
-            message_obj = type("obj", (), {"content": "not json"})()
-            self.choices = [type("obj", (), {"message": message_obj})()]
+            message_obj = type("obj", (), {"content": "hi"})()
+            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
 
     async def fake_create(**_kwargs):
         return DummyResp()
@@ -604,5 +602,39 @@ async def test_generate_report_invalid_json(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    assert result == {"markdown": "_Degraded: model returned invalid output._"}
-    assert "```" not in result["markdown"]
+    assert result["markdown"] == "hi"
+    assert result["degraded"] is True
+
+
+@pytest.mark.asyncio
+async def test_call_openai_streaming(monkeypatch):
+    class Event:
+        def __init__(self, content: str | None, finish: str | None = None) -> None:
+            delta = {} if content is None else {"content": content}
+            self.choices = [type("obj", (), {"delta": delta, "finish_reason": finish})()]
+
+    async def fake_stream(**_kwargs):
+        async def generator():
+            yield Event("foo")
+            yield Event("bar", "stop")
+
+        return generator()
+
+    class DummyChat:
+        completions = type("obj", (), {"create": staticmethod(fake_stream)})()
+
+    class DummyClient:
+        def __init__(self, *a, **kw) -> None:
+            self.chat = DummyChat
+
+    dummy_module = types.SimpleNamespace(AsyncOpenAI=lambda api_key=None: DummyClient())
+    monkeypatch.setattr(insight_mod.orchestrator, "openai", dummy_module, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
+
+    content, finish, degraded = await insight_mod.orchestrator.call_openai_with_retry(
+        [], stream=True
+    )
+    assert content == "foobar"
+    assert finish == "stop"
+    assert degraded is False

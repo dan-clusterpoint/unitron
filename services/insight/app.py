@@ -127,6 +127,7 @@ class ResearchRequest(BaseModel):
 
 class MarkdownResponse(BaseModel):
     markdown: str
+    degraded: bool
 
 
 class InsightPersonaRequest(BaseModel):
