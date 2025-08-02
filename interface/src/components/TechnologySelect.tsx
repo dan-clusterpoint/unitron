@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, type SyntheticEvent } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
 import { normalizeTechList } from '../utils/tech'
 
-const SUGGESTIONS = [
+type Suggestion = { group: string; label: string }
+
+const SUGGESTIONS: Suggestion[] = [
   { group: 'Core analytics/marketing', label: 'Google Analytics' },
   { group: 'Core analytics/marketing', label: 'Adobe Analytics' },
   { group: 'Core analytics/marketing', label: 'Segment' },
@@ -35,7 +37,10 @@ type TechnologySelectProps = {
 export default function TechnologySelect({ value, onChange }: TechnologySelectProps) {
   const [showEmptyNote, setShowEmptyNote] = useState(false)
 
-  function handleChange(_: unknown, newValue: (string | { label: string })[]) {
+  function handleChange(
+    _: SyntheticEvent,
+    newValue: (string | Suggestion)[],
+  ) {
     const mapped = newValue.map((v) => (typeof v === 'string' ? v : v.label))
     const normalized = normalizeTechList(mapped)
     setShowEmptyNote(mapped.some((v) => !v || !v.trim()))
@@ -44,17 +49,20 @@ export default function TechnologySelect({ value, onChange }: TechnologySelectPr
 
   return (
     <div className="mt-4">
-      <Autocomplete
+      <Autocomplete<Suggestion, true, false, true>
         multiple
         freeSolo
         options={SUGGESTIONS}
-        groupBy={(option) => (option as any).group}
+        groupBy={(option) => option.group}
         getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
         value={value}
-        onChange={handleChange as any}
+        onChange={handleChange}
         renderTags={(tagValue, getTagProps) =>
           tagValue.map((option, index) => (
-            <Chip {...getTagProps({ index })} label={option} />
+            <Chip
+              {...getTagProps({ index })}
+              label={typeof option === 'string' ? option : option.label}
+            />
           ))
         }
         renderInput={(params) => <TextField {...params} label="Technologies in use" />}

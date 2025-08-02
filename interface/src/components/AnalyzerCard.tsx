@@ -9,6 +9,7 @@ import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
   martech: Record<string, string[] | Record<string, unknown>> | null,
 ) {
@@ -119,11 +120,17 @@ export default function AnalyzerCard({
     setValidationError(null)
     try {
       const clean = normalizeUrl(url)
+      const source = (result.martech ?? {}) as {
+        core?: string[]
+        adjacent?: string[]
+        broader?: string[]
+        competitors?: string[]
+      }
       const martech = {
-        core: (result.martech as any)?.core ?? [],
-        adjacent: (result.martech as any)?.adjacent ?? [],
-        broader: (result.martech as any)?.broader ?? [],
-        competitors: (result.martech as any)?.competitors ?? [],
+        core: source.core ?? [],
+        adjacent: source.adjacent ?? [],
+        broader: source.broader ?? [],
+        competitors: source.competitors ?? [],
       }
       const payload = {
         url: clean,

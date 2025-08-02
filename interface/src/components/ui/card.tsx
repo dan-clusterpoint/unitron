@@ -2,7 +2,7 @@ import { forwardRef } from 'react'
 import type { HTMLAttributes } from 'react'
 import clsx from 'clsx'
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+export type CardProps = HTMLAttributes<HTMLDivElement>
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ className, ...props }, ref) {
   return <div ref={ref} className={clsx('rounded-lg border bg-white shadow-sm', className)} {...props} />
