@@ -544,6 +544,11 @@ test('chips reflect live values', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Flow', degraded: false }),
+    ),
+  )
   render(
     <AnalyzerCard
       id="a"
@@ -557,7 +562,13 @@ test('chips reflect live values', async () => {
       loading={false}
       error=""
       result={{ ...result, cms: [] }}
-    />,
+    />, 
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
   )
   await screen.findByText('SaaS')
   await screen.findByText('Latency')
@@ -588,6 +599,11 @@ test('chip clicks focus corresponding inputs', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Flow', degraded: false }),
+    ),
+  )
   render(
     <AnalyzerCard
       id="a"
@@ -602,6 +618,12 @@ test('chip clicks focus corresponding inputs', async () => {
       error=""
       result={{ ...result, cms: [] }}
     />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
   )
   const industryChip = await screen.findByText('Fintech')
   await userEvent.click(industryChip)
@@ -632,6 +654,11 @@ test('context strength updates with field edits', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Flow', degraded: false }),
+    ),
+  )
   render(
     <AnalyzerCard
       id="a"
@@ -646,6 +673,12 @@ test('context strength updates with field edits', async () => {
       error=""
       result={{ ...result, cms: [] }}
     />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
   )
   await screen.findByText('Context strength: High')
   const industryChip = screen.getByText('Fintech')
