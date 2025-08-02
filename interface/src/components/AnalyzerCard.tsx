@@ -188,6 +188,7 @@ export default function AnalyzerCard({
       })
       setInsightMarkdown((data.markdown ?? '').trim())
       setInsightMarkdownDegraded(data.degraded)
+      setHasGenerated(true)
     } catch (e) {
       setGenError((e as Error).message)
     } finally {

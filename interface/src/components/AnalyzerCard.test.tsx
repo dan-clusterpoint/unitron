@@ -544,6 +544,7 @@ test('chips reflect live values', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
+
   render(
     <AnalyzerCard
       id="a"
