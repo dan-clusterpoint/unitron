@@ -1,14 +1,20 @@
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
+import { type Ref } from 'react'
 import { SUGGESTIONS, type StackItem } from '../utils/tech'
 
 export type TechnologySelectProps = {
   value: StackItem[]
   onChange: (v: StackItem[]) => void
+  inputRef?: Ref<HTMLInputElement>
 }
 
-export default function TechnologySelect({ value, onChange }: TechnologySelectProps) {
+export default function TechnologySelect({
+  value,
+  onChange,
+  inputRef,
+}: TechnologySelectProps) {
   return (
     <div className="mt-4">
       <Autocomplete<StackItem, true, false, false>
@@ -27,7 +33,13 @@ export default function TechnologySelect({ value, onChange }: TechnologySelectPr
             />
           ))
         }
-        renderInput={(params) => <TextField {...params} label="Technologies in use" />}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Technologies in use"
+            inputRef={inputRef}
+          />
+        )}
       />
     </div>
   )
