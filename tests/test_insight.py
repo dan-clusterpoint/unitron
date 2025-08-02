@@ -63,10 +63,33 @@ def test_insight_endpoint(monkeypatch):
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
     )
 
-    payload = {"url": "https://ex.com", "martech": {}, "cms": []}
+    payload = {"url": "https://ex.com", "martech": {}, "cms": [], "tech_core": ["GA4"], "tech_adjacent": ["GTM"], "tech_broader": []}
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
     assert r.json() == {"markdown": "Hello markdown", "degraded": False}
+
+
+def test_insight_declared_stack_forwarded(monkeypatch):
+    captured: dict[str, list[str] | None] = {}
+
+    def fake_build_prompt(question, **kwargs):
+        captured['tech_core'] = kwargs.get('tech_core')
+        captured['tech_adjacent'] = kwargs.get('tech_adjacent')
+        captured['tech_broader'] = kwargs.get('tech_broader')
+        return 'prompt'
+
+    async def fake_report(prompt: str, **_kwargs):
+        return {"markdown": "ok", "degraded": False}
+
+    monkeypatch.setattr(insight_mod.orchestrator, 'build_prompt', fake_build_prompt)
+    monkeypatch.setattr(insight_mod.orchestrator, 'generate_report', fake_report)
+
+    payload = {"url": "https://ex", "tech_core": ["GA4"], "tech_adjacent": [], "tech_broader": ["Tableau"]}
+    r = client.post("/insight", json=payload)
+    assert r.status_code == 200
+    assert captured['tech_core'] == ["GA4"]
+    assert captured['tech_adjacent'] == []
+    assert captured['tech_broader'] == ["Tableau"]
 
 
 def test_insight_trailing_slash(monkeypatch):
