@@ -23,9 +23,19 @@ test('shows skeleton when loading', () => {
 test('shows fallback when markdown empty', () => {
   render(<InsightMarkdown markdown="" />)
   expect(screen.getByText('Analysis unavailable')).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: /export markdown/i }),
+  ).toBeNull()
 })
 
 test('shows degraded banner', () => {
   render(<InsightMarkdown markdown="# H" degraded />)
   expect(screen.getByText(/Partial results/)).toBeInTheDocument()
+})
+
+test('shows export button when markdown provided', () => {
+  render(<InsightMarkdown markdown="# H" />)
+  expect(
+    screen.getByRole('button', { name: /export markdown/i }),
+  ).toBeInTheDocument()
 })
