@@ -311,7 +311,7 @@ test('hides skeleton on error', async () => {
   )
 })
 
-test('shows fallback when markdown empty', async () => {
+test('renders empty markdown without fallback', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () => Response.json({ markdown: '', degraded: false })),
@@ -334,13 +334,20 @@ test('shows fallback when markdown empty', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
-  await screen.findByText('Analysis unavailable')
+  await waitFor(() =>
+    expect(screen.queryByText('Analysis unavailable')).toBeNull(),
+  )
 })
 
-test('shows degraded banner when insight degraded', async () => {
+test('shows banner when insight degraded', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () => Response.json({ markdown: 'Hi', degraded: true })),
+    http.post('/insight', async () =>
+      Response.json({
+        markdown: '## Next-Best Actions\n- A',
+        degraded: true,
+      }),
+    ),
   )
   render(
     <AnalyzerCard
@@ -360,7 +367,68 @@ test('shows degraded banner when insight degraded', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
-  await screen.findByText(/Partial results/)
+  await screen.findByText('Partial results—model returned limited content.')
+})
+
+test('shows banner when actions missing', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: '# Hi', degraded: false }),
+    ),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByText('Partial results—model returned limited content.')
+})
+
+test('nudge opens context panel and keeps content', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Hi', degraded: false }),
+    ),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  const nudge = await screen.findByText(
+    'Improve results: add tools to Stack, set Industry, describe a Pain point.',
+  )
+  await userEvent.click(nudge)
+  await screen.findByLabelText('Industry')
+  expect(screen.getAllByText('Hi').length).toBeGreaterThan(0)
 })
 
 test('shows error when generation fails', async () => {
