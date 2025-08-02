@@ -532,3 +532,160 @@ test('shows validation error and skips POST on invalid payload', async () => {
   await screen.findByText(/Expected string/i)
   expect(spy).not.toHaveBeenCalled()
 })
+
+test('chips reflect live values', async () => {
+  sessionStorage.setItem('industry', 'SaaS')
+  sessionStorage.setItem('pain_point', 'Latency')
+  sessionStorage.setItem(
+    'stack',
+    JSON.stringify([
+      { category: 'x', vendor: 'one' },
+      { category: 'y', vendor: 'two' },
+    ]),
+  )
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Hi', degraded: false }),
+    ),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByText('SaaS')
+  await screen.findByText('Latency')
+  await screen.findByText('Stack (2)')
+  const industryChip = screen.getByText('SaaS')
+  await userEvent.click(industryChip)
+  const industryInput = await screen.findByLabelText('Industry')
+  await userEvent.clear(industryInput)
+  await userEvent.type(industryInput, 'Commerce')
+  await waitFor(() => expect(screen.getByText('Commerce')).toBeInTheDocument())
+  await userEvent.click(screen.getByLabelText('close'))
+  const painChip = screen.getByText('Latency')
+  await userEvent.click(painChip)
+  const painInput = await screen.findByLabelText('Pain point')
+  await userEvent.clear(painInput)
+  await waitFor(() => expect(screen.queryByText('Latency')).toBeNull())
+  sessionStorage.clear()
+})
+
+test('chip clicks focus corresponding inputs', async () => {
+  sessionStorage.setItem('industry', 'Fintech')
+  sessionStorage.setItem('pain_point', 'Billing')
+  sessionStorage.setItem(
+    'stack',
+    JSON.stringify([
+      { category: 'x', vendor: 'one' },
+      { category: 'y', vendor: 'two' },
+    ]),
+  )
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Hi', degraded: false }),
+    ),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  const industryChip = await screen.findByText('Fintech')
+  await userEvent.click(industryChip)
+  const industryInput = await screen.findByLabelText('Industry')
+  await waitFor(() => expect(industryInput).toHaveFocus())
+  await userEvent.click(screen.getByLabelText('close'))
+  const painChip = screen.getByText('Billing')
+  await userEvent.click(painChip)
+  const painInput = await screen.findByLabelText('Pain point')
+  await waitFor(() => expect(painInput).toHaveFocus())
+  await userEvent.click(screen.getByLabelText('close'))
+  const stackChip = screen.getByText('Stack (2)')
+  await userEvent.click(stackChip)
+  const stackInput = await screen.findByLabelText('Technologies in use')
+  await waitFor(() => expect(stackInput).toHaveFocus())
+  sessionStorage.clear()
+})
+
+test('context strength updates with field edits', async () => {
+  sessionStorage.setItem('industry', 'Fintech')
+  sessionStorage.setItem('pain_point', 'Billing')
+  sessionStorage.setItem(
+    'stack',
+    JSON.stringify([
+      { category: 'x', vendor: 'one' },
+      { category: 'y', vendor: 'two' },
+      { category: 'z', vendor: 'three' },
+    ]),
+  )
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () =>
+      Response.json({ markdown: 'Hi', degraded: false }),
+    ),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByText('Context strength: High')
+  const industryChip = screen.getByText('Fintech')
+  await userEvent.click(industryChip)
+  const industryInput = await screen.findByLabelText('Industry')
+  await userEvent.clear(industryInput)
+  await waitFor(() =>
+    expect(screen.getByText('Context strength: Medium')).toBeInTheDocument(),
+  )
+  await userEvent.click(screen.getByLabelText('close'))
+  const painChip = screen.getByText('Billing')
+  await userEvent.click(painChip)
+  const painInput = await screen.findByLabelText('Pain point')
+  await userEvent.clear(painInput)
+  await waitFor(() =>
+    expect(screen.getByText('Context strength: Low')).toBeInTheDocument(),
+  )
+  sessionStorage.clear()
+})
