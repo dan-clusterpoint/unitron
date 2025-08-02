@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField'
 import Chip from '@mui/material/Chip'
 import { SUGGESTIONS, type StackItem } from '../utils/tech'
 
-type TechnologySelectProps = {
+export type TechnologySelectProps = {
   value: StackItem[]
   onChange: (v: StackItem[]) => void
 }
