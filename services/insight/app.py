@@ -132,12 +132,9 @@ class MarkdownResponse(BaseModel):
 
 class InsightPersonaRequest(BaseModel):
     url: str
-    martech: dict[str, list[str]] | None = None
-    cms: list[str] | None = None
-    cms_manual: str | None = None
-    tech_core: list[str] = Field(default_factory=list)
-    tech_adjacent: list[str] = Field(default_factory=list)
-    tech_broader: list[str] = Field(default_factory=list)
+    industry: str | None = None
+    pain_point: str | None = Field(default=None, max_length=280)
+    stack: list[dict[str, str]] = Field(default_factory=list)
     evidence_standards: str | None = Field(
         default=None,
         example="Use peer-reviewed data when available",
@@ -292,25 +289,15 @@ async def insight(data: dict[str, Any]) -> JSONResponse:
     logger.debug("insight request: %s", redact(json.dumps(req.model_dump())))
     start = time.perf_counter()
     company = {"url": req.url}
-    tech: dict[str, Any] = {
-        "martech": req.martech or {},
-        "cms": req.cms or [],
-        "declared": {
-            "core": req.tech_core,
-            "adjacent": req.tech_adjacent,
-            "broader": req.tech_broader,
-        },
-    }
-    if req.cms_manual:
-        tech["cms_manual"] = req.cms_manual
+    tech: dict[str, Any] = {"declared": req.stack}
 
     prompt = orchestrator.build_prompt(
         "Generate next-best-action insights.",
         company=company,
         technology=tech,
-        tech_core=req.tech_core,
-        tech_adjacent=req.tech_adjacent,
-        tech_broader=req.tech_broader,
+        industry=req.industry,
+        pain_point=req.pain_point,
+        stack=req.stack,
         evidence_standards=req.evidence_standards,
         credibility_scoring=req.credibility_scoring,
         deliverable_guidelines=req.deliverable_guidelines,
@@ -440,25 +427,15 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
     )
     start = time.perf_counter()
     company = {"url": req.url}
-    tech: dict[str, Any] = {
-        "martech": req.martech or {},
-        "cms": req.cms or [],
-        "declared": {
-            "core": req.tech_core,
-            "adjacent": req.tech_adjacent,
-            "broader": req.tech_broader,
-        },
-    }
-    if req.cms_manual:
-        tech["cms_manual"] = req.cms_manual
+    tech: dict[str, Any] = {"declared": req.stack}
 
     insight_prompt = orchestrator.build_prompt(
         "Generate next-best-action insights.",
         company=company,
         technology=tech,
-        tech_core=req.tech_core,
-        tech_adjacent=req.tech_adjacent,
-        tech_broader=req.tech_broader,
+        industry=req.industry,
+        pain_point=req.pain_point,
+        stack=req.stack,
         evidence_standards=req.evidence_standards,
         credibility_scoring=req.credibility_scoring,
         deliverable_guidelines=req.deliverable_guidelines,
@@ -470,9 +447,9 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         "Generate buyer personas.",
         company=company,
         technology=tech,
-        tech_core=req.tech_core,
-        tech_adjacent=req.tech_adjacent,
-        tech_broader=req.tech_broader,
+        industry=req.industry,
+        pain_point=req.pain_point,
+        stack=req.stack,
         evidence_standards=req.evidence_standards,
         credibility_scoring=req.credibility_scoring,
         deliverable_guidelines=req.deliverable_guidelines,
@@ -507,15 +484,10 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             from urllib.parse import urlparse
 
             domain = urlparse(req.url).netloc or req.url
-            tech_names: list[str] = []
-            if req.cms:
-                tech_names.extend(req.cms)
-            if req.cms_manual:
-                tech_names.append(req.cms_manual)
-            if req.martech:
-                for vals in req.martech.values():
-                    tech_names.extend(vals)
-            tech_text = ", ".join(sorted(set(tech_names))) or "unknown"
+            tech_names = [item.get("vendor", "") for item in req.stack]
+            tech_text = ", ".join(
+                sorted({name for name in tech_names if name})
+            ) or "unknown"
             personas_list = [
                 {
                     "id": "company",
@@ -621,8 +593,6 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             "personas": personas_list,
             "degraded": degraded,
         }
-        if req.cms_manual:
-            result["cms_manual"] = req.cms_manual
         _append_size_warning(result)
         duration = time.perf_counter() - start
         scope = len(json.dumps(req.model_dump()))
