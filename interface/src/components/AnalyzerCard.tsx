@@ -8,6 +8,7 @@ import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
+import type { StackItem } from '../utils/tech'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
@@ -69,7 +70,7 @@ export default function AnalyzerCard({
   const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
-  const [techCore, setTechCore] = useState<string[]>(() => {
+  const [techCore, setTechCore] = useState<StackItem[]>(() => {
     try {
       const stored = sessionStorage.getItem('tech_core')
       return stored ? JSON.parse(stored) : []
