@@ -546,7 +546,7 @@ test('chips reflect live values', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
+      Response.json({ markdown: 'Flow', degraded: false }),
     ),
   )
   render(
@@ -562,11 +562,14 @@ test('chips reflect live values', async () => {
       loading={false}
       error=""
       result={{ ...result, cms: [] }}
-    />,
+    />, 
   )
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
+  )
   await screen.findByText('SaaS')
   await screen.findByText('Latency')
   await screen.findByText('Stack (2)')
@@ -598,7 +601,7 @@ test('chip clicks focus corresponding inputs', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
+      Response.json({ markdown: 'Flow', degraded: false }),
     ),
   )
   render(
@@ -619,6 +622,9 @@ test('chip clicks focus corresponding inputs', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
+  )
   const industryChip = await screen.findByText('Fintech')
   await userEvent.click(industryChip)
   const industryInput = await screen.findByLabelText('Industry')
@@ -650,7 +656,7 @@ test('context strength updates with field edits', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
+      Response.json({ markdown: 'Flow', degraded: false }),
     ),
   )
   render(
@@ -671,6 +677,9 @@ test('context strength updates with field edits', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
+  await waitFor(() =>
+    expect(screen.getAllByText('Flow').length).toBeGreaterThan(0),
+  )
   await screen.findByText('Context strength: High')
   const industryChip = screen.getByText('Fintech')
   await userEvent.click(industryChip)

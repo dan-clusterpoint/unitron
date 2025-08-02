@@ -26,12 +26,16 @@ export default function TechnologySelect({
         onChange={(_, newValue) => onChange(newValue)}
         isOptionEqualToValue={(option, val) => option.vendor === val.vendor}
         renderTags={(tagValue, getTagProps) =>
-          tagValue.map((option, index) => (
-            <Chip
-              {...getTagProps({ index })}
-              label={`${option.category} • ${option.vendor}`}
-            />
-          ))
+          tagValue.map((option, index) => {
+            const { key, ...chipProps } = getTagProps({ index })
+            return (
+              <Chip
+                key={key}
+                {...chipProps}
+                label={`${option.category} • ${option.vendor}`}
+              />
+            )
+          })
         }
         renderInput={(params) => (
           <TextField
