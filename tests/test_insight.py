@@ -5,6 +5,7 @@ import pytest
 import asyncio
 import time
 import types
+from typing import Any
 
 from services.insight.app import app
 import services.insight.app as insight_mod
@@ -63,19 +64,22 @@ def test_insight_endpoint(monkeypatch):
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
     )
 
-    payload = {"url": "https://ex.com", "martech": {}, "cms": [], "tech_core": ["GA4"], "tech_adjacent": ["GTM"], "tech_broader": []}
+    payload = {
+        "url": "https://ex.com",
+        "stack": [{"category": "analytics", "vendor": "GA4"}],
+    }
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
     assert r.json() == {"markdown": "Hello markdown", "degraded": False}
 
 
 def test_insight_declared_stack_forwarded(monkeypatch):
-    captured: dict[str, list[str] | None] = {}
+    captured: dict[str, Any] = {}
 
     def fake_build_prompt(question, **kwargs):
-        captured['tech_core'] = kwargs.get('tech_core')
-        captured['tech_adjacent'] = kwargs.get('tech_adjacent')
-        captured['tech_broader'] = kwargs.get('tech_broader')
+        captured['industry'] = kwargs.get('industry')
+        captured['pain_point'] = kwargs.get('pain_point')
+        captured['stack'] = kwargs.get('stack')
         return 'prompt'
 
     async def fake_report(prompt: str, **_kwargs):
@@ -84,12 +88,17 @@ def test_insight_declared_stack_forwarded(monkeypatch):
     monkeypatch.setattr(insight_mod.orchestrator, 'build_prompt', fake_build_prompt)
     monkeypatch.setattr(insight_mod.orchestrator, 'generate_report', fake_report)
 
-    payload = {"url": "https://ex", "tech_core": ["GA4"], "tech_adjacent": [], "tech_broader": ["Tableau"]}
+    payload = {
+        "url": "https://ex",
+        "industry": "SaaS",
+        "pain_point": "Slow onboarding",
+        "stack": [{"category": "analytics", "vendor": "GA4"}],
+    }
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
-    assert captured['tech_core'] == ["GA4"]
-    assert captured['tech_adjacent'] == []
-    assert captured['tech_broader'] == ["Tableau"]
+    assert captured['industry'] == "SaaS"
+    assert captured['pain_point'] == "Slow onboarding"
+    assert captured['stack'] == [{"category": "analytics", "vendor": "GA4"}]
 
 
 def test_insight_trailing_slash(monkeypatch):
@@ -243,8 +252,7 @@ def test_insight_and_personas(monkeypatch):
         "/insight-and-personas",
         json={
             "url": "https://ex",
-            "martech": {},
-            "cms": ["WP"],
+            "stack": [{"category": "cms", "vendor": "WP"}],
             "evidence_standards": "std",
             "credibility_scoring": "score",
             "deliverable_guidelines": "guidelines",
@@ -293,8 +301,7 @@ def test_insight_and_personas_empty_fields(monkeypatch):
         "/insight-and-personas",
         json={
             "url": "https://ex",
-            "martech": {},
-            "cms": ["WP"],
+            "stack": [{"category": "cms", "vendor": "WP"}],
             "evidence_standards": "",
             "credibility_scoring": "",
             "deliverable_guidelines": "",
@@ -349,8 +356,7 @@ def test_insight_and_personas_next_best_action(monkeypatch):
         "/insight-and-personas",
         json={
             "url": "https://ex",
-            "martech": {},
-            "cms": [],
+            "stack": [],
             "evidence_standards": "s",
             "credibility_scoring": "c",
             "deliverable_guidelines": "d",
@@ -444,7 +450,13 @@ def test_insight_and_personas_empty_personas(monkeypatch):
 
     r = client.post(
         "/insight-and-personas",
-        json={"url": "https://ex", "martech": {"js": ["React"]}, "cms": ["WP"]},
+        json={
+            "url": "https://ex",
+            "stack": [
+                {"category": "js", "vendor": "React"},
+                {"category": "cms", "vendor": "WP"},
+            ],
+        },
     )
     assert r.status_code == 200
     result = r.json()
