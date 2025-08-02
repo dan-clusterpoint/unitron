@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, type RefObject } from 'react'
 import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
@@ -19,12 +19,11 @@ function hasNextBestActions(markdown: string | null) {
 export function computeMartechCount(
   martech: Record<string, string[] | Record<string, unknown>> | null,
 ) {
-  return martech
-    ? Object.values(martech).reduce(
-        (a, b) => a + (Array.isArray(b) ? b.length : Object.keys(b).length),
-        0,
-      )
-    : 0
+  if (!martech) return 0
+  return Object.values(martech).reduce(
+    (a, b) => a + (Array.isArray(b) ? b.length : Object.keys(b).length),
+    0,
+  )
 }
 
 export type AnalyzeResult = {
@@ -97,6 +96,10 @@ export default function AnalyzerCard({
     }
   })
   const [contextOpen, setContextOpen] = useState(false)
+  const [hasGenerated, setHasGenerated] = useState(false)
+  const industryRef = useRef<HTMLInputElement>(null)
+  const painRef = useRef<HTMLInputElement>(null)
+  const stackRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     sessionStorage.setItem('industry', industry)
@@ -185,11 +188,24 @@ export default function AnalyzerCard({
       })
       setInsightMarkdown((data.markdown ?? '').trim())
       setInsightMarkdownDegraded(data.degraded)
+      setHasGenerated(true)
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
       setGenerating(false)
     }
+  }
+  const stackCount = stack.length
+  const filled = (industry ? 1 : 0) + (painPoint ? 1 : 0) + (stackCount ? 1 : 0)
+  const contextStrength =
+    industry && painPoint && stackCount >= 3
+      ? 'High'
+      : filled >= 2
+        ? 'Medium'
+        : 'Low'
+  function focusRef(ref: RefObject<HTMLInputElement | null>) {
+    setContextOpen(true)
+    setTimeout(() => ref.current?.focus(), 0)
   }
   const actionsMissing = insightMarkdown !== null && !hasNextBestActions(insightMarkdown)
   const showDegradedBanner =
@@ -282,66 +298,103 @@ export default function AnalyzerCard({
             </ol>
           </section>
         )}
-        {cms && cms.length === 0 && (
-          <>
-            <button
-              className="btn-primary mt-4"
-              disabled={generating || insightLoading}
-              onClick={handleGenerate}
-            >
-              {generating ? 'Generating...' : 'Generate Insights'}
-            </button>
-            {(generating || insightMarkdown !== null) && (
-              <section className="bg-gray-50 p-4 rounded mt-4">
-                {showDegradedBanner && (
-                  <div className="border border-amber-500 bg-amber-50 text-amber-700 p-2 rounded mb-4 text-sm">
-                    Partial results—model returned limited content.{' '}
-                    <button
-                      className="underline"
-                      onClick={() => setContextOpen(true)}
-                    >
-                      Improve results: add tools to Stack, set Industry, describe a Pain point.
-                    </button>
-                  </div>
+        <>
+          {hasGenerated && (
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {industry && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(industryRef)}
+                  >
+                    {industry}
+                  </button>
                 )}
-                <InsightMarkdown
-                  markdown={insightMarkdown ?? ''}
-                  loading={generating}
-                />
-              </section>
-            )}
-            <Sheet open={contextOpen} onClose={() => setContextOpen(false)}>
-              <h2 className="font-medium mb-4">Context</h2>
-              <div className="space-y-2">
-                <input
-                  aria-label="Industry"
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  placeholder="Industry"
-                  className="border rounded p-2 w-full"
-                />
-                <input
-                  aria-label="Pain point"
-                  value={painPoint}
-                  onChange={(e) => setPainPoint(e.target.value)}
-                  placeholder="Pain point"
-                  className="border rounded p-2 w-full"
-                />
-                <TechnologySelect value={stack} onChange={setStack} />
+                {painPoint && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(painRef)}
+                  >
+                    {painPoint}
+                  </button>
+                )}
+                {stackCount > 0 && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(stackRef)}
+                  >
+                    {`Stack (${stackCount})`}
+                  </button>
+                )}
               </div>
-            </Sheet>
-            {validationError && (
-              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
-                {validationError}
+              <div className="text-xs text-gray-600 mt-1">
+                Context strength: {contextStrength}
               </div>
-            )}
-            {genError && (
-              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
-                {genError}
-              </div>
-            )}
-          </>
-        )}
+            </div>
+          )}
+          <button
+            className="btn-primary mt-4"
+            disabled={generating || insightLoading}
+            onClick={handleGenerate}
+          >
+            {generating ? 'Generating...' : 'Generate Insights'}
+          </button>
+          {(generating || insightMarkdown !== null) && (
+            <section className="bg-gray-50 p-4 rounded mt-4">
+              {showDegradedBanner && (
+                <div className="border border-amber-500 bg-amber-50 text-amber-700 p-2 rounded mb-4 text-sm">
+                  Partial results—model returned limited content.{' '}
+                  <button
+                    className="underline"
+                    onClick={() => setContextOpen(true)}
+                  >
+                    Improve results: add tools to Stack, set Industry, describe a Pain point.
+                  </button>
+                </div>
+              )}
+              <InsightMarkdown
+                markdown={insightMarkdown ?? ''}
+                loading={generating}
+              />
+            </section>
+          )}
+          <Sheet open={contextOpen} onClose={() => setContextOpen(false)}>
+            <h2 className="font-medium mb-4">Context</h2>
+            <div className="space-y-2">
+              <input
+                aria-label="Industry"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                placeholder="Industry"
+                className="border rounded p-2 w-full"
+                ref={industryRef}
+              />
+              <input
+                aria-label="Pain point"
+                value={painPoint}
+                onChange={(e) => setPainPoint(e.target.value)}
+                placeholder="Pain point"
+                className="border rounded p-2 w-full"
+                ref={painRef}
+              />
+              <TechnologySelect
+                value={stack}
+                onChange={setStack}
+                inputRef={stackRef}
+              />
+            </div>
+          </Sheet>
+          {validationError && (
+            <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+              {validationError}
+            </div>
+          )}
+          {genError && (
+            <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+              {genError}
+            </div>
+          )}
+        </>
       </div>
     )
   }
