@@ -14,4 +14,5 @@ export {
   default as InsightMarkdown,
   type InsightMarkdownProps,
 } from './InsightMarkdown'
+export { default as TechnologySelect } from './TechnologySelect'
 
