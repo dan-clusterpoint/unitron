@@ -22,8 +22,19 @@ export default function InsightMarkdown({ markdown, loading = false, degraded = 
   }
 
   const sanitized = DOMPurify.sanitize(markdown)
+  const hasContent = sanitized.trim().length > 0
 
-  const content = sanitized.trim()
+  const handleExport = () => {
+    const blob = new Blob([markdown], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'insight.md'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const content = hasContent
     ? <MarkdownPreview source={sanitized} className="prose max-w-none" />
     : <p>Analysis unavailable</p>
 
@@ -33,6 +44,13 @@ export default function InsightMarkdown({ markdown, loading = false, degraded = 
         <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-2 text-sm">
           Partial results shown due to degraded analysis.
         </div>
+      )}
+      {hasContent && (
+        <CardContent className="flex justify-end pt-0">
+          <button onClick={handleExport} className="btn-primary">
+            Export Markdown
+          </button>
+        </CardContent>
       )}
       <CardContent>{content}</CardContent>
     </Card>
