@@ -8,14 +8,27 @@ export interface InsightMarkdownProps {
   degraded?: boolean
 }
 
-export default function InsightMarkdown({ markdown, loading = false, degraded = false }: InsightMarkdownProps) {
+export const INSIGHT_SKELETON_MIN_HEIGHT = 320
+
+export default function InsightMarkdown({
+  markdown,
+  loading = false,
+  degraded = false,
+}: InsightMarkdownProps) {
   if (loading) {
     return (
       <Card className="p-4" data-testid="insight-skeleton">
-        <div className="animate-pulse space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-1/3" />
-          <div className="h-4 bg-gray-200 rounded" />
-          <div className="h-4 bg-gray-200 rounded w-5/6" />
+        <div
+          className="animate-pulse space-y-4"
+          style={{ minHeight: INSIGHT_SKELETON_MIN_HEIGHT }}
+        >
+          <div className="h-6 bg-gray-200 rounded w-1/3" />
+          <div className="flex gap-2">
+            <div className="h-8 bg-gray-200 rounded flex-1" />
+            <div className="h-8 bg-gray-200 rounded flex-1" />
+            <div className="h-8 bg-gray-200 rounded flex-1" />
+          </div>
+          <div className="h-24 bg-gray-200 rounded" />
         </div>
       </Card>
     )

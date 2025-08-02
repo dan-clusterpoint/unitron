@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { test, expect, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import InsightMarkdown from './InsightMarkdown'
+import InsightMarkdown, { INSIGHT_SKELETON_MIN_HEIGHT } from './InsightMarkdown'
 
 test('renders markdown', () => {
   const { container } = render(<InsightMarkdown markdown="# Title\n\ntext" />)
@@ -19,6 +19,15 @@ test('sanitizes html', () => {
 test('shows skeleton when loading', () => {
   render(<InsightMarkdown markdown="" loading />)
   expect(screen.getByTestId('insight-skeleton')).toBeInTheDocument()
+})
+
+test('skeleton has fixed min-height', () => {
+  render(<InsightMarkdown markdown="" loading />)
+  const container = screen.getByTestId('insight-skeleton')
+    .firstElementChild as HTMLElement
+  expect(container.style.minHeight).toBe(
+    `${INSIGHT_SKELETON_MIN_HEIGHT}px`,
+  )
 })
 
 test('shows fallback when markdown empty', () => {

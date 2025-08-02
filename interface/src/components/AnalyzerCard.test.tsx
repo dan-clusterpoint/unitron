@@ -7,6 +7,7 @@ import { test, expect, vi } from 'vitest'
 import type { AnalyzeResult } from './AnalyzerCard'
 import { computeMartechCount } from './AnalyzerCard'
 import { ORG_CONTEXT } from '../config/orgContext'
+import { INSIGHT_SKELETON_MIN_HEIGHT } from './InsightMarkdown'
 
 test('shows spinner when loading', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
@@ -171,7 +172,45 @@ test('shows skeleton while generating', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
-  await screen.findByTestId('insight-skeleton')
+  const skeleton = await screen.findByTestId('insight-skeleton')
+  const container = skeleton.firstElementChild as HTMLElement
+  expect(container.style.minHeight).toBe(
+    `${INSIGHT_SKELETON_MIN_HEIGHT}px`,
+  )
+})
+
+test('keeps skeleton height during delayed insight response', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () => {
+      await new Promise((r) => setTimeout(r, 100))
+      return Response.json({ markdown: 'done', degraded: false })
+    }),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  const skeleton = await screen.findByTestId('insight-skeleton')
+  const container = skeleton.firstElementChild as HTMLElement
+  const initialHeight = container.style.minHeight
+  await new Promise((r) => setTimeout(r, 50))
+  expect(screen.getByTestId('insight-skeleton')).toBeInTheDocument()
+  expect(container.style.minHeight).toBe(initialHeight)
 })
 
 test('shows generated details on success', async () => {
@@ -214,6 +253,7 @@ test('shows generated details on success', async () => {
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
   await waitFor(() => expect(screen.getAllByText('Flow').length).toBeGreaterThan(0))
+  expect(screen.queryByTestId('insight-skeleton')).toBeNull()
   expect(captured).toEqual({
     url: 'https://example.com',
     martech: {
@@ -236,6 +276,39 @@ test('shows generated details on success', async () => {
     preferences: ORG_CONTEXT.preferences ?? '',
   })
   sessionStorage.clear()
+})
+
+test('hides skeleton on error', async () => {
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  server.use(
+    http.post('/insight', async () => {
+      await new Promise((r) => setTimeout(r, 50))
+      return new Response('fail', { status: 500 })
+    }),
+  )
+  render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={() => {}}
+      onAnalyze={() => {}}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={{ ...result, cms: [] }}
+    />,
+  )
+  const btn = await screen.findByRole('button', { name: /generate insights/i })
+  await waitFor(() => expect(btn).toBeEnabled())
+  await userEvent.click(btn)
+  await screen.findByTestId('insight-skeleton')
+  await screen.findByText('fail')
+  await waitFor(() =>
+    expect(screen.queryByTestId('insight-skeleton')).toBeNull(),
+  )
 })
 
 test('shows fallback when markdown empty', async () => {
