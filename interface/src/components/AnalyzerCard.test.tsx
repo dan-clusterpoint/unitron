@@ -544,11 +544,7 @@ test('chips reflect live values', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  server.use(
-    http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
-    ),
-  )
+
   render(
     <AnalyzerCard
       id="a"
@@ -564,9 +560,6 @@ test('chips reflect live values', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  const btn = await screen.findByRole('button', { name: /generate insights/i })
-  await waitFor(() => expect(btn).toBeEnabled())
-  await userEvent.click(btn)
   await screen.findByText('SaaS')
   await screen.findByText('Latency')
   await screen.findByText('Stack (2)')
@@ -596,11 +589,6 @@ test('chip clicks focus corresponding inputs', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  server.use(
-    http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
-    ),
-  )
   render(
     <AnalyzerCard
       id="a"
@@ -616,9 +604,6 @@ test('chip clicks focus corresponding inputs', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  const btn = await screen.findByRole('button', { name: /generate insights/i })
-  await waitFor(() => expect(btn).toBeEnabled())
-  await userEvent.click(btn)
   const industryChip = await screen.findByText('Fintech')
   await userEvent.click(industryChip)
   const industryInput = await screen.findByLabelText('Industry')
@@ -648,11 +633,6 @@ test('context strength updates with field edits', async () => {
     ]),
   )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  server.use(
-    http.post('/insight', async () =>
-      Response.json({ markdown: 'Hi', degraded: false }),
-    ),
-  )
   render(
     <AnalyzerCard
       id="a"
@@ -668,9 +648,6 @@ test('context strength updates with field edits', async () => {
       result={{ ...result, cms: [] }}
     />,
   )
-  const btn = await screen.findByRole('button', { name: /generate insights/i })
-  await waitFor(() => expect(btn).toBeEnabled())
-  await userEvent.click(btn)
   await screen.findByText('Context strength: High')
   const industryChip = screen.getByText('Fintech')
   await userEvent.click(industryChip)
