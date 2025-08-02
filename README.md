@@ -92,9 +92,12 @@ clients can detect limited results.
 
 The React interface displays each insight using a reusable **InsightCard**. This
 component accepts the normalized insight payload from the backend and renders
-the evidence, recommended actions and any personas in a single card. Markdown
+the evidence, recommended actions and any personas in a single card. The
+analyzer captures optional **Industry**, **Pain Point**, and declared
+**Technology Stack** details that are passed along with the URL. Markdown
 fragments are styled via the Tailwind Typography plugin so the text appears
-nicely formatted.
+nicely formatted, and an **Export Markdown** button lets users download the
+analysis.
 
 ### Gateway service
 The gateway orchestrates the other APIs. Key endpoints:
@@ -105,7 +108,7 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
   `{"property": {...}, "martech": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
-* `POST /insight` – body `{"text": "notes"}` proxies to `INSIGHT_URL/insight` and returns `{"markdown": "...", "degraded": false}`.
+* `POST /insight` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}] }` proxies to `INSIGHT_URL/insight` and returns `{ "markdown": "...", "degraded": false }`. The endpoint also accepts `{ "text": "notes" }` for free‑form analysis.
 * `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `30`s).
 
 `MARTECH_URL`, `PROPERTY_URL` and `INSIGHT_URL` configure the upstream URLs used by the gateway.
@@ -211,9 +214,10 @@ Endpoints:
 * `GET /health` – liveness probe.
 * `GET /ready` – always returns `{"ready": true}`.
 * `POST /generate-insights` – body `{"text": "your notes"}` returns `{"markdown": "..."}`.
+* `POST /insight` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}] }` returns `{ "markdown": "..." }`.
 * `POST /research` – body `{"topic": "AI"}` returns `{"markdown": "..."}`.
 * `POST /postprocess-report` – body `{"report": {...}}` returns downloads with markdown and CSV.
-* `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }` returns `{ "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. This endpoint runs the insight and persona prompts concurrently for faster replies.
+* `POST /insight-and-personas` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}], "martech": {...}, "cms": [], "cms_manual": "WordPress" }` returns `{ "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }`. This endpoint runs the insight and persona prompts concurrently for faster replies.
 
 Set `OPENAI_MODEL` to choose the chat model (default `gpt-4`).
 Set `MACRO_SECTION_CAP` to cap macro sections returned by `/research`.

@@ -8,12 +8,12 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `GET /health` – liveness probe returning `{ "status": "ok" }`.
 - `GET /ready` – always returns `{ "ready": true }`.
 - `POST /generate-insights` – body `{ "text": "notes" }` returns `{ "markdown": "..." }`.
-- `POST /insight` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress" }`
+- `POST /insight` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}] }`
   returns `{ "markdown": "..." }`.
 - `POST /research` – body `{ "topic": "AI" }` returns `{ "markdown": "..." }`.
 - `POST /postprocess-report` – body `{ "report": {...} }` returns the same report
   plus base64-encoded downloads.
-- `POST /insight-and-personas` – body `{ "url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS" }`
+- `POST /insight-and-personas` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}], "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS" }`
   returns { "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }. Insight and persona prompts run concurrently. The `evidence` field summarizing findings is always included. If the persona response is empty, placeholder company and technology personas are created with all attributes set to "unknown". The gateway will return a timeout after 20s if the insight service is slow. The optional fields fine‑tune how the report is generated.
 - `GET /metrics` – usage counters for requests and data gaps.
 
@@ -70,7 +70,7 @@ Example (insight and personas):
 ```bash
 curl -X POST http://localhost:8083/insight-and-personas \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com", "martech": {}, "cms": [], "cms_manual": "WordPress", "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}'
+  -d '{"url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}], "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS"}'
 ```
 
 Expected response snippet:
@@ -79,7 +79,6 @@ Expected response snippet:
 {
   "insight": { "actions": [], "evidence": "..." },
   "personas": [{"id": "P1", "name": "Buyer", "role": "unknown", "goal": "unknown", "challenge": "unknown"}],
-  "cms_manual": "WordPress",
   "degraded": false
 }
 ```

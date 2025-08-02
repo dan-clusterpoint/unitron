@@ -20,6 +20,10 @@ npm run dev
 
 Open `http://localhost:5173` in your browser and start analyzing URLs.
 
+The analyzer form includes a **Technology Stack** picker, an **Industry**
+dropdown, and a **Pain Point** text box for additional context. Generated
+insights can be downloaded via the **Export Markdown** button.
+
 ## Building and running
 
 ```bash
