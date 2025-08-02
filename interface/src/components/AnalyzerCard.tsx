@@ -3,11 +3,13 @@ import PropertyResults from './PropertyResults'
 import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
 import InsightMarkdown from './InsightMarkdown'
+import TechnologySelect from './TechnologySelect'
 import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
   martech: Record<string, string[] | Record<string, unknown>> | null,
 ) {
@@ -67,6 +69,21 @@ export default function AnalyzerCard({
   const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [techCore, setTechCore] = useState<string[]>(() => {
+    try {
+      const stored = sessionStorage.getItem('tech_core')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    sessionStorage.setItem('tech_core', JSON.stringify(techCore))
+    if (techCore.length) {
+      console.log('tech_core_count', techCore.length)
+    }
+  }, [techCore])
 
   useEffect(() => {
     if (!result) {
@@ -103,16 +120,25 @@ export default function AnalyzerCard({
     setValidationError(null)
     try {
       const clean = normalizeUrl(url)
+      const source = (result.martech ?? {}) as {
+        core?: string[]
+        adjacent?: string[]
+        broader?: string[]
+        competitors?: string[]
+      }
       const martech = {
-        core: (result.martech as any)?.core ?? [],
-        adjacent: (result.martech as any)?.adjacent ?? [],
-        broader: (result.martech as any)?.broader ?? [],
-        competitors: (result.martech as any)?.competitors ?? [],
+        core: source.core ?? [],
+        adjacent: source.adjacent ?? [],
+        broader: source.broader ?? [],
+        competitors: source.competitors ?? [],
       }
       const payload = {
         url: clean,
         martech,
         cms: result.cms || [],
+        tech_core: techCore,
+        tech_adjacent: [],
+        tech_broader: [],
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
@@ -230,6 +256,7 @@ export default function AnalyzerCard({
         )}
         {cms && cms.length === 0 && (
           <>
+            <TechnologySelect value={techCore} onChange={setTechCore} />
             <button
               className="btn-primary mt-4"
               disabled={generating || insightLoading}

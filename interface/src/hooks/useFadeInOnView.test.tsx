@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render } from '@testing-library/react'
 import { vi, beforeEach, afterEach, test, expect } from 'vitest'
 import useFadeInOnView from './useFadeInOnView'

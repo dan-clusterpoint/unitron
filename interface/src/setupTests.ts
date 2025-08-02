@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import '@testing-library/jest-dom'
 import { setupServer } from 'msw/node'
 import { http } from 'msw'
@@ -19,6 +19,8 @@ export const server = setupServer(
     Response.json({ markdown: 'Test insight', degraded: false }),
   ),
 )
+
+vi.stubEnv('VITE_API_BASE_URL', '')
 
 beforeAll(() => server.listen())
 afterEach(() => server.resetHandlers())

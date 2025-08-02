@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../setupTests'
@@ -188,6 +189,9 @@ test('shows generated details on success', async () => {
           competitors: (result.martech as any)?.competitors ?? [],
         },
         cms: [],
+        tech_core: [],
+        tech_adjacent: [],
+        tech_broader: [],
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',

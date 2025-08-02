@@ -154,6 +154,9 @@ def build_prompt(
     *,
     company: dict[str, Any] | None = None,
     technology: dict[str, Any] | None = None,
+    tech_core: list[str] | None = None,
+    tech_adjacent: list[str] | None = None,
+    tech_broader: list[str] | None = None,
     evidence_standards: str | None = None,
     credibility_scoring: str | None = None,
     deliverable_guidelines: str | None = None,
@@ -169,6 +172,9 @@ def build_prompt(
     prefs_text = preferences or ""
     company_text = json.dumps(company) if company else ""
     tech_text = json.dumps(technology) if technology else ""
+    core_text = ", ".join(tech_core or []) or "None declared"
+    adjacent_text = ", ".join(tech_adjacent or []) or "None declared"
+    broader_text = ", ".join(tech_broader or []) or "None declared"
 
     prompt = (
         "You are the Unitron insight orchestrator.\n"
@@ -177,6 +183,7 @@ def build_prompt(
         f"Follow these deliverable guidelines:\n{guidelines_text}\n"
         f"Audience: {audience_text}\n"
         f"Preferences: {prefs_text}\n"
+        f"Declared stack — Core: {core_text} | Adjacent: {adjacent_text} | Broader: {broader_text}\n"
         f"Company: {company_text}\n"
         f"Technology: {tech_text}\n"
         f"Question: {question}\n"
