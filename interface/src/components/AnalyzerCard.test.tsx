@@ -122,7 +122,6 @@ test('shows CMS placeholder when array empty', async () => {
     name: 'Content Management Systems',
   }).parentElement as HTMLElement
   expect(within(cmsSection).getByText('Nothing detected')).toBeInTheDocument()
-  expect(within(cmsSection).getByLabelText('CMS')).toBeInTheDocument()
 })
 
 test('displays insight text', async () => {
@@ -189,9 +188,9 @@ test('shows generated details on success', async () => {
           competitors: (result.martech as any)?.competitors ?? [],
         },
         cms: [],
-        tech_core: [],
-        tech_adjacent: [],
-        tech_broader: [],
+        industry: '',
+        pain_point: '',
+        stack: [],
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',

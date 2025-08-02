@@ -61,7 +61,6 @@ export default function AnalyzerCard({
   error,
   result,
 }: AnalyzerProps) {
-  const [manualCms, setManualCms] = useState('')
   const [generating, setGenerating] = useState(false)
   const [insight, setInsight] = useState<string | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
@@ -70,9 +69,23 @@ export default function AnalyzerCard({
   const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
-  const [techCore, setTechCore] = useState<StackItem[]>(() => {
+  const [industry, setIndustry] = useState(() => {
     try {
-      const stored = sessionStorage.getItem('tech_core')
+      return sessionStorage.getItem('industry') || ''
+    } catch {
+      return ''
+    }
+  })
+  const [painPoint, setPainPoint] = useState(() => {
+    try {
+      return sessionStorage.getItem('pain_point') || ''
+    } catch {
+      return ''
+    }
+  })
+  const [stack, setStack] = useState<StackItem[]>(() => {
+    try {
+      const stored = sessionStorage.getItem('stack')
       return stored ? JSON.parse(stored) : []
     } catch {
       return []
@@ -80,11 +93,19 @@ export default function AnalyzerCard({
   })
 
   useEffect(() => {
-    sessionStorage.setItem('tech_core', JSON.stringify(techCore))
-    if (techCore.length) {
-      console.log('tech_core_count', techCore.length)
+    sessionStorage.setItem('industry', industry)
+  }, [industry])
+
+  useEffect(() => {
+    sessionStorage.setItem('pain_point', painPoint)
+  }, [painPoint])
+
+  useEffect(() => {
+    sessionStorage.setItem('stack', JSON.stringify(stack))
+    if (stack.length) {
+      console.log('stack_count', stack.length)
     }
-  }, [techCore])
+  }, [stack])
 
   useEffect(() => {
     if (!result) {
@@ -112,7 +133,7 @@ export default function AnalyzerCard({
       .finally(() => setInsightLoading(false))
   }, [result])
 
-  async function onGenerate() {
+  async function handleGenerate() {
     if (!result) return
     setGenerating(true)
     setInsightMarkdown(null)
@@ -137,9 +158,9 @@ export default function AnalyzerCard({
         url: clean,
         martech,
         cms: result.cms || [],
-        tech_core: techCore,
-        tech_adjacent: [],
-        tech_broader: [],
+        industry,
+        pain_point: painPoint,
+        stack,
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
@@ -154,10 +175,7 @@ export default function AnalyzerCard({
       const data = await apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...payload,
-          ...(manualCms ? { cms_manual: manualCms } : {}),
-        }),
+        body: JSON.stringify(payload),
       })
       setInsightMarkdown((data.markdown ?? '').trim())
       setInsightMarkdownDegraded(data.degraded)
@@ -242,7 +260,7 @@ export default function AnalyzerCard({
         {martech && <section id="martech"><MartechResults martech={martech} /></section>}
         {cms != null && (
           <section id="cms">
-            <CmsResults cms={cms} manualCms={manualCms} setManualCms={setManualCms} />
+            <CmsResults cms={cms} />
           </section>
         )}
         {property && property.notes.length > 0 && (
@@ -257,11 +275,29 @@ export default function AnalyzerCard({
         )}
         {cms && cms.length === 0 && (
           <>
-            <TechnologySelect value={techCore} onChange={setTechCore} />
+            <div className="mt-2">
+              <input
+                aria-label="Industry"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                placeholder="Industry"
+                className="border rounded p-2 w-full"
+              />
+            </div>
+            <div className="mt-2">
+              <input
+                aria-label="Pain point"
+                value={painPoint}
+                onChange={(e) => setPainPoint(e.target.value)}
+                placeholder="Pain point"
+                className="border rounded p-2 w-full"
+              />
+            </div>
+            <TechnologySelect value={stack} onChange={setStack} />
             <button
               className="btn-primary mt-4"
               disabled={generating || insightLoading}
-              onClick={onGenerate}
+              onClick={handleGenerate}
             >
               {generating ? 'Generating...' : 'Generate Insights'}
             </button>
