@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import InsightMarkdown from './InsightMarkdown'
 
 test('renders markdown', () => {
@@ -38,4 +39,27 @@ test('shows export button when markdown provided', () => {
   expect(
     screen.getByRole('button', { name: /export markdown/i }),
   ).toBeInTheDocument()
+})
+
+test('exports markdown when button clicked', async () => {
+  const createUrl = vi.fn(() => 'blob:1')
+  const revokeUrl = vi.fn()
+  ;(globalThis.URL as any).createObjectURL = createUrl
+  ;(globalThis.URL as any).revokeObjectURL = revokeUrl
+  const click = vi.fn()
+  const origCreate = document.createElement.bind(document)
+  vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+    const el = origCreate(tag)
+    if (tag === 'a') {
+      Object.assign(el, { click })
+    }
+    return el
+  })
+
+  render(<InsightMarkdown markdown="# H" />)
+  const btn = screen.getByRole('button', { name: /export markdown/i })
+  await userEvent.click(btn)
+  expect(createUrl).toHaveBeenCalled()
+  expect(click).toHaveBeenCalled()
+  expect(revokeUrl).toHaveBeenCalled()
 })

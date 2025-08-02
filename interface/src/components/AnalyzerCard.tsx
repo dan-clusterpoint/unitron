@@ -8,7 +8,7 @@ import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
-import type { StackItem } from '../utils/tech'
+import { normalizeStack, type StackItem } from '../utils/tech'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
@@ -160,7 +160,7 @@ export default function AnalyzerCard({
         cms: result.cms || [],
         industry,
         pain_point: painPoint,
-        stack,
+        stack: normalizeStack(stack.map((s) => s.vendor)),
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',

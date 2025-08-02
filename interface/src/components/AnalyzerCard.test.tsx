@@ -175,28 +175,23 @@ test('shows skeleton while generating', async () => {
 })
 
 test('shows generated details on success', async () => {
+  sessionStorage.setItem('industry', 'SaaS')
+  sessionStorage.setItem('pain_point', 'Slow onboarding')
+  sessionStorage.setItem(
+    'stack',
+    JSON.stringify([
+      { category: 'x', vendor: 'ga' },
+      { category: 'y', vendor: 'GA4' },
+      { category: 'z', vendor: 'GTM' },
+      { category: 'z', vendor: 'google tag manager' },
+    ]),
+  )
+
+  let captured: any = null
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async ({ request }) => {
-      const body = await request.json()
-      expect(body).toEqual({
-        url: 'https://example.com',
-        martech: {
-          core: (result.martech as any)?.core ?? [],
-          adjacent: (result.martech as any)?.adjacent ?? [],
-          broader: (result.martech as any)?.broader ?? [],
-          competitors: (result.martech as any)?.competitors ?? [],
-        },
-        cms: [],
-        industry: '',
-        pain_point: '',
-        stack: [],
-        evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
-        credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
-        deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
-        audience: ORG_CONTEXT.audience ?? '',
-        preferences: ORG_CONTEXT.preferences ?? '',
-      })
+      captured = await request.json()
       return Response.json({ markdown: 'Flow', degraded: false })
     }),
   )
@@ -218,7 +213,29 @@ test('shows generated details on success', async () => {
   const btn = await screen.findByRole('button', { name: /generate insights/i })
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
-  await screen.findByText('Flow')
+  await waitFor(() => expect(screen.getAllByText('Flow').length).toBeGreaterThan(0))
+  expect(captured).toEqual({
+    url: 'https://example.com',
+    martech: {
+      core: (result.martech as any)?.core ?? [],
+      adjacent: (result.martech as any)?.adjacent ?? [],
+      broader: (result.martech as any)?.broader ?? [],
+      competitors: (result.martech as any)?.competitors ?? [],
+    },
+    cms: [],
+    industry: 'SaaS',
+    pain_point: 'Slow onboarding',
+    stack: [
+      { category: 'Tagging & Analytics', vendor: 'Google Analytics 4' },
+      { category: 'Tagging & Analytics', vendor: 'Google Tag Manager' },
+    ],
+    evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
+    credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
+    deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
+    audience: ORG_CONTEXT.audience ?? '',
+    preferences: ORG_CONTEXT.preferences ?? '',
+  })
+  sessionStorage.clear()
 })
 
 test('shows fallback when markdown empty', async () => {

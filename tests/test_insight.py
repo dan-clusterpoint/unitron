@@ -64,28 +64,18 @@ def test_insight_endpoint(monkeypatch):
         insight_mod.orchestrator, "generate_report", fake_report, raising=False
     )
 
-    payload = {
-        "url": "https://ex.com",
-        "stack": [{"category": "analytics", "vendor": "GA4"}],
-    }
-    r = client.post("/insight", json=payload)
+    r = client.post("/insight", json={"url": "https://ex.com"})
     assert r.status_code == 200
     assert r.json() == {"markdown": "Hello markdown", "degraded": False}
 
 
-def test_insight_declared_stack_forwarded(monkeypatch):
+def test_insight_prompt_includes_context(monkeypatch):
     captured: dict[str, Any] = {}
 
-    def fake_build_prompt(question, **kwargs):
-        captured['industry'] = kwargs.get('industry')
-        captured['pain_point'] = kwargs.get('pain_point')
-        captured['stack'] = kwargs.get('stack')
-        return 'prompt'
-
     async def fake_report(prompt: str, **_kwargs):
+        captured['prompt'] = prompt
         return {"markdown": "ok", "degraded": False}
 
-    monkeypatch.setattr(insight_mod.orchestrator, 'build_prompt', fake_build_prompt)
     monkeypatch.setattr(insight_mod.orchestrator, 'generate_report', fake_report)
 
     payload = {
@@ -96,9 +86,11 @@ def test_insight_declared_stack_forwarded(monkeypatch):
     }
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
-    assert captured['industry'] == "SaaS"
-    assert captured['pain_point'] == "Slow onboarding"
-    assert captured['stack'] == [{"category": "analytics", "vendor": "GA4"}]
+    prompt = captured['prompt']
+    assert "Context" in prompt
+    assert "- Industry: SaaS" in prompt
+    assert "- Pain point: Slow onboarding" in prompt
+    assert "- Declared stack:" in prompt
 
 
 def test_insight_trailing_slash(monkeypatch):
@@ -253,6 +245,8 @@ def test_insight_and_personas(monkeypatch):
         json={
             "url": "https://ex",
             "stack": [{"category": "cms", "vendor": "WP"}],
+            "industry": "SaaS",
+            "pain_point": "Slow onboarding",
             "evidence_standards": "std",
             "credibility_scoring": "score",
             "deliverable_guidelines": "guidelines",
@@ -279,7 +273,6 @@ def test_insight_and_personas(monkeypatch):
         "evidence": "I",
     }
     assert data["personas"] == [{"id": "P1", "name": "P1"}]
-    assert "cms_manual" not in data
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["insight-and-personas"]["requests"] == before + 1
@@ -302,6 +295,8 @@ def test_insight_and_personas_empty_fields(monkeypatch):
         json={
             "url": "https://ex",
             "stack": [{"category": "cms", "vendor": "WP"}],
+            "industry": "",
+            "pain_point": "",
             "evidence_standards": "",
             "credibility_scoring": "",
             "deliverable_guidelines": "",
@@ -428,7 +423,6 @@ def test_insight_and_personas_warnings(monkeypatch):
             "goals": "unknown",
         },
     ]
-    assert "cms_manual" not in result
     assert "warnings" in result.get("meta", {})
 
     metrics_data = client.get("/metrics").json()
