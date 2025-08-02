@@ -204,7 +204,7 @@ export default function AnalyzerCard({
       : filled >= 2
         ? 'Medium'
         : 'Low'
-  function focusRef(ref: RefObject<HTMLInputElement>) {
+  function focusRef(ref: RefObject<HTMLInputElement | null>) {
     setContextOpen(true)
     setTimeout(() => ref.current?.focus(), 0)
   }
