@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen } from '@testing-library/react'
 import { test, expect, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
@@ -30,9 +31,9 @@ test('skeleton has fixed min-height', () => {
   )
 })
 
-test('shows fallback when markdown empty', () => {
+test('renders empty markdown without export button', () => {
   render(<InsightMarkdown markdown="" />)
-  expect(screen.getByText('Analysis unavailable')).toBeInTheDocument()
+  expect(screen.queryByText('Analysis unavailable')).toBeNull()
   expect(
     screen.queryByRole('button', { name: /export markdown/i }),
   ).toBeNull()

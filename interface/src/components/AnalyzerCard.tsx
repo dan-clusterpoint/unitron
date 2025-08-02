@@ -9,6 +9,11 @@ import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 import { normalizeStack, type StackItem } from '../utils/tech'
+import Sheet from './ui/sheet'
+
+function hasNextBestActions(markdown: string | null) {
+  return !!markdown && /^##\s*Next-Best Actions/m.test(markdown)
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
@@ -91,6 +96,7 @@ export default function AnalyzerCard({
       return []
     }
   })
+  const [contextOpen, setContextOpen] = useState(false)
 
   useEffect(() => {
     sessionStorage.setItem('industry', industry)
@@ -185,6 +191,9 @@ export default function AnalyzerCard({
       setGenerating(false)
     }
   }
+  const actionsMissing = insightMarkdown !== null && !hasNextBestActions(insightMarkdown)
+  const showDegradedBanner =
+    insightMarkdown !== null && (insightMarkdownDegraded || actionsMissing)
   if (result) {
     const { property, martech, cms, degraded } = result
     const domainCount = property?.domains.length || 0
@@ -275,25 +284,6 @@ export default function AnalyzerCard({
         )}
         {cms && cms.length === 0 && (
           <>
-            <div className="mt-2">
-              <input
-                aria-label="Industry"
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                placeholder="Industry"
-                className="border rounded p-2 w-full"
-              />
-            </div>
-            <div className="mt-2">
-              <input
-                aria-label="Pain point"
-                value={painPoint}
-                onChange={(e) => setPainPoint(e.target.value)}
-                placeholder="Pain point"
-                className="border rounded p-2 w-full"
-              />
-            </div>
-            <TechnologySelect value={stack} onChange={setStack} />
             <button
               className="btn-primary mt-4"
               disabled={generating || insightLoading}
@@ -303,9 +293,43 @@ export default function AnalyzerCard({
             </button>
             {(generating || insightMarkdown !== null) && (
               <section className="bg-gray-50 p-4 rounded mt-4">
-                <InsightMarkdown markdown={insightMarkdown ?? ''} loading={generating} degraded={insightMarkdownDegraded} />
+                {showDegradedBanner && (
+                  <div className="border border-amber-500 bg-amber-50 text-amber-700 p-2 rounded mb-4 text-sm">
+                    Partial results—model returned limited content.{' '}
+                    <button
+                      className="underline"
+                      onClick={() => setContextOpen(true)}
+                    >
+                      Improve results: add tools to Stack, set Industry, describe a Pain point.
+                    </button>
+                  </div>
+                )}
+                <InsightMarkdown
+                  markdown={insightMarkdown ?? ''}
+                  loading={generating}
+                />
               </section>
             )}
+            <Sheet open={contextOpen} onClose={() => setContextOpen(false)}>
+              <h2 className="font-medium mb-4">Context</h2>
+              <div className="space-y-2">
+                <input
+                  aria-label="Industry"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  placeholder="Industry"
+                  className="border rounded p-2 w-full"
+                />
+                <input
+                  aria-label="Pain point"
+                  value={painPoint}
+                  onChange={(e) => setPainPoint(e.target.value)}
+                  placeholder="Pain point"
+                  className="border rounded p-2 w-full"
+                />
+                <TechnologySelect value={stack} onChange={setStack} />
+              </div>
+            </Sheet>
             {validationError && (
               <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
                 {validationError}

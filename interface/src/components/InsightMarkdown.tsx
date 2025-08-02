@@ -47,10 +47,6 @@ export default function InsightMarkdown({
     URL.revokeObjectURL(url)
   }
 
-  const content = hasContent
-    ? <MarkdownPreview source={sanitized} className="prose max-w-none" />
-    : <p>Analysis unavailable</p>
-
   return (
     <Card className="space-y-4">
       {degraded && (
@@ -65,7 +61,9 @@ export default function InsightMarkdown({
           </button>
         </CardContent>
       )}
-      <CardContent>{content}</CardContent>
+      <CardContent>
+        <MarkdownPreview source={sanitized} className="prose max-w-none" />
+      </CardContent>
     </Card>
   )
 }
