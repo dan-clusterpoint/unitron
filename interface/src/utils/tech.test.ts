@@ -22,6 +22,13 @@ describe('normalizeStack', () => {
     ])
   })
 
+  it('dedupes after alias normalization', () => {
+    const input = ['ga', 'GA4', 'google analytics']
+    expect(normalizeStack(input)).toEqual([
+      { category: 'Tagging & Analytics', vendor: 'Google Analytics 4' },
+    ])
+  })
+
   it('coerces falsy values to empty array', () => {
     expect(normalizeStack([undefined, null, '  '])).toEqual([])
   })

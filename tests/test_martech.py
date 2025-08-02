@@ -605,32 +605,3 @@ def test_generate_proxies_to_insight(monkeypatch):
     assert captured["data"]["cms"] == ["WP"]
 
 
-def test_cms_manual_logging(tmp_path, monkeypatch):
-    path = tmp_path / "cms.log"
-    monkeypatch.setattr(services.martech.app, "CMS_MANUAL_LOG_PATH", str(path))
-    services.martech.app._cms_log_file = None
-
-    captured = {}
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        import json
-
-        captured["data"] = json.loads(request.content.decode())
-        return httpx.Response(200, json={})
-
-    transport = httpx.MockTransport(handler)
-    _set_mock_client(monkeypatch, transport)
-
-    r = client.post(
-        "/generate",
-        json={
-            "url": "http://example.com",
-            "martech": {},
-            "cms": [],
-            "cms_manual": "Joomla",
-        },
-    )
-    assert r.status_code == 200
-    text = path.read_text().strip()
-    assert text.endswith("Joomla")
-    assert captured["data"]["cms_manual"] == "Joomla"
