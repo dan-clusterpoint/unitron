@@ -24,54 +24,7 @@ export function computeMartechCount(
         (a, b) => a + (Array.isArray(b) ? b.length : Object.keys(b).length),
         0,
       )
-    : 0
-}
-
-export type AnalyzeResult = {
-  property: {
-    domains: string[]
-    confidence: number
-    notes: string[]
-  } | null
-  martech: Record<string, string[] | Record<string, unknown>> | null
-  cms?: string[] | null
-  degraded: boolean
-}
-
-export type AnalyzerProps = {
-  id: string
-  url: string
-  setUrl: (v: string) => void
-  onAnalyze: () => void
-  headless: boolean
-  setHeadless: (v: boolean) => void
-  force: boolean
-  setForce: (v: boolean) => void
-  loading: boolean
-  error: string
-  result: AnalyzeResult | null
-}
-
-
-export default function AnalyzerCard({
-  id,
-  url,
-  setUrl,
-  onAnalyze,
-  headless,
-  setHeadless,
-  force,
-  setForce,
-  loading,
-  error,
-  result,
-}: AnalyzerProps) {
-  const [generating, setGenerating] = useState(false)
-  const [insight, setInsight] = useState<string | null>(null)
-  const [insightLoading, setInsightLoading] = useState(false)
-  const [insightError, setInsightError] = useState<string | null>(null)
-  const [insightMarkdown, setInsightMarkdown] = useState<string | null>(null)
-  const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
+@@ -75,50 +75,54 @@ export default function AnalyzerCard({
   const [genError, setGenError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
   const [industry, setIndustry] = useState(() => {
@@ -126,44 +79,7 @@ export default function AnalyzerCard({
       return
     }
     const text = result.property?.notes.join('\n') || ''
-    setInsightLoading(true)
-    setInsightError(null)
-    apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    })
-      .then(async (d) => {
-        const summary = d.markdown || ''
-        setInsight(summary)
-      })
-      .catch((e) => {
-        setInsightError((e as Error).message || 'Failed to fetch insight')
-      })
-      .finally(() => setInsightLoading(false))
-  }, [result])
-
-  async function handleGenerate() {
-    setGenerating(true)
-    try {
-      if (!result) return
-      setInsightMarkdown(null)
-      setInsightMarkdownDegraded(false)
-      setGenError(null)
-      setValidationError(null)
-      const clean = normalizeUrl(url)
-      const source = (result.martech ?? {}) as {
-        core?: string[]
-        adjacent?: string[]
-        broader?: string[]
-        competitors?: string[]
-      }
-      const martech = {
-        core: source.core ?? [],
-        adjacent: source.adjacent ?? [],
-        broader: source.broader ?? [],
-        competitors: source.competitors ?? [],
-      }
+@@ -163,56 +167,69 @@ export default function AnalyzerCard({
       const payload = {
         url: clean,
         martech,
@@ -233,47 +149,7 @@ export default function AnalyzerCard({
               <li>
                 <a href="#martech" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Martech</a>
               </li>
-            )}
-            {cms != null && (
-              <li>
-                <a href="#cms" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>CMS</a>
-              </li>
-            )}
-            {property && property.notes.length > 0 && (
-              <li>
-                <a href="#footnotes" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Footnotes</a>
-              </li>
-            )}
-          </ul>
-        </nav>
-        <div className="grid grid-cols-2 gap-4 mb-4" role="region" aria-label="Key metrics">
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{domainCount}</div>
-            <div className="text-xs">Domains</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{Math.round((property?.confidence || 0) * 100)}%</div>
-            <div className="text-xs">Confidence</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{martechCount}</div>
-            <div className="text-xs">Martech Vendors</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{cmsCount}</div>
-            <div className="text-xs">CMS</div>
-          </div>
-        </div>
-        {degraded && (
-          <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
-            Partial results shown due to degraded analysis.
-          </div>
-        )}
-        {(insightLoading || insight || insightError) && (
-          <>
-            <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-2">
-              <h3 className="font-medium mb-2">Executive Summary</h3>
-              {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
+@@ -260,110 +277,147 @@ export default function AnalyzerCard({
             </section>
             {insightError && (
               <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">
@@ -299,7 +175,7 @@ export default function AnalyzerCard({
             </ol>
           </section>
         )}
-        <>
+                 <>
           {hasGenerated && (
             <div className="mt-4">
               <div className="flex flex-wrap gap-2">
@@ -328,10 +204,10 @@ export default function AnalyzerCard({
                   </button>
                 )}
               </div>
-              <div className="text-xs text-gray-600 mt-1">
+                <div className="text-xs text-gray-600 mt-1">
                 Context strength: {contextStrength}
               </div>
-            </div>
+             </div>
           )}
           <button
             className="btn-primary mt-4"
@@ -421,37 +297,3 @@ export default function AnalyzerCard({
           aria-label="URL to analyze"
           className="flex-1 py-3 px-4 border border-gray-300 rounded-l-md placeholder-gray-500 focus:border-[var(--accent-orange)] focus:shadow-[0_0_0_3px_rgba(251,146,137,.2)] focus:outline-none"
         />
-        <button
-          aria-label="analyze"
-          onClick={onAnalyze}
-          disabled={loading || !url}
-          className="btn-primary rounded-l-none rounded-r-md h-full min-w-[8rem] disabled:opacity-50 active:scale-95"
-        >
-          {loading ? (
-            <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-          ) : (
-            'Analyze'
-          )}
-        </button>
-      </div>
-      <label className="flex items-center mt-4 text-sm">
-        <input
-          type="checkbox"
-          checked={headless}
-          onChange={(e) => setHeadless(e.target.checked)}
-          className="mr-2"
-        />
-        Enable deep scan
-      </label>
-      <label className="flex items-center mt-2 text-sm">
-        <input
-          type="checkbox"
-          checked={force}
-          onChange={(e) => setForce(e.target.checked)}
-          className="mr-2"
-        />
-        Force refresh
-      </label>
-    </div>
-  )
-}
