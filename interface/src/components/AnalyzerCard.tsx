@@ -134,13 +134,13 @@ export default function AnalyzerCard({
   }, [result])
 
   async function handleGenerate() {
-    if (!result) return
     setGenerating(true)
-    setInsightMarkdown(null)
-    setInsightMarkdownDegraded(false)
-    setGenError(null)
-    setValidationError(null)
     try {
+      if (!result) return
+      setInsightMarkdown(null)
+      setInsightMarkdownDegraded(false)
+      setGenError(null)
+      setValidationError(null)
       const clean = normalizeUrl(url)
       const source = (result.martech ?? {}) as {
         core?: string[]

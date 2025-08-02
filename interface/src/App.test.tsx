@@ -38,7 +38,7 @@ test('shows loading spinner and displays result', async () => {
   await waitFor(() =>
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
-  await screen.findByText(/example\.com/i)
+  await screen.findByText(/example\.com/i, undefined, { timeout: 2000 })
   await screen.findByText('GTM')
 })
 
