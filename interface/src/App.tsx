@@ -6,6 +6,7 @@ import { normalizeUrl } from './utils'
 import ScopeChip from './components/domain/ScopeChip'
 import { USE_JIT_DOMAINS } from './config'
 import { useDomains } from './contexts/DomainContext'
+
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -94,6 +95,9 @@ export default function App() {
           {USE_JIT_DOMAINS && <ScopeChip onRerun={onAnalyze} />}
         </div>
         <nav className="hidden md:flex items-center text-sm">
+          {import.meta.env.VITE_USE_JIT_DOMAINS === 'true' && (
+            <ScopeChip />
+          )}
           <a href="#home" className="mx-3 font-semibold text-dark hover:text-accent">Home</a>
           <a href="/docs" className="mx-3 font-semibold text-dark hover:text-accent">Docs</a>
           <a href="https://github.com" className="mx-3 font-semibold text-dark hover:text-accent" target="_blank" rel="noreferrer">GitHub</a>
