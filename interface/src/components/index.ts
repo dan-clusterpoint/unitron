@@ -15,3 +15,4 @@ export {
 } from './InsightMarkdown'
 export { default as MartechCategorySelector } from './MartechCategorySelector'
 
+export * from './summary'
