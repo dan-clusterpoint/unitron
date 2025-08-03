@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, type RefObject } from 'react'
 import PropertyResults from './PropertyResults'
-import CmsResults from './CmsResults'
 import InsightMarkdown from './InsightMarkdown'
 import MartechCategorySelector, {
   type MartechItem,
@@ -229,10 +228,9 @@ export default function AnalyzerCard({
   const showDegradedBanner =
     insightMarkdown !== null && (insightMarkdownDegraded || actionsMissing)
   if (result) {
-    const { property, martech, cms, degraded } = result
+    const { property, martech, degraded } = result
     const domainCount = property?.domains.length || 0
     const martechCount = computeMartechCount(martech)
-    const cmsCount = cms?.length || 0
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
@@ -251,17 +249,6 @@ export default function AnalyzerCard({
                 <a href="#martech" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Martech</a>
               </li>
             )}
-            {cms != null && (
-              <li>
-                <a
-                  href="#cms"
-                  className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500"
-                  tabIndex={0}
-                >
-                  CMS
-                </a>
-              </li>
-            )}
           </ul>
         </nav>
         <div className="grid grid-cols-2 gap-4 mb-4" role="region" aria-label="Key metrics">
@@ -276,10 +263,6 @@ export default function AnalyzerCard({
           <div className="p-3 rounded bg-gray-800 text-white text-center">
             <div className="text-lg font-semibold">{martechCount}</div>
             <div className="text-xs">Martech Vendors</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{cmsCount}</div>
-            <div className="text-xs">CMS</div>
           </div>
         </div>
         {degraded && (
@@ -309,14 +292,7 @@ export default function AnalyzerCard({
             />
           </section>
         )}
-        {cms != null && (
-          <section id="cms">
-            <CmsResults cms={cms} />
-          </section>
-        )}
-        {cms && cms.length === 0 && (
-          <>
-            <div className="mt-4">
+        <div className="mt-4">
               <div className="flex flex-wrap gap-2">
                 {industry && (
                   <button
@@ -404,8 +380,6 @@ export default function AnalyzerCard({
                 {genError}
               </div>
             )}
-          </>
-        )}
       </div>
     )
   }

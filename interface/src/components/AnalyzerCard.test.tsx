@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen, within, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../setupTests'
 import { http } from 'msw'
@@ -104,29 +104,6 @@ test('shows degraded banner', async () => {
     />,
   )
   expect(screen.getByText(/partial results/i)).toBeInTheDocument()
-})
-
-test('shows CMS placeholder when array empty', async () => {
-  const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  render(
-    <AnalyzerCard
-      id="a"
-      url="foo"
-      setUrl={() => {}}
-      onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
-      force={false}
-      setForce={() => {}}
-      loading={false}
-      error=""
-      result={{ ...result, cms: [] }}
-    />,
-  )
-  const cmsSection = screen.getByRole('heading', {
-    name: 'Content Management Systems',
-  }).parentElement as HTMLElement
-  expect(within(cmsSection).getByText('Nothing detected')).toBeInTheDocument()
 })
 
 test('displays insight text', async () => {
