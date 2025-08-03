@@ -332,7 +332,7 @@ async def _generate_alt_text(description: str) -> str:
     if not os.getenv("OPENAI_API_KEY") or openai is None:
         return ""
     try:
-        alt, _ = await orchestrator.call_openai_with_retry(
+        alt, _, _ = await orchestrator.call_openai_with_retry(
             [
                 {
                     "role": "user",
