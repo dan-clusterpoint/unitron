@@ -79,7 +79,7 @@ test('renders result lists', async () => {
     />,
   )
   expect(screen.getByText('example.com')).toBeInTheDocument()
-  expect(screen.getByText('GTM')).toBeInTheDocument()
+  expect(screen.getByDisplayValue('GTM')).toBeInTheDocument()
 })
 
 test('shows degraded banner', async () => {
@@ -216,15 +216,6 @@ test('keeps skeleton height during delayed insight response', async () => {
 test('shows generated details on success', async () => {
   sessionStorage.setItem('industry', 'SaaS')
   sessionStorage.setItem('pain_point', 'Slow onboarding')
-  sessionStorage.setItem(
-    'stack',
-    JSON.stringify([
-      { category: 'x', vendor: 'ga' },
-      { category: 'y', vendor: 'GA4' },
-      { category: 'z', vendor: 'GTM' },
-      { category: 'z', vendor: 'google tag manager' },
-    ]),
-  )
 
   let captured: any = null
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
@@ -265,10 +256,6 @@ test('shows generated details on success', async () => {
     cms: [],
     industry: 'SaaS',
     pain_point: 'Slow onboarding',
-    stack: [
-      { category: 'Tagging & Analytics', vendor: 'Google Analytics 4' },
-      { category: 'Tagging & Analytics', vendor: 'Google Tag Manager' },
-    ],
     evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
     credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
     deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
@@ -424,7 +411,7 @@ test('nudge opens context panel and keeps content', async () => {
   await waitFor(() => expect(btn).toBeEnabled())
   await userEvent.click(btn)
   const nudge = await screen.findByText(
-    'Improve results: add tools to Stack, set Industry, describe a Pain point.',
+    'Improve results: set Industry, describe a Pain point.',
   )
   await userEvent.click(nudge)
   await screen.findByLabelText('Industry')
@@ -536,13 +523,6 @@ test('shows validation error and skips POST on invalid payload', async () => {
 test('chips reflect live values', async () => {
   sessionStorage.setItem('industry', 'SaaS')
   sessionStorage.setItem('pain_point', 'Latency')
-  sessionStorage.setItem(
-    'stack',
-    JSON.stringify([
-      { category: 'x', vendor: 'one' },
-      { category: 'y', vendor: 'two' },
-    ]),
-  )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>
@@ -566,7 +546,6 @@ test('chips reflect live values', async () => {
   )
   await screen.findByText('SaaS')
   await screen.findByText('Latency')
-  await screen.findByText('Stack (2)')
   const industryChip = screen.getByText('SaaS')
   await userEvent.click(industryChip)
   const industryInput = await screen.findByLabelText('Industry')
@@ -585,13 +564,6 @@ test('chips reflect live values', async () => {
 test('chip clicks focus corresponding inputs', async () => {
   sessionStorage.setItem('industry', 'Fintech')
   sessionStorage.setItem('pain_point', 'Billing')
-  sessionStorage.setItem(
-    'stack',
-    JSON.stringify([
-      { category: 'x', vendor: 'one' },
-      { category: 'y', vendor: 'two' },
-    ]),
-  )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>
@@ -623,24 +595,12 @@ test('chip clicks focus corresponding inputs', async () => {
   const painInput = await screen.findByLabelText('Pain point')
   await waitFor(() => expect(painInput).toHaveFocus())
   await userEvent.click(screen.getByLabelText('close'))
-  const stackChip = screen.getByText('Stack (2)')
-  await userEvent.click(stackChip)
-  const stackInput = await screen.findByLabelText('Technologies in use')
-  await waitFor(() => expect(stackInput).toHaveFocus())
   sessionStorage.clear()
 })
 
 test('context strength updates with field edits', async () => {
   sessionStorage.setItem('industry', 'Fintech')
   sessionStorage.setItem('pain_point', 'Billing')
-  sessionStorage.setItem(
-    'stack',
-    JSON.stringify([
-      { category: 'x', vendor: 'one' },
-      { category: 'y', vendor: 'two' },
-      { category: 'z', vendor: 'three' },
-    ]),
-  )
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
     http.post('/insight', async () =>

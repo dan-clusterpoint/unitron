@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 
 import httpx
@@ -6,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import services.gateway.app as gateway_app
+from services.gateway.app import merge_martech
 
 client = TestClient(gateway_app.app)
 
@@ -418,3 +420,32 @@ def test_research_timeout(monkeypatch):
     assert r.json()["detail"] == "slow"
     assert recorded["timeout"] == 30
     assert duration >= 0.05
+
+
+def test_merge_martech():
+    merged = merge_martech({"core": ["Google Analytics"]}, ["Segment"])
+    assert merged == ["Segment", "Google Analytics"]
+
+
+def test_generate_merges_manual(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/generate":
+            data = json.loads(request.content)
+            assert data["martech"] == ["Segment", "Google Analytics"]
+            return httpx.Response(200, json={"ok": True})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post(
+        "/generate",
+        json={
+            "url": "https://example.com",
+            "martech": {"core": ["Google Analytics"]},
+            "martech_manual": ["Segment"],
+            "cms": [],
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["result"] == {"ok": True}
