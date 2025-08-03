@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef, type RefObject } from 'react'
 import PropertyResults from './PropertyResults'
-import MartechResults from './MartechResults'
 import CmsResults from './CmsResults'
 import InsightMarkdown from './InsightMarkdown'
-import TechnologySelect from './TechnologySelect'
+import EditableMartechList from './analysis/EditableMartechList'
 import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
-import { normalizeStack, type StackItem } from '../utils/tech'
 import Sheet from './ui/sheet'
 
 function hasNextBestActions(markdown: string | null) {
@@ -88,18 +86,11 @@ export default function AnalyzerCard({
       return ''
     }
   })
-  const [stack, setStack] = useState<StackItem[]>(() => {
-    try {
-      const stored = sessionStorage.getItem('stack')
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
-  })
+  const [martechManual, setMartechManual] = useState<string[]>([])
+  const initialMartechRef = useRef<string[]>([])
   const [contextOpen, setContextOpen] = useState(false)
   const industryRef = useRef<HTMLInputElement>(null)
   const painRef = useRef<HTMLInputElement>(null)
-  const stackRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     sessionStorage.setItem('industry', industry)
@@ -110,11 +101,20 @@ export default function AnalyzerCard({
   }, [painPoint])
 
   useEffect(() => {
-    sessionStorage.setItem('stack', JSON.stringify(stack))
-    if (stack.length) {
-      console.log('stack_count', stack.length)
+    if (result?.martech) {
+      const all = new Set<string>()
+      for (const list of Object.values(result.martech)) {
+        if (Array.isArray(list)) {
+          for (const v of list) {
+            all.add(v)
+          }
+        }
+      }
+      const arr = Array.from(all)
+      setMartechManual(arr)
+      initialMartechRef.current = arr
     }
-  }, [stack])
+  }, [result])
 
   useEffect(() => {
     if (!result) {
@@ -163,18 +163,20 @@ export default function AnalyzerCard({
         broader: source.broader ?? [],
         competitors: source.competitors ?? [],
       }
-      const payload = {
+      const payload: Record<string, unknown> = {
         url: clean,
         martech,
         cms: result.cms || [],
         industry,
         pain_point: painPoint,
-        stack: normalizeStack(stack.map((s) => s.vendor)),
         evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
         credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
         deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
         audience: ORG_CONTEXT.audience ?? '',
         preferences: ORG_CONTEXT.preferences ?? '',
+      }
+      if (martechManual.join('\n') !== initialMartechRef.current.join('\n')) {
+        payload['martech_manual'] = martechManual
       }
       const parsed = requestSchema.safeParse(payload)
       if (!parsed.success) {
@@ -194,14 +196,8 @@ export default function AnalyzerCard({
       setGenerating(false)
     }
   }
-  const stackCount = stack.length
-  const filled = (industry ? 1 : 0) + (painPoint ? 1 : 0) + (stackCount ? 1 : 0)
-  const contextStrength =
-    industry && painPoint && stackCount >= 3
-      ? 'High'
-      : filled >= 2
-        ? 'Medium'
-        : 'Low'
+  const filled = (industry ? 1 : 0) + (painPoint ? 1 : 0)
+  const contextStrength = filled === 2 ? 'High' : filled === 1 ? 'Medium' : 'Low'
   function focusRef(ref: RefObject<HTMLInputElement | null>) {
     setContextOpen(true)
     setTimeout(() => ref.current?.focus(), 0)
@@ -281,7 +277,11 @@ export default function AnalyzerCard({
           </>
         )}
         {property && <section id="property"><PropertyResults property={property} /></section>}
-        {martech && <section id="martech"><MartechResults martech={martech} /></section>}
+        {martech && (
+          <section id="martech">
+            <EditableMartechList value={martechManual} onChange={setMartechManual} />
+          </section>
+        )}
         {cms != null && (
           <section id="cms">
             <CmsResults cms={cms} />
@@ -317,15 +317,7 @@ export default function AnalyzerCard({
                     {painPoint}
                   </button>
                 )}
-                {stackCount > 0 && (
-                  <button
-                    className="border rounded-full px-2 py-0.5 text-xs"
-                    onClick={() => focusRef(stackRef)}
-                  >
-                    {`Stack (${stackCount})`}
-                  </button>
-                )}
-                {!industry && !painPoint && stackCount === 0 && (
+                {!industry && !painPoint && (
                   <button
                     className="border rounded-full px-2 py-0.5 text-xs"
                     onClick={() => setContextOpen(true)}
@@ -354,7 +346,7 @@ export default function AnalyzerCard({
                       className="underline"
                       onClick={() => setContextOpen(true)}
                     >
-                      Improve results: add tools to Stack, set Industry, describe a Pain point.
+                      Improve results: set Industry, describe a Pain point.
                     </button>
                   </div>
                 )}
@@ -382,11 +374,6 @@ export default function AnalyzerCard({
                   placeholder="Pain point"
                   className="border rounded p-2 w-full"
                   ref={painRef}
-                />
-                <TechnologySelect
-                  value={stack}
-                  onChange={setStack}
-                  inputRef={stackRef}
                 />
               </div>
             </Sheet>

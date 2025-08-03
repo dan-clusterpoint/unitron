@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-from fastapi.testclient import TestClient
 import base64
 import pytest
 import asyncio
@@ -52,8 +51,7 @@ def test_generate_insights(monkeypatch):
 
     r = client.post("/generate-insights", json={"text": "  some text\n"})
     assert r.status_code == 200
-    data = r.json()
-    assert data == {"markdown": "Hello insight", "degraded": False}
+    assert r.json() == {"markdown": "Hello insight", "degraded": False}
 
 
 def test_insight_endpoint(monkeypatch):
@@ -73,10 +71,10 @@ def test_insight_prompt_includes_context(monkeypatch):
     captured: dict[str, Any] = {}
 
     async def fake_report(prompt: str, **_kwargs):
-        captured['prompt'] = prompt
+        captured["prompt"] = prompt
         return {"markdown": "ok", "degraded": False}
 
-    monkeypatch.setattr(insight_mod.orchestrator, 'generate_report', fake_report)
+    monkeypatch.setattr(insight_mod.orchestrator, "generate_report", fake_report)
 
     payload = {
         "url": "https://ex",
@@ -86,7 +84,7 @@ def test_insight_prompt_includes_context(monkeypatch):
     }
     r = client.post("/insight", json=payload)
     assert r.status_code == 200
-    prompt = captured['prompt']
+    prompt = captured["prompt"]
     assert "Context" in prompt
     assert "- Industry: SaaS" in prompt
     assert "- Pain point: Slow onboarding" in prompt
@@ -116,8 +114,7 @@ def test_research(monkeypatch):
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
-    data = r.json()
-    assert data == {"markdown": "Research result", "degraded": False}
+    assert r.json() == {"markdown": "Research result", "degraded": False}
 
 
 def test_research_trim(monkeypatch):
@@ -130,8 +127,7 @@ def test_research_trim(monkeypatch):
 
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
-    data = r.json()
-    assert data == {"markdown": "Trim me", "degraded": False}
+    assert r.json() == {"markdown": "Trim me", "degraded": False}
 
 
 def test_research_validation_error():
@@ -198,6 +194,7 @@ def test_postprocess_report(monkeypatch):
 
 def test_metrics_and_warnings(monkeypatch):
     huge = "[Data Gap]" + "x" * (260 * 1024)
+
     async def fake_report(prompt: str, **_kwargs):
         return {"markdown": huge, "degraded": False}
 
@@ -207,8 +204,7 @@ def test_metrics_and_warnings(monkeypatch):
 
     r = client.post("/generate-insights", json={"text": "info"})
     assert r.status_code == 200
-    data = r.json()
-    assert "warnings" in data.get("meta", {})
+    assert "warnings" in r.json().get("meta", {})
 
     metrics_data = client.get("/metrics").json()
     assert metrics_data["generate-insights"]["requests"] >= 1
@@ -305,7 +301,6 @@ def test_insight_and_personas_empty_fields(monkeypatch):
         },
     )
     assert r.status_code == 200
-    data = r.json()
 
 
 def test_insight_and_personas_action_dict(monkeypatch):
@@ -507,8 +502,12 @@ async def test_generate_report_concurrent(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
             content = "hi"
-            message_obj = type("obj", (), {"content": content, "finish_reason": "stop"})()
-            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
+            message_obj = type(
+                "obj", (), {"content": content, "finish_reason": "stop"}
+            )()
+            self.choices = [
+                type("obj", (), {"message": message_obj, "finish_reason": "stop"})()
+            ]
 
     async def fake_create(**_kwargs):
         await asyncio.sleep(sleep_dur)
@@ -543,8 +542,7 @@ async def test_generate_report_concurrent(monkeypatch):
 
 def test_insight_and_personas_invalid_field():
     r = client.post(
-        "/insight-and-personas",
-        json={"url": "http://x", "evidence_standards": {}}
+        "/insight-and-personas", json={"url": "http://x", "evidence_standards": {}}
     )
     assert r.status_code == 422
 
@@ -556,8 +554,12 @@ async def test_generate_report_json(monkeypatch):
             self.json_snippet = """```json
 {"markdown": "bar"}
 ```"""
-            message_obj = type("obj", (), {"content": self.json_snippet, "finish_reason": "stop"})()
-            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
+            message_obj = type(
+                "obj", (), {"content": self.json_snippet, "finish_reason": "stop"}
+            )()
+            self.choices = [
+                type("obj", (), {"message": message_obj, "finish_reason": "stop"})()
+            ]
 
     async def fake_create(**_kwargs):
         return DummyResp()
@@ -575,10 +577,9 @@ async def test_generate_report_json(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4")
 
     result = await insight_mod.orchestrator.generate_report("prompt")
-    expected = "```json\n{\"markdown\": \"bar\"}\n```"
+    expected = '```json\n{"markdown": "bar"}\n```'
     assert result["markdown"] == expected
     assert result["degraded"] is True
-
 
 
 @pytest.mark.asyncio
@@ -613,7 +614,9 @@ async def test_generate_report_short_text(monkeypatch):
     class DummyResp:
         def __init__(self) -> None:
             message_obj = type("obj", (), {"content": "hi"})()
-            self.choices = [type("obj", (), {"message": message_obj, "finish_reason": "stop"})()]
+            self.choices = [
+                type("obj", (), {"message": message_obj, "finish_reason": "stop"})()
+            ]
 
     async def fake_create(**_kwargs):
         return DummyResp()
@@ -640,7 +643,9 @@ async def test_call_openai_streaming(monkeypatch):
     class Event:
         def __init__(self, content: str | None, finish: str | None = None) -> None:
             delta = {} if content is None else {"content": content}
-            self.choices = [type("obj", (), {"delta": delta, "finish_reason": finish})()]
+            self.choices = [
+                type("obj", (), {"delta": delta, "finish_reason": finish})()
+            ]
 
     async def fake_stream(**_kwargs):
         async def generator():

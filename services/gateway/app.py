@@ -106,6 +106,37 @@ class GenerateRequest(BaseModel):
     martech: dict[str, list[str]] | None = None
     cms: list[str] | None = None
     cms_manual: str | None = None
+    martech_manual: list[str] | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "url": "https://example.com",
+                "martech": {"core": ["Google Analytics"]},
+                "martech_manual": ["Segment"],
+                "cms": ["WordPress"],
+            }
+        }
+    }
+
+
+def merge_martech(
+    detected: dict[str, list[str]] | None, manual: list[str] | None
+) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    if manual:
+        for item in manual:
+            if item not in seen:
+                result.append(item)
+                seen.add(item)
+    if detected:
+        for items in detected.values():
+            for item in items:
+                if item not in seen:
+                    result.append(item)
+                    seen.add(item)
+    return result
 
 
 async def _get_with_retry(url: str, service: str) -> bool:
@@ -127,12 +158,12 @@ async def _get_with_retry(url: str, service: str) -> bool:
     return False
 
 
-@app.get('/health')
+@app.get("/health")
 async def health():
-    return JSONResponse({'status': 'ok'})
+    return JSONResponse({"status": "ok"})
 
 
-@app.get('/metrics')
+@app.get("/metrics")
 async def metrics_endpoint() -> PlainTextResponse:
     """Return Prometheus metrics."""
     return PlainTextResponse(
@@ -141,7 +172,7 @@ async def metrics_endpoint() -> PlainTextResponse:
     )
 
 
-@app.get('/ready')
+@app.get("/ready")
 async def ready() -> JSONResponse:
     """Check readiness of downstream services."""
     martech_task = _get_with_retry(f"{MARTECH_URL}/ready", "martech")
@@ -263,9 +294,10 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
 @app.post("/generate")
 async def generate(req: GenerateRequest) -> JSONResponse:
     clean_url = normalize_url(req.url)
+    merged = merge_martech(req.martech or {}, req.martech_manual or [])
     payload = {
         "url": clean_url,
-        "martech": req.martech or {},
+        "martech": merged,
         "cms": req.cms or [],
     }
     if req.cms_manual:
@@ -304,5 +336,3 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     if research_data is None:
         return JSONResponse({"markdown": "", "degraded": True}, status_code=503)
     return JSONResponse(research_data)
-
-
