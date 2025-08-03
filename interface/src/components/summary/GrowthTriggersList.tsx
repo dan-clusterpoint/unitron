@@ -1,5 +1,11 @@
 import { useRef, useState } from 'react'
 import Sheet from '../ui/sheet'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../ui/accordion'
 
 export interface GrowthTriggersListProps {
   triggers: string[]
@@ -23,40 +29,59 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
       itemRefs.current[(idx - 1 + visible.length) % visible.length]?.focus()
     }
   }
+
+  const list = (
+    <ul className="list-disc ml-4 space-y-1" role="list">
+      {visible.map((t, i) => (
+        <li
+          key={i}
+          ref={(el) => {
+            itemRefs.current[i] = el
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+        >
+          {t}
+        </li>
+      ))}
+    </ul>
+  )
+
   return (
-    <div className="text-sm">
-      <ul className="list-disc ml-4 space-y-1" role="list">
-        {visible.map((t, i) => (
-          <li
-            key={i}
-            ref={(el) => {
-              itemRefs.current[i] = el
-            }}
-            tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, i)}
-          >
-            {t}
-          </li>
-        ))}
-      </ul>
-      {hidden.length > 0 && (
-        <>
-          <button
-            onClick={() => setOpen(true)}
-            className="text-blue-600 text-sm mt-1"
-          >
-            +{hidden.length}
-          </button>
-          <Sheet open={open} onClose={() => setOpen(false)}>
-            <h2 className="font-medium mb-2">Growth Triggers</h2>
+    <>
+      <div className="hidden xs:block text-sm">
+        {list}
+        {hidden.length > 0 && (
+          <>
+            <button
+              onClick={() => setOpen(true)}
+              className="text-blue-600 text-sm mt-1"
+            >
+              +{hidden.length}
+            </button>
+            <Sheet open={open} onClose={() => setOpen(false)}>
+              <h2 className="font-medium mb-2">Growth Triggers</h2>
+              <ul className="list-disc ml-4 space-y-1">
+                {triggers.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </Sheet>
+          </>
+        )}
+      </div>
+      <Accordion type="single" collapsible className="block xs:hidden text-sm">
+        <AccordionItem value="triggers">
+          <AccordionTrigger>Growth Triggers</AccordionTrigger>
+          <AccordionContent>
             <ul className="list-disc ml-4 space-y-1">
               {triggers.map((t, i) => (
                 <li key={i}>{t}</li>
               ))}
             </ul>
-          </Sheet>
-        </>
-      )}
-    </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </>
   )
 }
