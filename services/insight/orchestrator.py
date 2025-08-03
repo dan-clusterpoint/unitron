@@ -82,10 +82,26 @@ async def call_openai_with_retry(
                     fr = getattr(event.choices[0], "finish_reason", None)
                     if fr:
                         finish_reason = fr
+                logger.info("openai streaming usage unavailable")
                 return content.strip(), finish_reason, False
             resp = await client.chat.completions.create(**params)
             content = resp.choices[0].message.content or ""
             finish_reason = getattr(resp.choices[0], "finish_reason", "stop")
+            usage = getattr(resp, "usage", None)
+            if usage:
+                prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
+                completion_tokens = getattr(usage, "completion_tokens", 0) or 0
+                total_tokens = getattr(usage, "total_tokens", 0) or 0
+                cost = prompt_tokens * 0.000005 + completion_tokens * 0.000015
+                logger.info(
+                    "openai usage prompt=%s completion=%s total=%s cost=%s",
+                    prompt_tokens,
+                    completion_tokens,
+                    total_tokens,
+                    cost,
+                )
+            else:
+                logger.info("openai usage unavailable")
             return content.strip(), finish_reason, False
         except Exception as exc:  # noqa: BLE001
             status = getattr(exc, "status_code", getattr(exc, "status", None))

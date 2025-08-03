@@ -20,6 +20,9 @@ const GrowthTriggerArray = z.array(GrowthTriggerSchema).max(3);
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+let cacheHits = 0;
+let cacheLookups = 0;
+
 function sha256(text: string): string {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
@@ -79,9 +82,12 @@ function buildPrompt(context: string): string {
 export async function growthTriggers(domains: string[]): Promise<GrowthTrigger[]> {
   const context = await gatherContext(domains);
   const cacheKey = sha256(context);
+  cacheLookups += 1;
   const cached = await redis.get(cacheKey);
   if (cached) {
-    console.log('growthTriggers cache hit', { cacheKey });
+    cacheHits += 1;
+    const hitRate = cacheHits / cacheLookups;
+    console.log('growthTriggers cache hit', { cacheKey, hitRate });
     return JSON.parse(cached) as GrowthTrigger[];
   }
 
@@ -117,7 +123,8 @@ export async function growthTriggers(domains: string[]): Promise<GrowthTrigger[]
     const parsed = GrowthTriggerArray.parse(JSON.parse(responseText));
     await redis.set(cacheKey, JSON.stringify(parsed), 'EX', 48 * 60 * 60);
     const cost = usage.prompt * 0.000005 + usage.completion * 0.000015;
-    console.log('growthTriggers cache miss', { cacheKey, usage, cost });
+    const hitRate = cacheHits / cacheLookups;
+    console.log('growthTriggers cache miss', { cacheKey, usage, cost, hitRate });
     return parsed;
   } catch (err) {
     console.error('growthTriggers parse error', err);
