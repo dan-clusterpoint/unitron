@@ -105,8 +105,8 @@ The gateway orchestrates the other APIs. Key endpoints:
 * `GET /health` – liveness probe.
 * `GET /ready` – checks that downstream services are healthy.
 * `GET /metrics` – optional stats about service calls.
-* `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns:
-  `{"property": {...}, "martech": {...}}`.
+* `POST /analyze` – body `{"url": "https://example.com", "headless": false, "force": false}` returns
+  `{"property": {...}, "martech": {...}, "snapshot": {...}}`.
 * `POST /generate` – body `{"url": "https://example.com", "martech": {...}, "cms": [], "cms_manual": "WordPress"}` proxies to the insight service and returns persona and insight JSON.
 * `POST /insight` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}] }` proxies to `INSIGHT_URL/insight` and returns `{ "markdown": "...", "degraded": false }`. The endpoint also accepts `{ "text": "notes" }` for free‑form analysis.
 * `INSIGHT_TIMEOUT` controls how long the gateway waits for an insight reply (default `30`s).
@@ -117,9 +117,22 @@ The gateway orchestrates the other APIs. Key endpoints:
 Example:
 
 ```bash
-curl -X POST http://localhost:8080/analyze \
+curl -sS -X POST http://localhost:8080/analyze \
   -H 'Content-Type: application/json' \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://example.com"}' | jq
+# {
+#   "property": { "domains": ["example.com"] },
+#   "martech": { "core": ["GA"] },
+#   "cms": [],
+#   "snapshot": {
+#     "profile": {},
+#     "digitalScore": {},
+#     "riskMatrix": {},
+#     "stackDelta": {},
+#     "growthTriggers": {},
+#     "nextActions": {}
+#   }
+# }
 ```
 
 
