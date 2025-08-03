@@ -33,8 +33,30 @@ def test_retry_rate_limit(monkeypatch):
                 err.status_code = 429
                 raise err
             choice = resp.json()["choices"][0]
-            message = type("obj", (), {"content": choice["message"]["content"], "finish_reason": choice.get("finish_reason")})()
-            return type("obj", (), {"choices": [type("obj", (), {"message": message, "finish_reason": message.finish_reason})()]})
+            message = type(
+                "obj",
+                (),
+                {
+                    "content": choice["message"]["content"],
+                    "finish_reason": choice.get("finish_reason"),
+                },
+            )()
+            return type(
+                "obj",
+                (),
+                {
+                    "choices": [
+                        type(
+                            "obj",
+                            (),
+                            {
+                                "message": message,
+                                "finish_reason": message.finish_reason,
+                            },
+                        )()
+                    ]
+                },
+            )
 
     class DummyClient:
         def __init__(self, *a, **kw) -> None:

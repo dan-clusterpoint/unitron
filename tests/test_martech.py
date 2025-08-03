@@ -50,37 +50,37 @@ class RedirectHandler(BaseHTTPRequestHandler):
 
 
 def test_health():
-    r = client.get('/health')
+    r = client.get("/health")
     assert r.status_code == 200
 
 
 def test_ready_and_analyze():
     # spin up simple http server
-    server = HTTPServer(('localhost', 0), SimpleHandler)
+    server = HTTPServer(("localhost", 0), SimpleHandler)
     port = server.server_port
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
 
     try:
-        ready = client.get('/ready')
+        ready = client.get("/ready")
         assert ready.status_code == 200
-        assert ready.json() == {'ready': True}
+        assert ready.json() == {"ready": True}
 
-        os.environ['OUTBOUND_HTTP_PROXY'] = ''
-        os.environ['HTTP_PROXY'] = ''
-        os.environ['HTTPS_PROXY'] = ''
+        os.environ["OUTBOUND_HTTP_PROXY"] = ""
+        os.environ["HTTP_PROXY"] = ""
+        os.environ["HTTPS_PROXY"] = ""
 
         resp = client.post(
-            '/analyze',
-            json={'url': f'http://localhost:{port}/', 'debug': True},
+            "/analyze",
+            json={"url": f"http://localhost:{port}/", "debug": True},
         )
         data = resp.json()
         assert resp.status_code == 200
-        core = data['core']
+        core = data["core"]
         assert isinstance(core, dict)
-        assert 'Google Analytics' in core
-        assert 'confidence' in core['Google Analytics']
-        assert 'debug' in data and 'scripts' in data['debug']
+        assert "Google Analytics" in core
+        assert "confidence" in core["Google Analytics"]
+        assert "debug" in data and "scripts" in data["debug"]
     finally:
         server.shutdown()
 
@@ -93,9 +93,7 @@ def test_analyze_follows_redirects():
 
     try:
         client.get("/ready")
-        resp = client.post(
-            "/analyze", json={"url": f"http://localhost:{port}/"}
-        )
+        resp = client.post("/analyze", json={"url": f"http://localhost:{port}/"})
         assert resp.status_code == 200
         core = resp.json()["core"]
         assert isinstance(core, list)
@@ -106,19 +104,19 @@ def test_analyze_follows_redirects():
 
 def test_options_analyze():
     r = client.options(
-        '/analyze',
+        "/analyze",
         headers={
-            'Origin': 'http://example.com',
-            'Access-Control-Request-Method': 'POST',
+            "Origin": "http://example.com",
+            "Access-Control-Request-Method": "POST",
         },
     )
     assert r.status_code == 200
-    assert r.headers['access-control-allow-origin'] == '*'
-    allowed = r.headers['access-control-allow-headers']
-    assert 'Content-Type' in allowed
-    assert 'Authorization' in allowed
-    assert r.headers['x-frame-options'] == 'DENY'
-    assert r.headers['x-content-type-options'] == 'nosniff'
+    assert r.headers["access-control-allow-origin"] == "*"
+    allowed = r.headers["access-control-allow-headers"]
+    assert "Content-Type" in allowed
+    assert "Authorization" in allowed
+    assert r.headers["x-frame-options"] == "DENY"
+    assert r.headers["x-content-type-options"] == "nosniff"
 
 
 def test_options_respects_ui_origin(monkeypatch):
@@ -129,18 +127,18 @@ def test_options_respects_ui_origin(monkeypatch):
     mt = importlib.reload(mt)
     local_client = TestClient(mt.app)
     r = local_client.options(
-        '/analyze',
+        "/analyze",
         headers={
-            'Origin': 'http://ui.example',
-            'Access-Control-Request-Method': 'POST',
+            "Origin": "http://ui.example",
+            "Access-Control-Request-Method": "POST",
         },
     )
     assert r.status_code == 200
-    assert r.headers['access-control-allow-origin'] == 'http://ui.example'
+    assert r.headers["access-control-allow-origin"] == "http://ui.example"
 
 
 def test_analyze_handles_request_error(monkeypatch):
-    client.get('/ready')
+    client.get("/ready")
 
     async def boom_fetch(_client, _url):
         req = httpx.Request("GET", _url)
@@ -148,17 +146,13 @@ def test_analyze_handles_request_error(monkeypatch):
 
     monkeypatch.setattr("services.martech.app._fetch", boom_fetch)
 
-    resp = client.post(
-        "/analyze", json={"url": "http://example.com", "debug": True}
-    )
+    resp = client.post("/analyze", json={"url": "http://example.com", "debug": True})
     assert resp.status_code == 200
     data = resp.json()
     assert data["network_error"] is True
 
 
-def _set_mock_client(
-    monkeypatch, handler: httpx.MockTransport, hook=None
-) -> None:
+def _set_mock_client(monkeypatch, handler: httpx.MockTransport, hook=None) -> None:
     class DummyClient(httpx.AsyncClient):
         def __init__(self, *args, **kwargs):
             if hook is not None:
@@ -216,7 +210,7 @@ def test_proxy_usage(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured['proxy'] = kwargs.get('proxy')
+        captured["proxy"] = kwargs.get("proxy")
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
@@ -232,14 +226,12 @@ def test_analyze_uses_proxy(monkeypatch):
     captured = {}
 
     def hook(kwargs: dict) -> None:
-        captured['proxy'] = kwargs.get('proxy')
+        captured["proxy"] = kwargs.get("proxy")
 
     _set_stub_client(monkeypatch, hook)
     monkeypatch.setenv("OUTBOUND_HTTP_PROXY", "http://proxy.local")
 
-    r = client.post(
-        "/analyze", json={"url": "http://example.com", "force": True}
-    )
+    r = client.post("/analyze", json={"url": "http://example.com", "force": True})
     assert r.status_code == 200
     assert captured["proxy"] == "http://proxy.local"
 
@@ -331,9 +323,7 @@ async def test_headless_playwright_uses_proxy(monkeypatch):
     monkeypatch.setitem(sys.modules, "playwright", base_module)
     monkeypatch.setitem(sys.modules, "playwright.async_api", dummy_module)
 
-    await services.martech.app.analyze_url(
-        "http://example.com", headless=True
-    )
+    await services.martech.app.analyze_url("http://example.com", headless=True)
 
     assert captured["proxy"] == {"server": "http://proxy.local"}
 
@@ -407,7 +397,7 @@ async def test_extract_scripts_parses_gtm(monkeypatch):
 
     js_content = (
         "var s=document.createElement('script');"
-        "s.src=\"https://cdn.example.com/inner.js\";"
+        's.src="https://cdn.example.com/inner.js";'
     )
 
     async def fake_fetch(_client, _url):
@@ -545,9 +535,7 @@ async def test_analyze_url_wappalyzer(monkeypatch):
     monkeypatch.setattr("services.martech.app.cms_fingerprints", {})
     monkeypatch.setattr("services.martech.app.ENABLE_WAPPALYZER", True)
 
-    result = await services.martech.app.analyze_url(
-        "http://example.com", debug=True
-    )
+    result = await services.martech.app.analyze_url("http://example.com", debug=True)
     cms = result["cms"]
     assert "WordPress" in cms.get("uncategorized", {})
 
@@ -555,6 +543,7 @@ async def test_analyze_url_wappalyzer(monkeypatch):
 @pytest.mark.asyncio
 async def test_startup_fallback(monkeypatch):
     """Startup loads default fingerprints when files missing."""
+
     def raise_fn(_path):
         raise FileNotFoundError
 
@@ -603,5 +592,3 @@ def test_generate_proxies_to_insight(monkeypatch):
     assert r.json() == {"ok": True}
     assert captured["path"] == "/insight-and-personas"
     assert captured["data"]["cms"] == ["WP"]
-
-

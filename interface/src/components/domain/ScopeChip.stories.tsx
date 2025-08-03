@@ -4,6 +4,7 @@ import { DomainProvider } from '../../contexts/DomainContext'
 
 const meta: Meta<typeof ScopeChip> = {
   component: ScopeChip,
+  args: { onRerun: () => {} },
 }
 export default meta
 

@@ -3,7 +3,13 @@ import { createPortal } from 'react-dom'
 import { useDomains } from '../../contexts/DomainContext'
 import { track } from '../../utils/analytics'
 
-export default function DomainDrawer({ onClose }: { onClose: () => void }) {
+export default function DomainDrawer({
+  onClose,
+  onRerun = () => {},
+}: {
+  onClose: () => void
+  onRerun?: () => void
+}) {
   const { domains, setDomains } = useDomains()
   const [text, setText] = useState(domains.join('\n'))
 
@@ -14,6 +20,7 @@ export default function DomainDrawer({ onClose }: { onClose: () => void }) {
       .filter(Boolean)
     setDomains(list)
     track('analysis_rerun')
+    onRerun()
     onClose()
   }
 

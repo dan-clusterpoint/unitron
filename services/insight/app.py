@@ -125,6 +125,7 @@ class ReadyResponse(BaseModel):
 class ResearchRequest(BaseModel):
     topic: str
 
+
 class MarkdownResponse(BaseModel):
     markdown: str
     degraded: bool
@@ -475,7 +476,10 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
             insight_text = insight_raw
 
         personas_source: Any
-        if isinstance(personas_raw, dict) and "generated_buyer_personas" in personas_raw:
+        if (
+            isinstance(personas_raw, dict)
+            and "generated_buyer_personas" in personas_raw
+        ):
             personas_source = personas_raw["generated_buyer_personas"]
         else:
             personas_source = personas_raw
@@ -485,9 +489,9 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
 
             domain = urlparse(req.url).netloc or req.url
             tech_names = [item.get("vendor", "") for item in req.stack]
-            tech_text = ", ".join(
-                sorted({name for name in tech_names if name})
-            ) or "unknown"
+            tech_text = (
+                ", ".join(sorted({name for name in tech_names if name})) or "unknown"
+            )
             personas_list = [
                 {
                     "id": "company",

@@ -28,10 +28,12 @@ function renderList(items: string[]) {
   )
 }
 
+import { USE_JIT_DOMAINS } from '../config'
+
 export default function PropertyResults({ property }: { property: Property }) {
   return (
     <>
-      {import.meta.env.VITE_USE_JIT_DOMAINS !== 'true' && (
+      {!USE_JIT_DOMAINS && (
         <div className="bg-gray-50 p-4 rounded mb-4">
           <h3 className="font-medium">Domains</h3>
           {renderList(property.domains)}

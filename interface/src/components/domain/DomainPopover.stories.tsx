@@ -12,8 +12,8 @@ type Story = StoryObj<typeof DomainPopover>
 
 export const WithChip: Story = {
   render: () => (
-    <DomainProvider initial={['example.com','test.com']}>
-      <ScopeChip />
+    <DomainProvider initial={['example.com', 'test.com']}>
+      <ScopeChip onRerun={() => {}} />
     </DomainProvider>
   ),
 }

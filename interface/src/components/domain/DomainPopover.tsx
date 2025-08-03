@@ -5,7 +5,13 @@ import { track } from '../../utils/analytics'
 
 const DomainDrawer = lazy(() => import('./DomainDrawer'))
 
-export default function DomainPopover({ onClose }: { onClose: () => void }) {
+export default function DomainPopover({
+  onClose,
+  onRerun = () => {},
+}: {
+  onClose: () => void
+  onRerun?: () => void
+}) {
   const { domains, addDomain, removeDomain } = useDomains()
   const [input, setInput] = useState('')
   const [drawer, setDrawer] = useState(false)
@@ -91,7 +97,7 @@ export default function DomainPopover({ onClose }: { onClose: () => void }) {
       )}
       {drawer && (
         <Suspense fallback={null}>
-          <DomainDrawer onClose={() => setDrawer(false)} />
+          <DomainDrawer onClose={() => setDrawer(false)} onRerun={onRerun} />
         </Suspense>
       )}
     </>
