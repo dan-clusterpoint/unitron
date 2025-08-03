@@ -1,5 +1,5 @@
-import clsx from 'clsx'
 import type { JSX } from 'react'
+import { COLOR_BLIND_PALETTE } from './palette'
 
 export interface MiniRiskMatrixProps {
   position?: { x: number; y: number }
@@ -18,10 +18,12 @@ export default function MiniRiskMatrix({ position, onClick }: MiniRiskMatrixProp
       cells.push(
         <div
           key={`${x}-${y}`}
-          className={clsx(
-            'w-3 h-3 border',
-            active ? 'bg-red-500' : 'bg-gray-100',
-          )}
+          className="w-3 h-3 border"
+          style={{
+            backgroundColor: active
+              ? COLOR_BLIND_PALETTE.red
+              : '#f3f4f6',
+          }}
         />
       )
     }

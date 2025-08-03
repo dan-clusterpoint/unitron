@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Sheet from '../ui/sheet'
 
 export interface GrowthTriggersListProps {
@@ -9,11 +9,32 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
   const [open, setOpen] = useState(false)
   const visible = triggers.slice(0, 3)
   const hidden = triggers.slice(3)
+  const itemRefs = useRef<Array<HTMLLIElement | null>>([])
+
+  function handleKeyDown(
+    e: React.KeyboardEvent<HTMLLIElement>,
+    idx: number,
+  ) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      itemRefs.current[(idx + 1) % visible.length]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      itemRefs.current[(idx - 1 + visible.length) % visible.length]?.focus()
+    }
+  }
   return (
     <div className="text-sm">
-      <ul className="list-disc ml-4 space-y-1">
+      <ul className="list-disc ml-4 space-y-1" role="list">
         {visible.map((t, i) => (
-          <li key={i}>{t}</li>
+          <li
+            key={i}
+            ref={(el) => (itemRefs.current[i] = el)}
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, i)}
+          >
+            {t}
+          </li>
         ))}
       </ul>
       {hidden.length > 0 && (
