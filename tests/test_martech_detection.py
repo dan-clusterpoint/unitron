@@ -46,8 +46,7 @@ def random_page():
 @pytest.fixture
 def ga_gtm_url():
     html = (
-        "<script src='https://www.googletagmanager.com/gtag/js?id=G-XYZ'>"
-        "</script>"
+        "<script src='https://www.googletagmanager.com/gtag/js?id=G-XYZ'>" "</script>"
     )
     return html, {}
 
@@ -97,9 +96,7 @@ def ga_id():
 
 @pytest.fixture
 def hotjar_window():
-    html = (
-        "<script>window.hotjar = window.hotjar || function(){};</script>"
-    )
+    html = "<script>window.hotjar = window.hotjar || function(){};</script>"
     return html, {}
 
 

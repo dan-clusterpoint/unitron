@@ -8,4 +8,3 @@ if svc not in _ALLOWED:
     raise RuntimeError(f"Unknown service: {svc}")
 module = importlib.import_module(f"services.{svc}.app")
 app = module.app
-

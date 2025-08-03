@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import httpx
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create one shared ``httpx.AsyncClient``."""
@@ -10,4 +11,3 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await app.state.client.aclose()
-
