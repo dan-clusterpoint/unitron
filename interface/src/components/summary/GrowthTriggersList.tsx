@@ -29,7 +29,9 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
         {visible.map((t, i) => (
           <li
             key={i}
-            ref={(el) => (itemRefs.current[i] = el)}
+            ref={(el) => {
+              itemRefs.current[i] = el
+            }}
             tabIndex={0}
             onKeyDown={(e) => handleKeyDown(e, i)}
           >

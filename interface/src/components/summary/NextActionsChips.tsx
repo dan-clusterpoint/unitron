@@ -34,7 +34,9 @@ export default function NextActionsChips({ actions }: NextActionsChipsProps) {
       {actions.map((a, i) => (
         <li key={a.targetId}>
           <button
-            ref={(el) => (btnRefs.current[i] = el)}
+            ref={(el) => {
+              btnRefs.current[i] = el
+            }}
             onClick={() => scroll(a.targetId)}
             onKeyDown={(e) => handleKeyDown(e, i)}
             className="px-2 py-1 text-sm border rounded-full bg-gray-100"
