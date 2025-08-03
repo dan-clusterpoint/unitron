@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import type { JSX } from 'react'
 
 export interface MiniRiskMatrixProps {
   position?: { x: number; y: number }
@@ -21,7 +22,7 @@ export default function MiniRiskMatrix({ position, onClick }: MiniRiskMatrixProp
             'w-3 h-3 border',
             active ? 'bg-red-500' : 'bg-gray-100',
           )}
-        />,
+        />
       )
     }
   }
