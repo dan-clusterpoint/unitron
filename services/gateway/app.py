@@ -118,9 +118,7 @@ class GenerateRequest(BaseModel):
             "example": {
                 "url": "https://example.com",
                 "martech": {"core": ["Google Analytics"]},
-                "martech_manual": [
-                    {"category": "analytics", "vendor": "Segment"}
-                ],
+                "martech_manual": [{"category": "analytics", "vendor": "Segment"}],
                 "cms": ["WordPress"],
             }
         }

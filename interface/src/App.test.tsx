@@ -4,6 +4,7 @@ import { vi, test, expect, beforeEach } from 'vitest'
 import { server } from './setupTests'
 import { http } from 'msw'
 import App from './App'
+import { DomainProvider } from './contexts/DomainContext'
 import { type AnalyzeResult } from './components'
 
 beforeEach(() => {
@@ -26,12 +27,16 @@ test('shows loading spinner and displays result', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false })
+      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false, domains: [] })
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json(full)
     })
   )
-  render(<App />)
+  render(
+    <DomainProvider>
+      <App />
+    </DomainProvider>,
+  )
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
@@ -46,11 +51,15 @@ test('shows error banner when request fails', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false })
+      expect(body).toEqual({ url: 'https://example.com', headless: false, force: false, domains: [] })
       return new Response(null, { status: 500 })
     })
   )
-  render(<App />)
+  render(
+    <DomainProvider>
+      <App />
+    </DomainProvider>,
+  )
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
@@ -75,11 +84,15 @@ test('shows degraded banner when martech is null', async () => {
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
-      expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false })
+      expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false, domains: [] })
       return Response.json(partial)
     })
   )
-  render(<App />)
+  render(
+    <DomainProvider>
+      <App />
+    </DomainProvider>,
+  )
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'partial.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))

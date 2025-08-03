@@ -72,7 +72,11 @@ async def call_openai_with_retry(
                 finish_reason = "stop"
                 events = await client.chat.completions.create(stream=True, **params)
                 async for event in events:
-                    delta = event.choices[0].delta.get("content") if hasattr(event.choices[0], "delta") else None
+                    delta = (
+                        event.choices[0].delta.get("content")
+                        if hasattr(event.choices[0], "delta")
+                        else None
+                    )
                     if delta:
                         content += delta
                     fr = getattr(event.choices[0], "finish_reason", None)
@@ -174,7 +178,10 @@ def build_prompt(
     tech_text = json.dumps(technology) if technology else ""
     industry_text = industry or ""
     pain_text = pain_point or ""
-    stack_lines = [f"  - {item.get('category', '')}: {item.get('vendor', '')}" for item in (stack or [])]
+    stack_lines = [
+        f"  - {item.get('category', '')}: {item.get('vendor', '')}"
+        for item in (stack or [])
+    ]
     context_text = "\n".join(
         [
             "Context",
@@ -200,4 +207,3 @@ def build_prompt(
     )
     prompt += MARKDOWN_OUTLINE
     return prompt
-

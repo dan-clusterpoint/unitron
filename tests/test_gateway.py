@@ -445,9 +445,7 @@ def test_generate_merges_manual(monkeypatch):
         json={
             "url": "https://example.com",
             "martech": {"core": ["Google Analytics"]},
-            "martech_manual": [
-                {"category": "analytics", "vendor": "Segment"}
-            ],
+            "martech_manual": [{"category": "analytics", "vendor": "Segment"}],
             "cms": [],
         },
     )

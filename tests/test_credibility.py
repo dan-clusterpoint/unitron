@@ -30,9 +30,7 @@ def test_parse_and_score():
 
 
 def test_gap_flags():
-    rows = [
-        {"Source": "https://a.com", "Publisher": "Foo", "Date": "2020-01-01"}
-    ]
+    rows = [{"Source": "https://a.com", "Publisher": "Foo", "Date": "2020-01-01"}]
     scores = compute_scores(rows, today=datetime.date(2021, 1, 1))
     assert scores["recency"] == "[Data Gap]"
     assert scores["cross_agreement"] == "[Data Gap]"
