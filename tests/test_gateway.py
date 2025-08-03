@@ -423,7 +423,8 @@ def test_research_timeout(monkeypatch):
 
 
 def test_merge_martech():
-    merged = merge_martech({"core": ["Google Analytics"]}, ["Segment"])
+    manual = [{"category": "analytics", "vendor": "Segment"}]
+    merged = merge_martech({"core": ["Google Analytics"]}, manual)
     assert merged == ["Segment", "Google Analytics"]
 
 
@@ -438,7 +439,32 @@ def test_generate_merges_manual(monkeypatch):
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
-    r = client.post(
+    local_client = TestClient(gateway_app.app)
+    r = local_client.post(
+        "/generate",
+        json={
+            "url": "https://example.com",
+            "martech": {"core": ["Google Analytics"]},
+            "martech_manual": [
+                {"category": "analytics", "vendor": "Segment"}
+            ],
+            "cms": [],
+        },
+    )
+    assert r.status_code == 200
+
+
+def test_generate_accepts_legacy_list(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/generate":
+            return httpx.Response(200, json={"ok": True})
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    local_client = TestClient(gateway_app.app)
+    r = local_client.post(
         "/generate",
         json={
             "url": "https://example.com",

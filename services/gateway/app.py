@@ -101,19 +101,26 @@ class AnalyzeRequest(BaseModel):
         return values
 
 
+class MartechItem(BaseModel):
+    category: str
+    vendor: str
+
+
 class GenerateRequest(BaseModel):
     url: str
     martech: dict[str, list[str]] | None = None
     cms: list[str] | None = None
     cms_manual: str | None = None
-    martech_manual: list[str] | None = None
+    martech_manual: list[MartechItem | str] | None = None
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "url": "https://example.com",
                 "martech": {"core": ["Google Analytics"]},
-                "martech_manual": ["Segment"],
+                "martech_manual": [
+                    {"category": "analytics", "vendor": "Segment"}
+                ],
                 "cms": ["WordPress"],
             }
         }
@@ -121,15 +128,22 @@ class GenerateRequest(BaseModel):
 
 
 def merge_martech(
-    detected: dict[str, list[str]] | None, manual: list[str] | None
+    detected: dict[str, list[str]] | None,
+    manual: list[MartechItem | str] | None,
 ) -> list[str]:
     result: list[str] = []
     seen: set[str] = set()
     if manual:
         for item in manual:
-            if item not in seen:
-                result.append(item)
-                seen.add(item)
+            if isinstance(item, MartechItem):
+                vendor = item.vendor
+            elif isinstance(item, dict):
+                vendor = str(item.get("vendor", ""))
+            else:
+                vendor = str(item)
+            if vendor and vendor not in seen:
+                result.append(vendor)
+                seen.add(vendor)
     if detected:
         for items in detected.values():
             for item in items:

@@ -2,13 +2,30 @@ import { useState, useEffect, useRef, type RefObject } from 'react'
 import PropertyResults from './PropertyResults'
 import CmsResults from './CmsResults'
 import InsightMarkdown from './InsightMarkdown'
-import EditableMartechList from './analysis/EditableMartechList'
+import MartechCategorySelector, {
+  type MartechItem,
+} from './MartechCategorySelector'
+import catalog from '../data/martech_catalog.json'
 import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
 import Sheet from './ui/sheet'
 
+const vendorToCategory: Record<string, string> = {}
+for (const [cat, info] of Object.entries(catalog)) {
+  if (cat === '_comment') continue
+  ;(info as { vendors: string[] }).vendors.forEach((v) => {
+    vendorToCategory[v] = cat
+  })
+}
+
+function serialize(list: MartechItem[]): string {
+  return list
+    .map((i) => `${i.category}:${i.vendor}`)
+    .sort()
+    .join('\n')
+}
 function hasNextBestActions(markdown: string | null) {
   return !!markdown && /^##\s*Next-Best Actions/m.test(markdown)
 }
@@ -86,8 +103,8 @@ export default function AnalyzerCard({
       return ''
     }
   })
-  const [martechManual, setMartechManual] = useState<string[]>([])
-  const initialMartechRef = useRef<string[]>([])
+  const [martechManual, setMartechManual] = useState<MartechItem[]>([])
+  const initialMartechRef = useRef<string>('')
   const [contextOpen, setContextOpen] = useState(false)
   const industryRef = useRef<HTMLInputElement>(null)
   const painRef = useRef<HTMLInputElement>(null)
@@ -110,9 +127,15 @@ export default function AnalyzerCard({
           }
         }
       }
-      const arr = Array.from(all)
+      const arr: MartechItem[] = []
+      for (const v of all) {
+        const cat = vendorToCategory[v]
+        if (cat) {
+          arr.push({ category: cat, vendor: v })
+        }
+      }
       setMartechManual(arr)
-      initialMartechRef.current = arr
+      initialMartechRef.current = serialize(arr)
     }
   }, [result])
 
@@ -175,7 +198,7 @@ export default function AnalyzerCard({
         audience: ORG_CONTEXT.audience ?? '',
         preferences: ORG_CONTEXT.preferences ?? '',
       }
-      if (martechManual.join('\n') !== initialMartechRef.current.join('\n')) {
+      if (serialize(martechManual) !== initialMartechRef.current) {
         payload['martech_manual'] = martechManual
       }
       const parsed = requestSchema.safeParse(payload)
@@ -279,7 +302,10 @@ export default function AnalyzerCard({
         {property && <section id="property"><PropertyResults property={property} /></section>}
         {martech && (
           <section id="martech">
-            <EditableMartechList value={martechManual} onChange={setMartechManual} />
+            <MartechCategorySelector
+              value={martechManual}
+              onChange={setMartechManual}
+            />
           </section>
         )}
         {cms != null && (

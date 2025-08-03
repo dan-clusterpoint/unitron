@@ -14,5 +14,5 @@ export {
   default as InsightMarkdown,
   type InsightMarkdownProps,
 } from './InsightMarkdown'
-export { default as EditableMartechList } from './analysis/EditableMartechList'
+export { default as MartechCategorySelector } from './MartechCategorySelector'
 
