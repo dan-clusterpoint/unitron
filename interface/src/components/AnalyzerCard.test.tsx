@@ -79,7 +79,9 @@ test('renders result lists', async () => {
     />,
   )
   expect(screen.getByText('example.com')).toBeInTheDocument()
-  expect(screen.getByDisplayValue('GTM')).toBeInTheDocument()
+  expect(
+    screen.getByRole('tab', { name: /Content Management System/i })
+  ).toBeInTheDocument()
 })
 
 test('shows degraded banner', async () => {

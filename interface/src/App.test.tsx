@@ -39,7 +39,7 @@ test('shows loading spinner and displays result', async () => {
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
   await screen.findByText(/example\.com/i, undefined, { timeout: 2000 })
-  await screen.findByDisplayValue('GTM')
+  await screen.findByRole('tab', { name: /Content Management System/i })
 })
 
 test('shows error banner when request fails', async () => {

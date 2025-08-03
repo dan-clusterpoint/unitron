@@ -9,7 +9,11 @@ export const requestSchema = z.object({
     competitors: z.array(z.string()),
   }),
   cms: z.array(z.string()),
-  martech_manual: z.array(z.string()).optional(),
+  martech_manual: z
+    .array(
+      z.object({ category: z.string(), vendor: z.string() })
+    )
+    .optional(),
   industry: z.string().max(1024).optional(),
   pain_point: z.string().max(1024).optional(),
   evidence_standards: z.string().max(1024),
