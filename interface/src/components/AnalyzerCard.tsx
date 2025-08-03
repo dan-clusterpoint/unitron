@@ -97,7 +97,6 @@ export default function AnalyzerCard({
     }
   })
   const [contextOpen, setContextOpen] = useState(false)
-  const [hasGenerated, setHasGenerated] = useState(false)
   const industryRef = useRef<HTMLInputElement>(null)
   const painRef = useRef<HTMLInputElement>(null)
   const stackRef = useRef<HTMLInputElement>(null)
@@ -189,7 +188,6 @@ export default function AnalyzerCard({
       })
       setInsightMarkdown((data.markdown ?? '').trim())
       setInsightMarkdownDegraded(data.degraded)
-      setHasGenerated(true)
     } catch (e) {
       setGenError((e as Error).message)
     } finally {
@@ -301,39 +299,45 @@ export default function AnalyzerCard({
         )}
         {cms && cms.length === 0 && (
           <>
-            {hasGenerated && (
-              <div className="mt-4">
-                <div className="flex flex-wrap gap-2">
-                  {industry && (
-                    <button
-                      className="border rounded-full px-2 py-0.5 text-xs"
-                      onClick={() => focusRef(industryRef)}
-                    >
-                      {industry}
-                    </button>
-                  )}
-                  {painPoint && (
-                    <button
-                      className="border rounded-full px-2 py-0.5 text-xs"
-                      onClick={() => focusRef(painRef)}
-                    >
-                      {painPoint}
-                    </button>
-                  )}
-                  {stackCount > 0 && (
-                    <button
-                      className="border rounded-full px-2 py-0.5 text-xs"
-                      onClick={() => focusRef(stackRef)}
-                    >
-                      {`Stack (${stackCount})`}
-                    </button>
-                  )}
-                </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  Context strength: {contextStrength}
-                </div>
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {industry && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(industryRef)}
+                  >
+                    {industry}
+                  </button>
+                )}
+                {painPoint && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(painRef)}
+                  >
+                    {painPoint}
+                  </button>
+                )}
+                {stackCount > 0 && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(stackRef)}
+                  >
+                    {`Stack (${stackCount})`}
+                  </button>
+                )}
+                {!industry && !painPoint && stackCount === 0 && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => setContextOpen(true)}
+                  >
+                    Add context
+                  </button>
+                )}
               </div>
-            )}
+              <div className="text-xs text-gray-600 mt-1">
+                Context strength: {contextStrength}
+              </div>
+            </div>
             <button
               className="btn-primary mt-4"
               disabled={generating || insightLoading}
