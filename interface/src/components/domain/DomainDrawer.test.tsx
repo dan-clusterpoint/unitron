@@ -8,6 +8,7 @@ function Wrapper({ rerun }: { rerun: () => void }) {
   return (
     <div>
       <div data-testid="count">{domains.length}</div>
+
       <DomainDrawer onClose={() => {}} onRerun={rerun} />
     </div>
   )
