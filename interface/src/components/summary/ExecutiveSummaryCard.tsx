@@ -27,21 +27,21 @@ export default function ExecutiveSummaryCard({
       <h2 id="exec-summary-heading" className="sr-only">
         Executive Summary
       </h2>
-      <article className="grid grid-cols-2 gap-4 p-4 bg-white rounded shadow max-h-[320px] overflow-auto">
-        <div className="col-span-2">
+      <article className="grid grid-cols-1 xs:grid-cols-2 gap-4 p-4 bg-white rounded shadow max-h-[320px] overflow-auto">
+        <div className="xs:col-span-2">
           <CompanyProfileCard {...profile} />
         </div>
         <DigitalScoreBar score={score} />
         <MiniRiskMatrix position={risk} />
-        <div className="col-span-2 space-y-1">
+        <div className="xs:col-span-2 space-y-1">
           {stack.map((s) => (
             <StackDeltaRow key={s.label} {...s} />
           ))}
         </div>
-        <div className="col-span-2">
+        <div className="xs:col-span-2">
           <GrowthTriggersList triggers={triggers} />
         </div>
-        <div className="col-span-2">
+        <div className="xs:col-span-2">
           <NextActionsChips actions={actions} />
         </div>
       </article>
