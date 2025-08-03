@@ -3,6 +3,7 @@ import { useFadeInOnView, useScrollPosition } from './hooks'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { apiFetch, BASE_URL } from './api'
 import { normalizeUrl } from './utils'
+import ScopeChip from './components/domain/ScopeChip'
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -87,6 +88,9 @@ export default function App() {
       <header className="sticky top-0 z-[1000] bg-white p-4 md:px-8 flex items-center justify-between">
         <div className="font-bold text-xl">Unitron</div>
         <nav className="hidden md:flex items-center text-sm">
+          {import.meta.env.VITE_USE_JIT_DOMAINS === 'true' && (
+            <ScopeChip />
+          )}
           <a href="#home" className="mx-3 font-semibold text-dark hover:text-accent">Home</a>
           <a href="/docs" className="mx-3 font-semibold text-dark hover:text-accent">Docs</a>
           <a href="https://github.com" className="mx-3 font-semibold text-dark hover:text-accent" target="_blank" rel="noreferrer">GitHub</a>

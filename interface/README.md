@@ -20,6 +20,8 @@ npm run dev
 
 Open `http://localhost:5173` in your browser and start analyzing URLs.
 
+Set `VITE_USE_JIT_DOMAINS=true` to enable the just-in-time domain scope controls.
+
 The analyzer form includes a **Technology Stack** picker, an **Industry**
 dropdown, and a **Pain Point** text box for additional context. Generated
 insights can be downloaded via the **Export Markdown** button.

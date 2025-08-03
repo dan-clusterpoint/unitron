@@ -31,10 +31,12 @@ function renderList(items: string[]) {
 export default function PropertyResults({ property }: { property: Property }) {
   return (
     <>
-      <div className="bg-gray-50 p-4 rounded mb-4">
-        <h3 className="font-medium">Domains</h3>
-        {renderList(property.domains)}
-      </div>
+      {import.meta.env.VITE_USE_JIT_DOMAINS !== 'true' && (
+        <div className="bg-gray-50 p-4 rounded mb-4">
+          <h3 className="font-medium">Domains</h3>
+          {renderList(property.domains)}
+        </div>
+      )}
       <div className="bg-gray-50 p-4 rounded mb-4">
         <h3 className="font-medium">Confidence</h3>
         <p>{Math.round(property.confidence * 100)}%</p>
