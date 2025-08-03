@@ -75,9 +75,7 @@ except Exception:
     fingerprints = DEFAULT_FINGERPRINTS or {}
 
 try:
-    cms_fingerprints: dict[str, Any] | None = load_fingerprints(
-        CMS_FINGERPRINT_PATH
-    )
+    cms_fingerprints: dict[str, Any] | None = load_fingerprints(CMS_FINGERPRINT_PATH)
 except Exception:
     cms_fingerprints = DEFAULT_CMS_FINGERPRINTS or {}
 cache: dict[str, dict[str, Any]] = {}
@@ -164,9 +162,8 @@ async def _extract_scripts(
                     external.append(script_text)
                     if "googletagmanager.com/gtm.js" in src:
                         import re
-                        matches = re.findall(
-                            r"https?://[^\"']+\.js", script_text
-                        )
+
+                        matches = re.findall(r"https?://[^\"']+\.js", script_text)
                         urls.update(matches)
                 except Exception:
                     external.append("")

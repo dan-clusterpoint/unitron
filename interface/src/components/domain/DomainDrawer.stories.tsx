@@ -11,8 +11,8 @@ type Story = StoryObj<typeof DomainDrawer>
 
 export const Open: Story = {
   render: () => (
-    <DomainProvider initial={['example.com','foo.com']}>
-      <DomainDrawer onClose={() => {}} />
+    <DomainProvider initial={['example.com', 'foo.com']}>
+      <DomainDrawer onClose={() => {}} onRerun={() => {}} />
     </DomainProvider>
   ),
 }

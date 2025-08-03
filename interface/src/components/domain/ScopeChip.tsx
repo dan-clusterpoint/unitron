@@ -4,7 +4,7 @@ import { track } from '../../utils/analytics'
 
 const DomainPopover = lazy(() => import('./DomainPopover'))
 
-export default function ScopeChip() {
+export default function ScopeChip({ onRerun }: { onRerun: () => void }) {
   const { domains } = useDomains()
   const [open, setOpen] = useState(false)
 
@@ -36,7 +36,7 @@ export default function ScopeChip() {
       </button>
       {open && (
         <Suspense fallback={null}>
-          <DomainPopover onClose={() => setOpen(false)} />
+          <DomainPopover onClose={() => setOpen(false)} onRerun={onRerun} />
         </Suspense>
       )}
     </>

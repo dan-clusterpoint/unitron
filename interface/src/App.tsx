@@ -4,6 +4,9 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { apiFetch, BASE_URL } from './api'
 import { normalizeUrl } from './utils'
 import ScopeChip from './components/domain/ScopeChip'
+import { USE_JIT_DOMAINS } from './config'
+import { useDomains } from './contexts/DomainContext'
+
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -27,6 +30,7 @@ export default function App() {
   const [headless, setHeadless] = useState(false)
   const [force, setForce] = useState(false)
   const { showTop } = useScrollPosition()
+  const { domains } = useDomains()
   useFadeInOnView()
 
   async function checkHealth() {
@@ -60,7 +64,7 @@ export default function App() {
       const data = await apiFetch<AnalyzeResult>('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: clean, headless, force }),
+        body: JSON.stringify({ url: clean, headless, force, domains }),
       })
       setResult(data)
     } catch (err) {
@@ -86,7 +90,10 @@ export default function App() {
         </div>
       )}
       <header className="sticky top-0 z-[1000] bg-white p-4 md:px-8 flex items-center justify-between">
-        <div className="font-bold text-xl">Unitron</div>
+        <div className="flex items-center gap-4">
+          <div className="font-bold text-xl">Unitron</div>
+          {USE_JIT_DOMAINS && <ScopeChip onRerun={onAnalyze} />}
+        </div>
         <nav className="hidden md:flex items-center text-sm">
           {import.meta.env.VITE_USE_JIT_DOMAINS === 'true' && (
             <ScopeChip />

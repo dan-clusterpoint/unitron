@@ -8,7 +8,7 @@ function Wrapper() {
   return (
     <div>
       <button onClick={() => addDomain('x.com')}>add</button>
-      <ScopeChip />
+      <ScopeChip onRerun={() => {}} />
     </div>
   )
 }
