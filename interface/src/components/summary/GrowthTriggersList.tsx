@@ -35,6 +35,7 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
       {visible.map((t, i) => (
         <li
           key={i}
+          data-testid="growth-trigger"
           ref={(el) => {
             itemRefs.current[i] = el
           }}
@@ -63,7 +64,9 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
               <h2 className="font-medium mb-2">Growth Triggers</h2>
               <ul className="list-disc ml-4 space-y-1">
                 {triggers.map((t, i) => (
-                  <li key={i}>{t}</li>
+                  <li key={i} data-testid="growth-trigger">
+                    {t}
+                  </li>
                 ))}
               </ul>
             </Sheet>
@@ -76,7 +79,9 @@ export default function GrowthTriggersList({ triggers }: GrowthTriggersListProps
           <AccordionContent>
             <ul className="list-disc ml-4 space-y-1">
               {triggers.map((t, i) => (
-                <li key={i}>{t}</li>
+                <li key={i} data-testid="growth-trigger">
+                  {t}
+                </li>
               ))}
             </ul>
           </AccordionContent>

@@ -1,6 +1,6 @@
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
-if (!BASE_URL) {
+if (!BASE_URL && import.meta.env.MODE !== 'test') {
   console.warn('API base URL not configured \u2013 check `.env`')
 }
 
