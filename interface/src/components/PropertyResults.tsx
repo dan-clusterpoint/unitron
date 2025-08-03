@@ -34,18 +34,21 @@ export default function PropertyResults({ property }: { property: Property }) {
   return (
     <>
       {!USE_JIT_DOMAINS && (
-        <div className="bg-gray-50 p-4 rounded mb-4">
-          <h3 className="font-medium">Domains</h3>
-          {renderList(property.domains)}
-        </div>
+        <>
+          {/* TODO: delete legacy Domains/Notes once JIT Domains fully launches */}
+          <div className="bg-gray-50 p-4 rounded mb-4">
+            <h3 className="font-medium">Domains</h3>
+            {renderList(property.domains)}
+          </div>
+          <div className="bg-gray-50 p-4 rounded mb-4">
+            <h3 className="font-medium mb-2">Notes</h3>
+            {renderList(property.notes)}
+          </div>
+        </>
       )}
       <div className="bg-gray-50 p-4 rounded mb-4">
         <h3 className="font-medium">Confidence</h3>
         <p>{Math.round(property.confidence * 100)}%</p>
-      </div>
-      <div className="bg-gray-50 p-4 rounded mb-4">
-        <h3 className="font-medium mb-2">Notes</h3>
-        {renderList(property.notes)}
       </div>
     </>
   )

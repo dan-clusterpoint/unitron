@@ -17,6 +17,7 @@ test('renders scope chip when flag enabled', async () => {
       <App />
     </DomainProvider>,
   )
-  await screen.findByRole('button', { name: /Domains/ })
+  // multiple scope chips render in header/nav when flag enabled
+  expect(screen.getAllByRole('button', { name: /Domains/ }).length).toBeGreaterThan(0)
   import.meta.env.VITE_USE_JIT_DOMAINS = old
 })

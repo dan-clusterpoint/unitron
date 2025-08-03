@@ -10,6 +10,7 @@ import { apiFetch } from '../api'
 import { normalizeUrl } from '../utils'
 import { requestSchema } from '../utils/requestSchema'
 import { ORG_CONTEXT } from '../config/orgContext'
+import { USE_JIT_DOMAINS } from '../config'
 import Sheet from './ui/sheet'
 
 const vendorToCategory: Record<string, string> = {}
@@ -256,9 +257,16 @@ export default function AnalyzerCard({
                 <a href="#cms" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>CMS</a>
               </li>
             )}
-            {property && property.notes.length > 0 && (
+            {!USE_JIT_DOMAINS && property && property.notes.length > 0 && (
               <li>
-                <a href="#footnotes" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Footnotes</a>
+                {/* TODO: delete legacy Footnotes link once JIT Domains fully launches */}
+                <a
+                  href="#footnotes"
+                  className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500"
+                  tabIndex={0}
+                >
+                  Footnotes
+                </a>
               </li>
             )}
           </ul>
@@ -313,12 +321,22 @@ export default function AnalyzerCard({
             <CmsResults cms={cms} />
           </section>
         )}
-        {property && property.notes.length > 0 && (
+        {!USE_JIT_DOMAINS && property && property.notes.length > 0 && (
           <section id="footnotes" className="bg-gray-50 p-4 rounded mt-4">
+            {/* TODO: delete legacy Footnotes once JIT Domains fully launches */}
             <h3 className="font-medium mb-2">Footnotes</h3>
             <ol className="list-decimal list-inside space-y-1">
               {property.notes.map((n, i) => (
-                <li key={i} id={`fn${i + 1}`}>{n} <a href={`#fnref${i + 1}`} className="underline text-blue-800 ml-1" tabIndex={0}>↩</a></li>
+                <li key={i} id={`fn${i + 1}`}>
+                  {n}{' '}
+                  <a
+                    href={`#fnref${i + 1}`}
+                    className="underline text-blue-800 ml-1"
+                    tabIndex={0}
+                  >
+                    ↩
+                  </a>
+                </li>
               ))}
             </ol>
           </section>
