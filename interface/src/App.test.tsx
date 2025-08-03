@@ -43,7 +43,7 @@ test('shows loading spinner and displays result', async () => {
   await waitFor(() =>
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
-  await screen.findByText(/example\.com/i, undefined, { timeout: 2000 })
+  await screen.findByRole('heading', { name: 'Confidence' })
   await screen.findByRole('tab', { name: /Content Management System/i })
 })
 
@@ -96,6 +96,6 @@ test('shows degraded banner when martech is null', async () => {
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'partial.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
-  await screen.findByText('partial.com')
+  await screen.findByRole('heading', { name: 'Confidence' })
   await screen.findByText(/partial results/i)
 })

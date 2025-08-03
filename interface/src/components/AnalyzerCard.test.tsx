@@ -78,7 +78,9 @@ test('renders result lists', async () => {
       result={result}
     />,
   )
-  expect(screen.getByText('example.com')).toBeInTheDocument()
+  expect(
+    screen.getByRole('heading', { name: 'Confidence' })
+  ).toBeInTheDocument()
   expect(
     screen.getByRole('tab', { name: /Content Management System/i })
   ).toBeInTheDocument()

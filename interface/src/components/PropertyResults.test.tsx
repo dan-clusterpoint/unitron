@@ -3,15 +3,13 @@ import { test } from 'vitest'
 import PropertyResults from './PropertyResults'
 
 const property = {
-  domains: ['example.com'],
   confidence: 0.8,
-  notes: ['note'],
 }
 
-test('renders property fields', () => {
+test('renders confidence only', () => {
   render(<PropertyResults property={property} />)
-  screen.getByText('example.com')
   screen.getByText('80%')
-  screen.getByText('note')
+  expect(screen.queryByText('example.com')).toBeNull()
+  expect(screen.queryByText('note')).toBeNull()
 })
 

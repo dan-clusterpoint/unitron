@@ -6,11 +6,7 @@ test('hides legacy Domains heading when flag enabled', async () => {
   const old = import.meta.env.VITE_USE_JIT_DOMAINS
   import.meta.env.VITE_USE_JIT_DOMAINS = 'true'
   const { default: PropertyResults } = await import('./components/PropertyResults')
-  render(
-    <PropertyResults
-      property={{ domains: ['unitron.ai'], confidence: 0.9, notes: ['footnote'] }}
-    />,
-  )
+  render(<PropertyResults property={{ confidence: 0.9 }} />)
   expect(screen.queryByRole('heading', { name: /Domains/i })).not.toBeInTheDocument()
   import.meta.env.VITE_USE_JIT_DOMAINS = old
 })
