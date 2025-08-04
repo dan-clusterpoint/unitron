@@ -130,7 +130,7 @@ test('displays insight text', async () => {
 test('shows skeleton while generating', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () => {
+    http.post('http://localhost:8080/insight', async () => {
       await new Promise((r) => setTimeout(r, 50))
       return Response.json({ markdown: 'done', degraded: false })
     }),
@@ -163,7 +163,7 @@ test('shows skeleton while generating', async () => {
 test('keeps skeleton height during delayed insight response', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () => {
+    http.post('http://localhost:8080/insight', async () => {
       await new Promise((r) => setTimeout(r, 100))
       return Response.json({ markdown: 'done', degraded: false })
     }),
@@ -201,7 +201,7 @@ test('shows generated details on success', async () => {
   let captured: any = null
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async ({ request }) => {
+    http.post('http://localhost:8080/insight', async ({ request }) => {
       captured = await request.json()
       return Response.json({ markdown: 'Flow', degraded: false })
     }),
@@ -249,7 +249,7 @@ test('shows generated details on success', async () => {
 test('hides skeleton on error', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () => {
+    http.post('http://localhost:8080/insight', async () => {
       await new Promise((r) => setTimeout(r, 50))
       return new Response('fail', { status: 500 })
     }),
@@ -282,7 +282,7 @@ test('hides skeleton on error', async () => {
 test('renders empty markdown without fallback', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () => Response.json({ markdown: '', degraded: false })),
+    http.post('http://localhost:8080/insight', async () => Response.json({ markdown: '', degraded: false })),
   )
   render(
     <AnalyzerCard
@@ -310,7 +310,7 @@ test('renders empty markdown without fallback', async () => {
 test('shows banner when insight degraded', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({
         markdown: '## Next-Best Actions\n- A',
         degraded: true,
@@ -341,7 +341,7 @@ test('shows banner when insight degraded', async () => {
 test('shows banner when actions missing', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({ markdown: '# Hi', degraded: false }),
     ),
   )
@@ -369,7 +369,7 @@ test('shows banner when actions missing', async () => {
 test('nudge opens context panel and keeps content', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({ markdown: 'Hi', degraded: false }),
     ),
   )
@@ -402,7 +402,7 @@ test('nudge opens context panel and keeps content', async () => {
 test('shows error when generation fails', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', () => new Response(null, { status: 500 }))
+    http.post('http://localhost:8080/insight', () => new Response(null, { status: 500 }))
   )
   render(
     <AnalyzerCard
@@ -439,7 +439,7 @@ test('shows validation error and skips POST on invalid payload', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   const spy = vi.fn()
   server.use(
-    http.post('/insight', async ({ request }) => {
+    http.post('http://localhost:8080/insight', async ({ request }) => {
       const body = await request.json()
       if (
         body &&
@@ -483,7 +483,7 @@ test('chips reflect live values', async () => {
   sessionStorage.setItem('pain_point', 'Latency')
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({ markdown: 'Hi', degraded: false }),
     ),
   )
@@ -524,7 +524,7 @@ test('chip clicks focus corresponding inputs', async () => {
   sessionStorage.setItem('pain_point', 'Billing')
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({ markdown: 'Hi', degraded: false }),
     ),
   )
@@ -561,7 +561,7 @@ test('context strength updates with field edits', async () => {
   sessionStorage.setItem('pain_point', 'Billing')
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   server.use(
-    http.post('/insight', async () =>
+    http.post('http://localhost:8080/insight', async () =>
       Response.json({ markdown: 'Hi', degraded: false }),
     ),
   )

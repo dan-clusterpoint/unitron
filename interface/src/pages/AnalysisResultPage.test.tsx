@@ -6,7 +6,7 @@ import AnalysisResultPage from './AnalysisResultPage'
 
 test('renders ExecutiveSummaryCard when snapshot data present without legacy exec-summary section', async () => {
   server.use(
-    http.post('/snapshot', () =>
+    http.post('http://localhost:8080/snapshot', () =>
       Response.json({
         snapshot: {
           profile: {

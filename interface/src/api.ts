@@ -1,7 +1,14 @@
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const envBase = import.meta.env.VITE_API_BASE_URL
+// Fall back to the gateway on port 8080 so requests don't hit the static server.
+const fallback =
+  typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:8080`
+    : ''
 
-if (!BASE_URL && import.meta.env.MODE !== 'test') {
-  console.warn('API base URL not configured \u2013 check `.env`')
+export const BASE_URL = envBase || fallback
+
+if (!envBase && import.meta.env.MODE !== 'test') {
+  console.warn('API base URL not configured – check `.env`')
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
