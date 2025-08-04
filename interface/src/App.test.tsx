@@ -99,3 +99,37 @@ test('shows degraded banner when martech is null', async () => {
   await screen.findByRole('heading', { name: 'Confidence' })
   await screen.findByText(/partial results/i)
 })
+
+test('renders executive summary when snapshot returned', async () => {
+  const snapshot = {
+    profile: { name: 'Acme Inc.' },
+    digitalScore: 88,
+    stackDelta: [],
+    growthTriggers: ['Trigger'],
+    nextActions: [],
+  }
+  server.use(
+    http.post('/analyze', async ({ request }) => {
+      const body = await request.json()
+      expect(body).toEqual({
+        url: 'https://example.com',
+        headless: false,
+        force: false,
+        domains: [],
+      })
+      return Response.json({ snapshot })
+    }),
+  )
+  render(
+    <DomainProvider>
+      <App />
+    </DomainProvider>,
+  )
+  const input = screen.getByPlaceholderText('https://example.com')
+  await userEvent.type(input, 'example.com')
+  await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
+  await screen.findByText('Acme Inc.')
+  expect(
+    screen.queryByRole('button', { name: /analyze/i }),
+  ).not.toBeInTheDocument()
+})

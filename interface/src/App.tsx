@@ -16,13 +16,26 @@ import {
   Footer,
   type AnalyzeResult,
 } from './components'
+import ExecutiveSummaryCard, {
+  type ExecutiveSummaryCardProps,
+} from './components/summary/ExecutiveSummaryCard'
 import './index.css'
+
+type Snapshot = {
+  profile: ExecutiveSummaryCardProps['profile']
+  digitalScore: number
+  riskMatrix?: ExecutiveSummaryCardProps['risk']
+  stackDelta: ExecutiveSummaryCardProps['stack']
+  growthTriggers: string[]
+  nextActions: ExecutiveSummaryCardProps['actions']
+}
 
 export default function App() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<AnalyzeResult | null>(null)
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
@@ -57,15 +70,23 @@ export default function App() {
   async function onAnalyze() {
     setError('')
     setResult(null)
+    setSnapshot(null)
     setLoading(true)
     try {
       const clean = normalizeUrl(url)
-      const data = await apiFetch<AnalyzeResult>('/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: clean, headless, force, domains }),
-      })
-      setResult(data)
+      const data = await apiFetch<AnalyzeResult | { snapshot: Snapshot }>(
+        '/analyze',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: clean, headless, force, domains }),
+        },
+      )
+      if ('snapshot' in data) {
+        setSnapshot(data.snapshot)
+      } else {
+        setResult(data)
+      }
     } catch (err) {
       setError('Failed to analyze. Please try again.')
       if (err instanceof Error && err.message) {
@@ -137,36 +158,55 @@ export default function App() {
         </div>
       )}
       <main className="pt-20" id="home">
-        <section className="bg-white" data-observe>
+        {snapshot ? (
           <div className="max-w-6xl mx-auto px-4 py-16">
-            <div className="text-center space-y-6">
-              <div>
-                <h1 className="text-4xl font-extrabold mb-4">Unitron: AI-First Workflow Analyzer</h1>
-                <p className="text-lg text-neutral leading-relaxed">
-                  Reverse-engineer any domain and surface next-best actions.
-                </p>
-              </div>
-              <AnalyzerCard
-                id="analyzer"
-                url={url}
-                setUrl={setUrl}
-                onAnalyze={onAnalyze}
-                headless={headless}
-                setHeadless={setHeadless}
-                force={force}
-                setForce={setForce}
-                loading={loading}
-                error={error}
-                result={result}
-              />
-            </div>
+            <ExecutiveSummaryCard
+              profile={snapshot.profile}
+              score={snapshot.digitalScore}
+              risk={snapshot.riskMatrix}
+              stack={snapshot.stackDelta}
+              triggers={
+                snapshot.growthTriggers.length > 0
+                  ? snapshot.growthTriggers
+                  : ['—']
+              }
+              actions={snapshot.nextActions}
+            />
           </div>
-        </section>
-        <FeatureGrid />
-        <HowItWorks />
-        <Testimonials />
-        <Integrations />
-        <FinalCTA />
+        ) : (
+          <>
+            <section className="bg-white" data-observe>
+              <div className="max-w-6xl mx-auto px-4 py-16">
+                <div className="text-center space-y-6">
+                  <div>
+                    <h1 className="text-4xl font-extrabold mb-4">Unitron: AI-First Workflow Analyzer</h1>
+                    <p className="text-lg text-neutral leading-relaxed">
+                      Reverse-engineer any domain and surface next-best actions.
+                    </p>
+                  </div>
+                  <AnalyzerCard
+                    id="analyzer"
+                    url={url}
+                    setUrl={setUrl}
+                    onAnalyze={onAnalyze}
+                    headless={headless}
+                    setHeadless={setHeadless}
+                    force={force}
+                    setForce={setForce}
+                    loading={loading}
+                    error={error}
+                    result={result}
+                  />
+                </div>
+              </div>
+            </section>
+            <FeatureGrid />
+            <HowItWorks />
+            <Testimonials />
+            <Integrations />
+            <FinalCTA />
+          </>
+        )}
       </main>
       <Footer />
       {showTop && (
