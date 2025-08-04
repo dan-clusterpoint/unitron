@@ -125,6 +125,31 @@ class GenerateRequest(BaseModel):
     }
 
 
+class BuildSnapshotResult(BaseModel):
+    """Artifacts required to assemble the final analysis snapshot."""
+
+    profile: Any
+    digitalScore: Any
+    riskMatrix: Any
+    stackDelta: Any
+    growthTriggers: list[str]
+    nextActions: Any
+
+
+class Snapshot(BuildSnapshotResult):
+    """Result returned to the frontend for executive summary rendering."""
+
+
+def build_snapshot(result: BuildSnapshotResult) -> Snapshot:
+    """Assemble the final analysis snapshot.
+
+    This mirrors the logic in ``services/analyze/buildSnapshot.ts`` and simply
+    returns the supplied artifacts in a ``Snapshot`` model.
+    """
+
+    return Snapshot(**result.model_dump())
+
+
 def merge_martech(
     detected: dict[str, list[str]] | None,
     manual: list[MartechItem | str] | None,
@@ -348,3 +373,11 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     if research_data is None:
         return JSONResponse({"markdown": "", "degraded": True}, status_code=503)
     return JSONResponse(research_data)
+
+
+@app.post("/snapshot")
+async def snapshot_endpoint(body: BuildSnapshotResult) -> JSONResponse:
+    """Assemble a final analysis snapshot from provided artifacts."""
+
+    snapshot = build_snapshot(body)
+    return JSONResponse({"snapshot": snapshot.model_dump()})
