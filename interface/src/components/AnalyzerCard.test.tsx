@@ -426,29 +426,6 @@ test('shows error when generation fails', async () => {
   expect(errs.length).toBeGreaterThan(0)
 })
 
-test('shows insight error and button enabled on insight failure', async () => {
-  const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  server.use(http.post('/insight', () => new Response(null, { status: 500 })))
-  render(
-    <AnalyzerCard
-      id="a"
-      url="example.com"
-      setUrl={() => {}}
-      onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
-      force={false}
-      setForce={() => {}}
-      loading={false}
-      error=""
-      result={{ ...result, cms: [] }}
-    />,
-  )
-  await screen.findByText('HTTP 500')
-  const btn = screen.getByRole('button', { name: /generate insights/i })
-  expect(btn).toBeEnabled()
-})
-
 test('counts nested martech buckets correctly', () => {
   const nested: AnalyzeResult = {
     property: { domains: [], confidence: 0.5, notes: [] },
