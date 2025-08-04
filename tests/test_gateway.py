@@ -473,3 +473,21 @@ def test_generate_accepts_legacy_list(monkeypatch):
     )
     assert r.status_code == 200
     assert r.json()["result"] == {"ok": True}
+
+
+def test_snapshot_endpoint():
+    r = client.post(
+        "/snapshot",
+        json={
+            "profile": {"name": "ACME"},
+            "digitalScore": 88,
+            "riskMatrix": {"risk": "low"},
+            "stackDelta": {"added": [], "removed": []},
+            "growthTriggers": ["trigger"],
+            "nextActions": {"todo": "something"},
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()["snapshot"]
+    assert data["profile"]["name"] == "ACME"
+    assert data["growthTriggers"] == ["trigger"]

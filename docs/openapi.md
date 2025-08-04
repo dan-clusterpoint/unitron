@@ -35,3 +35,23 @@ Optional field `martech_manual` (array of objects with `category` and `vendor`) 
   "cms": ["WordPress"]
 }
 ```
+
+## POST /snapshot
+
+Assemble a final analysis snapshot from previously generated artifacts.
+
+The request body matches the snapshot schema above and the endpoint responds
+with the assembled object:
+
+```json
+{
+  "snapshot": {
+    "profile": {},
+    "digitalScore": {},
+    "riskMatrix": {},
+    "stackDelta": {},
+    "growthTriggers": [],
+    "nextActions": {}
+  }
+}
+```
