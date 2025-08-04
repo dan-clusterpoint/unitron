@@ -5,14 +5,15 @@ import { http } from 'msw'
 
 export const server = setupServer(
   http.get('/ready', () => Response.json({ ready: true })),
-  http.post('/analyze', () =>
+  http.post('/snapshot', () =>
     Response.json({
-      property: {
-        domains: ['example.com'],
-        confidence: 1,
-        notes: ['all good'],
+      snapshot: {
+        profile: { name: 'Example Co' },
+        digitalScore: 0,
+        stackDelta: [],
+        growthTriggers: [],
+        nextActions: [],
       },
-      martech: { core: ['GTM'] },
     }),
   ),
   http.post('/insight', () =>
