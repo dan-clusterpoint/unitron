@@ -22,7 +22,7 @@ import './index.css'
 type Snapshot = {
   profile: ExecutiveSummaryCardProps['profile']
   digitalScore: number
-  riskMatrix?: ExecutiveSummaryCardProps['risk']
+  riskMatrix: ExecutiveSummaryCardProps['risk']
   stackDelta: ExecutiveSummaryCardProps['stack']
   growthTriggers: string[]
   nextActions: ExecutiveSummaryCardProps['actions']
@@ -72,6 +72,7 @@ export default function App() {
       const payload: Snapshot = {
         profile: { name: clean },
         digitalScore: 0,
+        riskMatrix: { x: 0, y: 0 },
         stackDelta: [],
         growthTriggers: [],
         nextActions: [],

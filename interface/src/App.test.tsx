@@ -17,6 +17,7 @@ test('renders executive summary when snapshot returned', async () => {
   const snapshot = {
     profile: { name: 'Acme Inc.' },
     digitalScore: 88,
+    riskMatrix: { x: 0, y: 0 },
     stackDelta: [],
     growthTriggers: ['Trigger'],
     nextActions: [],
@@ -34,7 +35,8 @@ test('renders executive summary when snapshot returned', async () => {
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
-  await screen.findByText('Acme Inc.')
+  await screen.findByRole('heading', { name: /Executive Summary/i })
+  expect(screen.getByText('Acme Inc.')).toBeInTheDocument()
   expect(
     screen.queryByRole('button', { name: /analyze/i }),
   ).not.toBeInTheDocument()
