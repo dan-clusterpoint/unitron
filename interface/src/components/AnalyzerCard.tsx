@@ -1,7 +1,33 @@
+import { useState, useEffect, useRef, type RefObject } from 'react'
 import PropertyResults from './PropertyResults'
-import MartechResults, { type Martech } from './MartechResults'
+import InsightMarkdown from './InsightMarkdown'
+import MartechCategorySelector, {
+  type MartechItem,
+} from './MartechCategorySelector'
+import catalog from '../data/martech_catalog.json'
+import { apiFetch } from '../api'
+import { normalizeUrl } from '../utils'
+import { requestSchema } from '../utils/requestSchema'
+import { ORG_CONTEXT } from '../config/orgContext'
+import Sheet from './ui/sheet'
 
-// Removed insight generation and manual martech editing logic
+const vendorToCategory: Record<string, string> = {}
+for (const [cat, info] of Object.entries(catalog)) {
+  if (cat === '_comment') continue
+  ;(info as { vendors: string[] }).vendors.forEach((v) => {
+    vendorToCategory[v] = cat
+  })
+}
+
+function serialize(list: MartechItem[]): string {
+  return list
+    .map((i) => `${i.category}:${i.vendor}`)
+    .sort()
+    .join('\n')
+}
+function hasNextBestActions(markdown: string | null) {
+  return !!markdown && /^##\s*Next-Best Actions/m.test(markdown)
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function computeMartechCount(
@@ -54,6 +80,153 @@ export default function AnalyzerCard({
   error,
   result,
 }: AnalyzerProps) {
+  const [generating, setGenerating] = useState(false)
+  const [insight, setInsight] = useState<string | null>(null)
+  const [insightLoading, setInsightLoading] = useState(false)
+  const [insightError, setInsightError] = useState<string | null>(null)
+  const [insightMarkdown, setInsightMarkdown] = useState<string | null>(null)
+  const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
+  const [genError, setGenError] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [industry, setIndustry] = useState(() => {
+    try {
+      return sessionStorage.getItem('industry') || ''
+    } catch {
+      return ''
+    }
+  })
+  const [painPoint, setPainPoint] = useState(() => {
+    try {
+      return sessionStorage.getItem('pain_point') || ''
+    } catch {
+      return ''
+    }
+  })
+  const [martechManual, setMartechManual] = useState<MartechItem[]>([])
+  const initialMartechRef = useRef<string>('')
+  const [contextOpen, setContextOpen] = useState(false)
+  const industryRef = useRef<HTMLInputElement>(null)
+  const painRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    sessionStorage.setItem('industry', industry)
+  }, [industry])
+
+  useEffect(() => {
+    sessionStorage.setItem('pain_point', painPoint)
+  }, [painPoint])
+
+  useEffect(() => {
+    if (result?.martech) {
+      const all = new Set<string>()
+      for (const list of Object.values(result.martech)) {
+        if (Array.isArray(list)) {
+          for (const v of list) {
+            all.add(v)
+          }
+        }
+      }
+      const arr: MartechItem[] = []
+      for (const v of all) {
+        const cat = vendorToCategory[v]
+        if (cat) {
+          arr.push({ category: cat, vendor: v })
+        }
+      }
+      setMartechManual(arr)
+      initialMartechRef.current = serialize(arr)
+    }
+  }, [result])
+
+  useEffect(() => {
+    if (!result) {
+      setInsight(null)
+      setInsightMarkdown(null)
+      setGenError(null)
+      setInsightError(null)
+      return
+    }
+    const text = result.property?.notes.join('\n') || ''
+    setInsightLoading(true)
+    setInsightError(null)
+    apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    })
+      .then(async (d) => {
+        const summary = d.markdown || ''
+        setInsight(summary)
+      })
+      .catch((e) => {
+        setInsightError((e as Error).message || 'Failed to fetch insight')
+      })
+      .finally(() => setInsightLoading(false))
+  }, [result])
+
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      if (!result) return
+      setInsightMarkdown(null)
+      setInsightMarkdownDegraded(false)
+      setGenError(null)
+      setValidationError(null)
+      const clean = normalizeUrl(url)
+      const source = (result.martech ?? {}) as {
+        core?: string[]
+        adjacent?: string[]
+        broader?: string[]
+        competitors?: string[]
+      }
+      const martech = {
+        core: source.core ?? [],
+        adjacent: source.adjacent ?? [],
+        broader: source.broader ?? [],
+        competitors: source.competitors ?? [],
+      }
+      const payload: Record<string, unknown> = {
+        url: clean,
+        martech,
+        cms: result.cms || [],
+        industry,
+        pain_point: painPoint,
+        evidence_standards: ORG_CONTEXT.evidence_standards ?? '',
+        credibility_scoring: ORG_CONTEXT.credibility_scoring ?? '',
+        deliverable_guidelines: ORG_CONTEXT.deliverable_guidelines ?? '',
+        audience: ORG_CONTEXT.audience ?? '',
+        preferences: ORG_CONTEXT.preferences ?? '',
+      }
+      if (serialize(martechManual) !== initialMartechRef.current) {
+        payload['martech_manual'] = martechManual
+      }
+      const parsed = requestSchema.safeParse(payload)
+      if (!parsed.success) {
+        setValidationError(parsed.error.errors.map((e) => e.message).join(', '))
+        return
+      }
+      const data = await apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      setInsightMarkdown((data.markdown ?? '').trim())
+      setInsightMarkdownDegraded(data.degraded)
+    } catch (e) {
+      setGenError((e as Error).message)
+    } finally {
+      setGenerating(false)
+    }
+  }
+  const filled = (industry ? 1 : 0) + (painPoint ? 1 : 0)
+  const contextStrength = filled === 2 ? 'High' : filled === 1 ? 'Medium' : 'Low'
+  function focusRef(ref: RefObject<HTMLInputElement | null>) {
+    setContextOpen(true)
+    setTimeout(() => ref.current?.focus(), 0)
+  }
+  const actionsMissing = insightMarkdown !== null && !hasNextBestActions(insightMarkdown)
+  const showDegradedBanner =
+    insightMarkdown !== null && (insightMarkdownDegraded || actionsMissing)
   if (result) {
     const { property, martech, degraded } = result
     const domainCount = property?.domains.length || 0
@@ -63,6 +236,9 @@ export default function AnalyzerCard({
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
         <nav aria-label="Sections" className="mb-4">
           <ul className="flex flex-wrap gap-2 text-sm">
+            <li>
+              <a href="#exec-summary" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Summary</a>
+            </li>
             {property && (
               <li>
                 <a href="#property" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Property</a>
@@ -94,16 +270,116 @@ export default function AnalyzerCard({
             Partial results shown due to degraded analysis.
           </div>
         )}
-        {property && (
-          <section id="property">
-            <PropertyResults property={property} />
-          </section>
+        {(insightLoading || insight || insightError) && (
+          <>
+            <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-2">
+              <h3 className="font-medium mb-2">Executive Summary</h3>
+              {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
+            </section>
+            {insightError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">
+                {insightError}
+              </div>
+            )}
+          </>
         )}
+        {property && <section id="property"><PropertyResults property={property} /></section>}
         {martech && (
           <section id="martech">
-            <MartechResults martech={martech as Martech} />
+            <MartechCategorySelector
+              value={martechManual}
+              onChange={setMartechManual}
+            />
           </section>
         )}
+        <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {industry && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(industryRef)}
+                  >
+                    {industry}
+                  </button>
+                )}
+                {painPoint && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => focusRef(painRef)}
+                  >
+                    {painPoint}
+                  </button>
+                )}
+                {!industry && !painPoint && (
+                  <button
+                    className="border rounded-full px-2 py-0.5 text-xs"
+                    onClick={() => setContextOpen(true)}
+                  >
+                    Add context
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">
+                Context strength: {contextStrength}
+              </div>
+            </div>
+            <button
+              className="btn-primary mt-4"
+              disabled={generating || insightLoading}
+              onClick={handleGenerate}
+            >
+              {generating ? 'Generating...' : 'Generate Insights'}
+            </button>
+            {(generating || insightMarkdown !== null) && (
+              <section className="bg-gray-50 p-4 rounded mt-4">
+                {showDegradedBanner && (
+                  <div className="border border-amber-500 bg-amber-50 text-amber-700 p-2 rounded mb-4 text-sm">
+                    Partial results—model returned limited content.{' '}
+                    <button
+                      className="underline"
+                      onClick={() => setContextOpen(true)}
+                    >
+                      Improve results: set Industry, describe a Pain point.
+                    </button>
+                  </div>
+                )}
+                <InsightMarkdown
+                  markdown={insightMarkdown ?? ''}
+                  loading={generating}
+                />
+              </section>
+            )}
+            <Sheet open={contextOpen} onClose={() => setContextOpen(false)}>
+              <h2 className="font-medium mb-4">Context</h2>
+              <div className="space-y-2">
+                <input
+                  aria-label="Industry"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  placeholder="Industry"
+                  className="border rounded p-2 w-full"
+                  ref={industryRef}
+                />
+                <input
+                  aria-label="Pain point"
+                  value={painPoint}
+                  onChange={(e) => setPainPoint(e.target.value)}
+                  placeholder="Pain point"
+                  className="border rounded p-2 w-full"
+                  ref={painRef}
+                />
+              </div>
+            </Sheet>
+            {validationError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+                {validationError}
+              </div>
+            )}
+            {genError && (
+              <div className="border border-red-500 text-red-600 p-2 rounded mt-4 text-sm">
+                {genError}
+              </div>
+            )}
       </div>
     )
   }

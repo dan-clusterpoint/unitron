@@ -44,7 +44,7 @@ test('shows loading spinner and displays result', async () => {
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
   )
   await screen.findByRole('heading', { name: 'Confidence' })
-  await screen.findByRole('heading', { name: 'Martech Vendors' })
+  await screen.findByRole('tab', { name: /Content Management System/i })
 })
 
 test('shows error banner when request fails', async () => {
