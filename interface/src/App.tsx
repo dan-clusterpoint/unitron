@@ -14,7 +14,6 @@ import {
   Integrations,
   FinalCTA,
   Footer,
-  type AnalyzeResult,
 } from './components'
 import ExecutiveSummaryCard, {
   type ExecutiveSummaryCardProps,
@@ -34,7 +33,6 @@ export default function App() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [result, setResult] = useState<AnalyzeResult | null>(null)
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -69,24 +67,26 @@ export default function App() {
 
   async function onAnalyze() {
     setError('')
-    setResult(null)
     setSnapshot(null)
     setLoading(true)
     try {
       const clean = normalizeUrl(url)
-      const data = await apiFetch<AnalyzeResult | { snapshot: Snapshot }>(
-        '/analyze',
+      const payload: Snapshot = {
+        profile: { name: clean },
+        digitalScore: 0,
+        stackDelta: [],
+        growthTriggers: [],
+        nextActions: [],
+      }
+      const data = await apiFetch<{ snapshot: Snapshot }>(
+        '/snapshot',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: clean, headless, force, domains }),
+          body: JSON.stringify(payload),
         },
       )
-      if ('snapshot' in data) {
-        setSnapshot(data.snapshot)
-      } else {
-        setResult(data)
-      }
+      setSnapshot(data.snapshot)
     } catch (err) {
       setError('Failed to analyze. Please try again.')
       if (err instanceof Error && err.message) {
@@ -195,7 +195,7 @@ export default function App() {
                     setForce={setForce}
                     loading={loading}
                     error={error}
-                    result={result}
+                    result={null}
                   />
                 </div>
               </div>

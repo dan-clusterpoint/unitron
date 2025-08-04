@@ -20,12 +20,25 @@ export default function AnalysisResultPage() {
     async function load() {
       try {
         setLoading(true)
+        const payload: Snapshot = {
+          profile: {
+            name: 'Acme Inc',
+            industry: 'SaaS',
+            location: 'NYC',
+            website: 'https://acme.com',
+          },
+          digitalScore: 80,
+          riskMatrix: { x: 1, y: 2 } as any,
+          stackDelta: [{ label: 'React', status: 'added' }],
+          growthTriggers: ['Improve SEO'],
+          nextActions: [{ label: 'Analyze stack', targetId: 'stack' }],
+        }
         const data = await apiFetch<{ snapshot: Snapshot }>(
-          '/analyze',
+          '/snapshot',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: 'https://example.com' }),
+            body: JSON.stringify(payload),
           },
         )
         setSnapshot(data.snapshot)
