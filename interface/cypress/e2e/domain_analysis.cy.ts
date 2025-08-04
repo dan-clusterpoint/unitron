@@ -1,6 +1,6 @@
 describe('Domain analysis flow', () => {
   it('limits growth triggers to three', () => {
-    cy.intercept('GET', '/analyze', {
+    cy.intercept('POST', '/analyze', {
       statusCode: 200,
       body: {
         snapshot: {
