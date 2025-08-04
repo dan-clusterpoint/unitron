@@ -5,7 +5,6 @@ import { apiFetch, BASE_URL } from './api'
 import { normalizeUrl } from './utils'
 import ScopeChip from './components/domain/ScopeChip'
 import { USE_JIT_DOMAINS } from './config'
-import { useDomains } from './contexts/DomainContext'
 import {
   AnalyzerCard,
   FeatureGrid,
@@ -40,7 +39,6 @@ export default function App() {
   const [headless, setHeadless] = useState(false)
   const [force, setForce] = useState(false)
   const { showTop } = useScrollPosition()
-  const { domains } = useDomains()
   useFadeInOnView()
 
   async function checkHealth() {

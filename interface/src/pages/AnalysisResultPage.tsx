@@ -28,7 +28,7 @@ export default function AnalysisResultPage() {
             website: 'https://acme.com',
           },
           digitalScore: 80,
-          riskMatrix: { x: 1, y: 2 } as any,
+          riskMatrix: { x: 1, y: 2 },
           stackDelta: [{ label: 'React', status: 'added' }],
           growthTriggers: ['Improve SEO'],
           nextActions: [{ label: 'Analyze stack', targetId: 'stack' }],
