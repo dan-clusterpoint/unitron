@@ -13,15 +13,33 @@ type Snapshot = {
 
 export default function AnalysisResultPage() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     async function load() {
-      const data = await apiFetch<{ snapshot: Snapshot }>('/analyze')
-      setSnapshot(data.snapshot)
+      try {
+        setLoading(true)
+        const data = await apiFetch<{ snapshot: Snapshot }>(
+          '/analyze',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: 'https://example.com' }),
+          },
+        )
+        setSnapshot(data.snapshot)
+      } catch {
+        setError('Failed to load analysis')
+      } finally {
+        setLoading(false)
+      }
     }
     void load()
   }, [])
 
+  if (loading) return <div className="p-4">Loading...</div>
+  if (error) return <div className="p-4 text-red-600">{error}</div>
   if (!snapshot) return null
 
   const triggers =
