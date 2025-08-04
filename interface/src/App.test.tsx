@@ -22,7 +22,7 @@ test('renders executive summary when snapshot returned', async () => {
     nextActions: [],
   }
   server.use(
-    http.post('/snapshot', async () => {
+    http.post('http://localhost:8080/snapshot', async () => {
       return Response.json({ snapshot })
     }),
   )
@@ -42,7 +42,7 @@ test('renders executive summary when snapshot returned', async () => {
 
 test('shows error banner when request fails', async () => {
   server.use(
-    http.post('/snapshot', () => new Response(null, { status: 500 })),
+    http.post('http://localhost:8080/snapshot', () => new Response(null, { status: 500 })),
   )
   render(
     <DomainProvider>
