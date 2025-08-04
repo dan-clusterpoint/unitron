@@ -81,9 +81,6 @@ export default function AnalyzerCard({
   result,
 }: AnalyzerProps) {
   const [generating, setGenerating] = useState(false)
-  const [insight, setInsight] = useState<string | null>(null)
-  const [insightLoading, setInsightLoading] = useState(false)
-  const [insightError, setInsightError] = useState<string | null>(null)
   const [insightMarkdown, setInsightMarkdown] = useState<string | null>(null)
   const [insightMarkdownDegraded, setInsightMarkdownDegraded] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
@@ -140,28 +137,11 @@ export default function AnalyzerCard({
 
   useEffect(() => {
     if (!result) {
-      setInsight(null)
       setInsightMarkdown(null)
+      setInsightMarkdownDegraded(false)
       setGenError(null)
-      setInsightError(null)
-      return
+      setValidationError(null)
     }
-    const text = result.property?.notes.join('\n') || ''
-    setInsightLoading(true)
-    setInsightError(null)
-    apiFetch<{ markdown: string; degraded: boolean }>('/insight', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    })
-      .then(async (d) => {
-        const summary = d.markdown || ''
-        setInsight(summary)
-      })
-      .catch((e) => {
-        setInsightError((e as Error).message || 'Failed to fetch insight')
-      })
-      .finally(() => setInsightLoading(false))
   }, [result])
 
   async function handleGenerate() {
@@ -236,9 +216,6 @@ export default function AnalyzerCard({
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
         <nav aria-label="Sections" className="mb-4">
           <ul className="flex flex-wrap gap-2 text-sm">
-            <li>
-              <a href="#exec-summary" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Summary</a>
-            </li>
             {property && (
               <li>
                 <a href="#property" className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500" tabIndex={0}>Property</a>
@@ -269,19 +246,6 @@ export default function AnalyzerCard({
           <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
             Partial results shown due to degraded analysis.
           </div>
-        )}
-        {(insightLoading || insight || insightError) && (
-          <>
-            <section id="exec-summary" className="bg-gray-50 p-4 rounded mb-2">
-              <h3 className="font-medium mb-2">Executive Summary</h3>
-              {insightLoading ? <p>Loading...</p> : <p>{insight || 'None'}</p>}
-            </section>
-            {insightError && (
-              <div className="border border-red-500 text-red-600 p-2 rounded mb-4 text-sm">
-                {insightError}
-              </div>
-            )}
-          </>
         )}
         {property && <section id="property"><PropertyResults property={property} /></section>}
         {martech && (
@@ -325,7 +289,7 @@ export default function AnalyzerCard({
             </div>
             <button
               className="btn-primary mt-4"
-              disabled={generating || insightLoading}
+              disabled={generating}
               onClick={handleGenerate}
             >
               {generating ? 'Generating...' : 'Generate Insights'}
