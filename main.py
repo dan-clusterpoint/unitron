@@ -9,12 +9,9 @@ for the unit tests.
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
-from typing import Any
 from urllib.parse import urlparse
 import os
 
-import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
@@ -24,20 +21,7 @@ from services.shared import SecurityHeadersMiddleware
 from services.shared.utils import normalize_url
 
 
-PROPERTY_URL = os.getenv("PROPERTY_URL", "http://property:8000")
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Create a single shared HTTP client for outbound calls."""
-    app.state.client = httpx.AsyncClient()
-    try:
-        yield
-    finally:
-        await app.state.client.aclose()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 # Allow calls from the web interface during development.  The behaviour mirrors
 # the former individual services.
@@ -123,11 +107,11 @@ async def health() -> JSONResponse:
 
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest) -> JSONResponse:
-    """Return property and martech information for the supplied URL.
+    """Return basic analysis for the supplied URL.
 
-    The implementation only proxies the property lookup via HTTP and returns an
-    empty martech result.  The original project also performed extensive client
-    side analysis which is intentionally omitted here.
+    Domain verification via the deprecated property service has been removed.
+    The endpoint now simply normalizes the URL and returns empty analysis
+    placeholders.
     """
 
     clean_url = normalize_url(req.url)
@@ -135,24 +119,11 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     if not domain:
         raise HTTPException(status_code=400, detail="Invalid URL")
 
-    try:
-        resp = await app.state.client.post(
-            f"{PROPERTY_URL}/analyze", json={"domain": domain}, timeout=5
-        )
-        resp.raise_for_status()
-        property_data: dict[str, Any] = resp.json()
-        degraded = False
-    except httpx.HTTPStatusError:
-        raise HTTPException(status_code=502, detail="property service unavailable")
-    except Exception:  # noqa: BLE001
-        property_data = {}
-        degraded = True
-
     result = {
-        "property": property_data,
+        "url": clean_url,
         "martech": {},
         "cms": [],
-        "degraded": degraded,
+        "degraded": False,
     }
     return JSONResponse(result)
 

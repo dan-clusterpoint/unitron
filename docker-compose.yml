@@ -10,7 +10,6 @@ services:
       - SERVICE=gateway
       - PORT=8000
       - MARTECH_URL=http://martech:8000
-      - PROPERTY_URL=http://property:8000
       - UI_ORIGIN=${UI_ORIGIN:-http://localhost:5173}
     ports:
       - "8080:8000"
@@ -31,19 +30,6 @@ services:
       - UI_ORIGIN=${UI_ORIGIN:-http://localhost:5173}
     ports:
       - "8081:8000"
-
-  property:
-    build:
-      context: .
-      dockerfile: docker/python.Dockerfile
-      args:
-        SERVICE: property
-    environment:
-      - SERVICE=property
-      - PORT=8000
-      - UI_ORIGIN=${UI_ORIGIN:-http://localhost:5173}
-    ports:
-      - "8082:8000"
 
   insight:
     build:
