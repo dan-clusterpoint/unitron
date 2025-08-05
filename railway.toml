@@ -15,29 +15,16 @@ healthcheckInterval = 2000
 # --- Service Definitions ---
 
 [[services]]
-name         = "gateway"
+name         = "api"
 instances    = 1
-# This command tells Railway how to RUN the gateway service after it's built.
-# There is no projectPath, so it uses the global build settings.
-startCommand = "uvicorn services.gateway.app:app --host 0.0.0.0 --port ${PORT:-8000}"
-
-[[services]]
-name         = "martech"
-instances    = 1
-# This command tells Railway how to RUN the martech service.
-startCommand = "uvicorn services.martech.app:app --host 0.0.0.0 --port ${PORT:-8000}"
+# Run the unified FastAPI application defined in ``main.py``.
+startCommand = "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [[services]]
 name         = "property"
 instances    = 1
 # This command tells Railway how to RUN the property service.
 startCommand = "uvicorn services.property.app:app --host 0.0.0.0 --port ${PORT:-8000}"
-
-[[services]]
-name         = "insight"
-instances    = 1
-# This command tells Railway how to RUN the insight service.
-startCommand = "uvicorn services.insight.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 # The interface service is correct. Its projectPath overrides the global
 # build, which is what you want for a separate Node.js app.

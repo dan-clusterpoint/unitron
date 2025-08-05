@@ -16,12 +16,6 @@ def _is_available(mod: str) -> bool:
         return False
 
 
-MISSING = [mod for mod in ("playwright.async_api",) if not _is_available(mod)]
-
-
-def pytest_configure(config):
-    if MISSING:
-        pytest.exit(
-            f"Missing required modules: {', '.join(MISSING)}",
-            returncode=5,
-        )
+# Historically the test-suite depended on Playwright which is quite heavy. The
+# current tests do not require it so we avoid failing when the optional package
+# is missing.
