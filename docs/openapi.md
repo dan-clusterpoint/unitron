@@ -1,4 +1,4 @@
-# Gateway API Notes
+# API Notes
 
 ## POST /analyze
 
