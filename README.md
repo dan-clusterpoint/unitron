@@ -34,34 +34,18 @@ platforms that expect that filename.  The optional property lookup service
 remains in `services/property` and is contacted via the `PROPERTY_URL`
 environment variable (default `http://property:8000`).
 
-To launch the web interface during development:
-```bash
-cd interface && npm install && VITE_API_BASE_URL=http://localhost:8080 npm run dev
-```
-The `VITE_API_BASE_URL` variable should match the API address.
+To try the minimal web interface, start the API and open `interface/index.html`
+in a browser served from the same origin. The page contains a simple URL field
+and technology picker that POSTs to the `/generate` endpoint.
 
 Set `UI_ORIGIN` to the domain where the frontend is served so the backend will
-allow cross-origin requests. For a local Vite dev server this is typically
-`http://localhost:5173`.
-full production URL of your deployed interface.
+allow cross-origin requests when the page is hosted separately.
 
 ### Runtime behaviour
 
 Each FastAPI service reuses a single shared `httpx.AsyncClient` for outbound
 requests. When downstream calls fail or time out, the APIs still return any
 partial data with a `degraded` flag so clients can detect limited results.
-
-### InsightCard component
-
-The React interface displays each insight using a reusable **InsightCard**. This
-component accepts the normalized insight payload from the backend and renders
-the evidence, recommended actions and any personas in a single card. The
-analyzer captures optional **Industry**, **Pain Point**, and declared
-**Technology Stack** details that are passed along with the URL. Markdown
-fragments are styled via the Tailwind Typography plugin so the text appears
-nicely formatted, and an **Export Markdown** button lets users download the
-analysis.
-
 
 ### API endpoints
 The unified API exposes three primary endpoints:
