@@ -1,6 +1,3 @@
-dev:		## Run both services locally
-	docker compose up --build
-
 lint:		## Lint & type-check
 	tox -e lint,type
 

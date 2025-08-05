@@ -1,7 +1,7 @@
 # 🟠 Unitron – Autonomous Pre-Sales Assistant
 
 ## Why “local-first”?
-* Every contributor should `git clone`, `docker compose up`, and immediately see `/health` = **OK**.
+* Every contributor should `git clone`, install dependencies, and immediately see `/health` = **OK**.
 * Builds are deterministic: no hidden network I/O during image build.
 * External infra (Postgres, S3, Redis) are **optional adapters** behind ENV flags.
 
@@ -21,8 +21,8 @@ Explore a hosted demo at [unitron-production.up.railway.app](https://unitron-pro
 
 ## Quick-start
 ```bash
-# local development
-uvicorn main:app --reload
+pip install -r requirements.txt
+uvicorn main:app
 open http://localhost:8000/docs
 # Create a .env file for secrets (required variables shown)
 # OPENAI_API_KEY=your-openai-key
