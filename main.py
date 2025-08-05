@@ -17,23 +17,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.responses import JSONResponse
 
-from services.shared import SecurityHeadersMiddleware
 from services.shared.utils import normalize_url
 
 
 app = FastAPI()
 
-# Allow calls from the web interface during development.  The behaviour mirrors
-# the former individual services.
+# Allow calls from the web interface during development.
 ui_origin = os.getenv("UI_ORIGIN")
-allow = [ui_origin] if ui_origin else ["*"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allow,
-    allow_methods=["*"],
-    allow_headers=["Content-Type", "Authorization"],
-)
-app.add_middleware(SecurityHeadersMiddleware)
+if ui_origin:
+    app.add_middleware(CORSMiddleware, allow_origins=[ui_origin])
 
 
 class AnalyzeRequest(BaseModel):
@@ -151,4 +143,3 @@ async def generate(req: GenerateRequest) -> JSONResponse:
 
 
 __all__ = ["app", "merge_martech"]
-

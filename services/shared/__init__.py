@@ -1,3 +1,3 @@
-from .security import SecurityHeadersMiddleware
+"""Shared helpers used across service modules."""
 
-__all__ = ["SecurityHeadersMiddleware"]
+__all__: list[str] = []

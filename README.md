@@ -48,10 +48,8 @@ full production URL of your deployed interface.
 ### Runtime behaviour
 
 Each FastAPI service reuses a single shared `httpx.AsyncClient` for outbound
-requests and applies a `SecurityHeadersMiddleware` that adds `X-Frame-Options`
-and `X-Content-Type-Options` to every response. When downstream calls fail or
-time out, the APIs still return any partial data with a `degraded` flag so
-clients can detect limited results.
+requests. When downstream calls fail or time out, the APIs still return any
+partial data with a `degraded` flag so clients can detect limited results.
 
 ### InsightCard component
 
