@@ -11,8 +11,6 @@ test('shows spinner when loading', async () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
       force={false}
       setForce={() => {}}
       loading={true}
@@ -31,8 +29,6 @@ test('displays error message', async () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
       force={false}
       setForce={() => {}}
       loading={false}
@@ -63,8 +59,6 @@ test('renders result lists', async () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
       force={false}
       setForce={() => {}}
       loading={false}
@@ -88,8 +82,6 @@ test('shows degraded banner', async () => {
       url="foo"
       setUrl={() => {}}
       onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
       force={false}
       setForce={() => {}}
       loading={false}

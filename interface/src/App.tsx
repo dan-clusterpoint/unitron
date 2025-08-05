@@ -36,7 +36,6 @@ export default function App() {
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
-  const [headless, setHeadless] = useState(false)
   const [force, setForce] = useState(false)
   const { showTop } = useScrollPosition()
   useFadeInOnView()
@@ -188,8 +187,6 @@ export default function App() {
                     url={url}
                     setUrl={setUrl}
                     onAnalyze={onAnalyze}
-                    headless={headless}
-                    setHeadless={setHeadless}
                     force={force}
                     setForce={setForce}
                     loading={loading}

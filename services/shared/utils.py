@@ -1,8 +1,6 @@
 from typing import Sequence
-from .fingerprint import (
-    DEFAULT_FINGERPRINTS,
-    match_fingerprints,
-)
+from functools import lru_cache
+from Wappalyzer import Wappalyzer, WebPage
 
 
 def ping() -> bool:
@@ -29,32 +27,47 @@ def normalize_url(url: str) -> str:
     return urlunparse((scheme, netloc, path, "", "", ""))
 
 
+@lru_cache(maxsize=1)
+def _get_wappalyzer() -> Wappalyzer:
+    """Return a cached ``Wappalyzer`` instance."""
+
+    return Wappalyzer.latest()
+
+
 def detect_vendors(
     html: str,
     cookies: dict[str, str],
     urls: Sequence[str] | None = None,
     fingerprints: dict[str, list[dict]] | None = None,
     script_bodies: Sequence[str] | None = None,
-) -> dict[str, dict]:
-    """Return detected analytics vendors with confidence scores and evidence.
+) -> dict[str, list[str]]:
+    """Return detected technologies grouped by category.
 
-    ``urls`` is an optional collection of additional resource URLs (script
-    sources, image URLs, resource hints, etc.) that should be considered when
-    matching vendor host fingerprints. ``script_bodies`` may contain additional
-    JavaScript text (e.g. from externally hosted scripts) which will be matched
-    against script patterns.
+    ``urls`` and ``fingerprints`` parameters are retained for backwards
+    compatibility but ignored. ``script_bodies`` may contain additional
+    JavaScript text which is appended to the HTML prior to analysis.
     """
+
     from bs4 import BeautifulSoup
-
-    if fingerprints is None:
-        fingerprints = DEFAULT_FINGERPRINTS
-
-    soup = BeautifulSoup(html, "html.parser")
-    srcs = [tag.get("src") or "" for tag in soup.find_all("script") if tag.get("src")]
-    if urls:
-        srcs.extend(urls)
 
     if script_bodies:
         html = "\n".join([html, *script_bodies])
 
-    return match_fingerprints(html, "", {}, cookies, srcs, fingerprints)
+    # Collect script URLs to mirror previous behaviour even though
+    # python-wappalyzer does not currently use them.
+    soup = BeautifulSoup(html, "html.parser")
+    if urls:
+        srcs = [*urls]
+    else:
+        srcs = []
+    srcs.extend(
+        tag.get("src") or "" for tag in soup.find_all("script") if tag.get("src")
+    )
+
+    webpage = WebPage("https://example.com", html, {})
+    wappalyzer = _get_wappalyzer()
+    try:
+        detected = wappalyzer.analyze_with_categories(webpage)
+    except Exception:
+        detected = {}
+    return {cat: sorted(techs) for cat, techs in detected.items()}
