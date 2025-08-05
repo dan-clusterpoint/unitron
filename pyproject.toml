@@ -3,20 +3,8 @@ name = "unitron"
 version = "0.1.0"
 
 [[tool.poetry.packages]]
-include = "services/gateway"
-from = "."
+include = "services"
 
-[[tool.poetry.packages]]
-include = "services/martech"
-from = "."
-
-[[tool.poetry.packages]]
-include = "services/shared"
-from = "."
-
-[[tool.poetry.packages]]
-include = "property"
-from = "services"
 
 [tool.poetry.dependencies]
 python = "^3.11"
