@@ -41,7 +41,6 @@ class AnalyzeRequest(BaseModel):
 
     url: str
     debug: bool | None = False
-    headless: bool | None = False
     force: bool | None = False
 
     @model_validator(mode="before")

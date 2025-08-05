@@ -41,8 +41,6 @@ export type AnalyzerProps = {
   url: string
   setUrl: (v: string) => void
   onAnalyze: () => void
-  headless: boolean
-  setHeadless: (v: boolean) => void
   force: boolean
   setForce: (v: boolean) => void
   loading: boolean
@@ -56,8 +54,6 @@ export default function AnalyzerCard({
   url,
   setUrl,
   onAnalyze,
-  headless,
-  setHeadless,
   force,
   setForce,
   loading,
@@ -173,15 +169,6 @@ export default function AnalyzerCard({
           )}
         </button>
       </div>
-      <label className="flex items-center mt-4 text-sm">
-        <input
-          type="checkbox"
-          checked={headless}
-          onChange={(e) => setHeadless(e.target.checked)}
-          className="mr-2"
-        />
-        Enable deep scan
-      </label>
       <label className="flex items-center mt-2 text-sm">
         <input
           type="checkbox"

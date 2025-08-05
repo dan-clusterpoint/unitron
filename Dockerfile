@@ -3,8 +3,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN pip install poetry \
     && poetry config virtualenvs.create false \
-    && poetry install --no-root --no-interaction \
-    && playwright install --with-deps
+    && poetry install --no-root --no-interaction
 COPY . /app
 ENV PYTHONPATH=/app/services:/app
 EXPOSE 8000
