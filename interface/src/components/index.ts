@@ -1,4 +1,9 @@
-export { default as AnalyzerCard, type AnalyzeResult, type AnalyzerProps } from './AnalyzerCard'
+export {
+  default as AnalyzerCard,
+  type AnalyzeResult,
+  type AnalyzerProps,
+  type Snapshot,
+} from './AnalyzerCard'
 export { default as FeatureGrid } from './FeatureGrid'
 export { default as HowItWorks } from './HowItWorks'
 export { default as Testimonials } from './Testimonials'

@@ -5,7 +5,7 @@ import { server } from './setupTests'
 import { http } from 'msw'
 import App from './App'
 import { DomainProvider } from './contexts/DomainContext'
-import { type AnalyzeResult } from './components'
+import { type AnalyzeResult, type Snapshot } from './components'
 
 beforeEach(() => {
   global.IntersectionObserver = vi.fn(() => ({
@@ -24,13 +24,21 @@ test('shows loading spinner and displays result', async () => {
     martech: { core: ['GTM'] },
     degraded: false,
   }
+  const snap: Snapshot = {
+    profile: { name: 'Example' },
+    digitalScore: 50,
+    stackDelta: [],
+    growthTriggers: [],
+    nextActions: [],
+  }
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://example.com', headless: false, force: false, domains: [] })
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json(full)
-    })
+    }),
+    http.get('/analyze', async () => Response.json({ snapshot: snap })),
   )
   render(
     <DomainProvider>
@@ -81,12 +89,20 @@ test('shows degraded banner when martech is null', async () => {
     martech: null,
     degraded: true,
   }
+  const snap: Snapshot = {
+    profile: { name: 'Partial' },
+    digitalScore: 40,
+    stackDelta: [],
+    growthTriggers: [],
+    nextActions: [],
+  }
   server.use(
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false, domains: [] })
       return Response.json(partial)
-    })
+    }),
+    http.get('/analyze', async () => Response.json({ snapshot: snap })),
   )
   render(
     <DomainProvider>
