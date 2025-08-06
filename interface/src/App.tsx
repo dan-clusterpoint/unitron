@@ -15,6 +15,7 @@ import {
   FinalCTA,
   Footer,
   type AnalyzeResult,
+  type Snapshot,
 } from './components'
 import './index.css'
 
@@ -23,6 +24,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<AnalyzeResult | null>(null)
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
@@ -57,6 +59,7 @@ export default function App() {
   async function onAnalyze() {
     setError('')
     setResult(null)
+    setSnapshot(null)
     setLoading(true)
     try {
       const clean = normalizeUrl(url)
@@ -66,6 +69,8 @@ export default function App() {
         body: JSON.stringify({ url: clean, headless, force, domains }),
       })
       setResult(data)
+      const snap = await apiFetch<{ snapshot: Snapshot }>('/analyze')
+      setSnapshot(snap.snapshot)
     } catch (err) {
       setError('Failed to analyze. Please try again.')
       if (err instanceof Error && err.message) {
@@ -158,6 +163,7 @@ export default function App() {
                 loading={loading}
                 error={error}
                 result={result}
+                snapshot={snapshot}
               />
             </div>
           </div>
