@@ -191,21 +191,40 @@ def build_snapshot(
     else:
         dns_risk = "low"
 
-    risk_matrix = {"dns": dns_risk}
+    coord_map = {
+        "low": {"x": 0, "y": 2},
+        "medium": {"x": 1, "y": 1},
+        "high": {"x": 2, "y": 0},
+    }
+    risk_matrix = coord_map[dns_risk]
 
-    next_actions: list[str] = []
+    stack_delta = [{"label": vendor, "status": "added"} for vendor in martech_list]
+
+    next_actions: list[dict[str, str]] = []
     if dns_risk != "low" and domain:
-        next_actions.append(f"Investigate DNS records for {domain}")
+        next_actions.append(
+            {"label": f"Investigate DNS records for {domain}", "targetId": "property"}
+        )
     if martech_list:
-        next_actions.append(f"Review {martech_list[0]} usage")
+        next_actions.append(
+            {
+                "label": f"Review {martech_list[0]} usage",
+                "targetId": "martech",
+            }
+        )
     else:
-        next_actions.append("Consider adding analytics tooling")
+        next_actions.append(
+            {
+                "label": "Consider adding analytics tooling",
+                "targetId": "martech",
+            }
+        )
 
     return {
         "profile": profile,
         "digitalScore": digital_score,
         "riskMatrix": risk_matrix,
-        "stackDelta": martech_list,
+        "stackDelta": stack_delta,
         "growthTriggers": notes,
         "nextActions": next_actions,
     }
