@@ -170,33 +170,57 @@ def build_snapshot(
     domain = ""
     confidence = 0.0
     notes: list[str] = []
+    industry = ""
+    location = ""
+    logo_url = ""
     if property_data:
         domain_list = property_data.get("domains") or []
         if domain_list:
             domain = domain_list[0]
         confidence = float(property_data.get("confidence", 0.0) or 0.0)
         notes = property_data.get("notes", []) or []
+        industry = property_data.get("industry", "") or property_data.get("category", "")
+        location = property_data.get("location", "") or property_data.get("country", "")
+        logo_url = (
+            property_data.get("logoUrl")
+            or property_data.get("logo_url")
+            or property_data.get("logo")
+            or ""
+        )
 
     profile: dict[str, str] = {}
     if domain:
         profile["name"] = domain
         profile["website"] = f"https://{domain}"
+    if industry:
+        profile["industry"] = industry
+    if location:
+        profile["location"] = location
+    if logo_url:
+        profile["logoUrl"] = logo_url
 
     digital_score = int(confidence * 100) + martech_count
 
-    if confidence < 0.5:
-        dns_risk = "high"
-    elif confidence < 0.8:
+    # Derive risk coordinates from domain confidence and martech coverage.
+    if confidence >= 0.8:
+        x = 0
+        dns_risk = "low"
+    elif confidence >= 0.5:
+        x = 1
         dns_risk = "medium"
     else:
-        dns_risk = "low"
+        x = 2
+        dns_risk = "high"
 
-    coord_map = {
-        "low": {"x": 0, "y": 2},
-        "medium": {"x": 1, "y": 1},
-        "high": {"x": 2, "y": 0},
-    }
-    risk_matrix = coord_map[dns_risk]
+    if martech_count == 0:
+        y = 2
+    elif martech_count < 3:
+        y = 1
+    else:
+        y = 0
+
+    risk = {"x": x, "y": y}
+    risk_matrix = risk  # backwards compat
 
     stack_delta = [{"label": vendor, "status": "added"} for vendor in martech_list]
 
@@ -223,6 +247,7 @@ def build_snapshot(
     return {
         "profile": profile,
         "digitalScore": digital_score,
+        "risk": risk,
         "riskMatrix": risk_matrix,
         "stackDelta": stack_delta,
         "growthTriggers": notes,

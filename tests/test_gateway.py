@@ -127,6 +127,9 @@ def test_analyze_builds_snapshot(monkeypatch):
                     "domains": ["example.com"],
                     "confidence": 0.9,
                     "notes": ["example note"],
+                    "industry": "SaaS",
+                    "location": "New York, NY",
+                    "logoUrl": "https://logo.example.com/logo.png",
                 },
             )
         return httpx.Response(404)
@@ -139,8 +142,12 @@ def test_analyze_builds_snapshot(monkeypatch):
     snapshot = r.json()["snapshot"]
     assert snapshot["profile"]["name"] == "example.com"
     assert snapshot["profile"]["website"] == "https://example.com"
+    assert snapshot["profile"]["industry"] == "SaaS"
+    assert snapshot["profile"]["location"] == "New York, NY"
+    assert snapshot["profile"]["logoUrl"] == "https://logo.example.com/logo.png"
     assert snapshot["digitalScore"] > 0
-    assert snapshot["riskMatrix"]["x"] == 0
+    assert snapshot["risk"]["x"] == 0
+    assert snapshot["risk"]["y"] == 1
     assert snapshot["stackDelta"][0]["label"] == "GA"
     assert snapshot["stackDelta"][0]["status"] == "added"
     assert snapshot["growthTriggers"]

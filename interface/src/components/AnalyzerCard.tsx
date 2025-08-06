@@ -43,6 +43,7 @@ export type AnalyzeResult = {
 export type Snapshot = {
   profile: ExecutiveSummaryCardProps['profile']
   digitalScore: number
+  risk?: ExecutiveSummaryCardProps['risk']
   riskMatrix?: ExecutiveSummaryCardProps['risk']
   stackDelta: ExecutiveSummaryCardProps['stack']
   growthTriggers: string[]
@@ -114,7 +115,7 @@ export default function AnalyzerCard({
       ? {
           profile: snapshot.profile,
           score: snapshot.digitalScore,
-          risk: snapshot.riskMatrix,
+          risk: snapshot.risk ?? snapshot.riskMatrix,
           stack: snapshot.stackDelta,
           triggers:
             snapshot.growthTriggers.length > 0
