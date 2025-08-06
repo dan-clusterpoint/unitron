@@ -1,0 +1,139 @@
+:root {
+  --font-primary: 'Nunito', sans-serif;
+  --font-secondary: 'Nunito', sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #1f2937; /* gray-800 */
+    font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-secondary);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  @apply opacity-0;
+  animation: fade-in 0.8s forwards;
+}
+
+@layer utilities {
+  .feature-icon {
+    @apply w-8 h-8;
+  }
+  @screen md {
+    .feature-icon {
+      @apply w-6 h-6;
+    }
+  }
+  @screen lg {
+    .feature-icon {
+      @apply w-5 h-5;
+    }
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white rounded-md px-4 py-2 transition hover:bg-primary-dark;
+  }
+  .hero-form {
+    @apply flex gap-2 max-w-xl mx-auto;
+  }
+  .feature-card {
+    @apply bg-white rounded-lg shadow p-8 text-center transition-transform;
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+  .icon-container {
+    color: var(--accent-orange);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .step {
+    @apply flex items-start text-center;
+  }
+  .step-badge {
+    @apply w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white font-semibold;
+  }
+  .step-desc {
+    @apply ml-3 text-sm font-medium text-neutral;
+  }
+  .testimonial-card {
+    @apply bg-white rounded-lg p-6;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: box-shadow .15s;
+  }
+  .testimonial-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .avatar-initials {
+    background: var(--grey-200);
+    color: var(--text-dark);
+    font-weight: 700;
+  }
+  .cta-section {
+    @apply bg-gradient-to-r from-secondary to-primary py-16 text-center;
+  }
+  .cta-section .btn-primary {
+    @apply px-8 py-4 text-lg shadow-lg;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+}
