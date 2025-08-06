@@ -140,10 +140,12 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["profile"]["name"] == "example.com"
     assert snapshot["profile"]["website"] == "https://example.com"
     assert snapshot["digitalScore"] > 0
-    assert snapshot["riskMatrix"]
-    assert snapshot["stackDelta"]
+    assert snapshot["riskMatrix"]["x"] == 0
+    assert snapshot["stackDelta"][0]["label"] == "GA"
+    assert snapshot["stackDelta"][0]["status"] == "added"
     assert snapshot["growthTriggers"]
-    assert snapshot["nextActions"]
+    assert snapshot["nextActions"][0]["label"] == "Review GA usage"
+    assert snapshot["nextActions"][0]["targetId"] == "martech"
 
 
 def test_analyze_failure_increments_metrics(monkeypatch):
