@@ -116,6 +116,36 @@ def test_analyze_returns_top_level_cms(monkeypatch):
     assert data["martech"] == {"core": []}
 
 
+def test_analyze_builds_snapshot(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if "martech" in str(request.url):
+            return httpx.Response(200, json={"core": ["GA", "Segment"]})
+        if "property" in str(request.url):
+            return httpx.Response(
+                200,
+                json={
+                    "domains": ["example.com"],
+                    "confidence": 0.9,
+                    "notes": ["example note"],
+                },
+            )
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/analyze", json={"url": "https://example.com"})
+    assert r.status_code == 200
+    snapshot = r.json()["snapshot"]
+    assert snapshot["profile"]["name"] == "example.com"
+    assert snapshot["profile"]["website"] == "https://example.com"
+    assert snapshot["digitalScore"] > 0
+    assert snapshot["riskMatrix"]
+    assert snapshot["stackDelta"]
+    assert snapshot["growthTriggers"]
+    assert snapshot["nextActions"]
+
+
 def test_analyze_failure_increments_metrics(monkeypatch):
     calls = {"count": 0}
 

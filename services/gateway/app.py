@@ -157,20 +157,57 @@ def build_snapshot(
 ) -> dict[str, Any]:
     """Assemble a minimal snapshot from analysis artifacts."""
     martech_count = 0
+    martech_list: list[str] = []
     if martech_data:
         for items in martech_data.values():
             if isinstance(items, list):
                 martech_count += len(items)
+                martech_list.extend(str(i) for i in items)
             elif isinstance(items, dict):
                 martech_count += len(items)
-    domains = property_data.get("domains", []) if property_data else []
+                martech_list.extend(str(k) for k in items)
+
+    domain = ""
+    confidence = 0.0
+    notes: list[str] = []
+    if property_data:
+        domain_list = property_data.get("domains") or []
+        if domain_list:
+            domain = domain_list[0]
+        confidence = float(property_data.get("confidence", 0.0) or 0.0)
+        notes = property_data.get("notes", []) or []
+
+    profile: dict[str, str] = {}
+    if domain:
+        profile["name"] = domain
+        profile["website"] = f"https://{domain}"
+
+    digital_score = int(confidence * 100) + martech_count
+
+    if confidence < 0.5:
+        dns_risk = "high"
+    elif confidence < 0.8:
+        dns_risk = "medium"
+    else:
+        dns_risk = "low"
+
+    risk_matrix = {"dns": dns_risk}
+
+    next_actions: list[str] = []
+    if dns_risk != "low" and domain:
+        next_actions.append(f"Investigate DNS records for {domain}")
+    if martech_list:
+        next_actions.append(f"Review {martech_list[0]} usage")
+    else:
+        next_actions.append("Consider adding analytics tooling")
+
     return {
-        "profile": {"domains": domains},
-        "digitalScore": martech_count,
-        "riskMatrix": {},
-        "stackDelta": [],
-        "growthTriggers": [],
-        "nextActions": [],
+        "profile": profile,
+        "digitalScore": digital_score,
+        "riskMatrix": risk_matrix,
+        "stackDelta": martech_list,
+        "growthTriggers": notes,
+        "nextActions": next_actions,
     }
 
 
