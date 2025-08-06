@@ -52,6 +52,7 @@ test('shows loading spinner and displays result', async () => {
   )
   await screen.findByRole('heading', { name: 'Confidence' })
   await screen.findByRole('tab', { name: /Content Management System/i })
+  await screen.findByRole('heading', { name: /executive summary/i })
 })
 
 test('shows error banner when request fails', async () => {
@@ -112,4 +113,5 @@ test('shows degraded banner when martech is null', async () => {
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
   await screen.findByRole('heading', { name: 'Confidence' })
   await screen.findByText(/partial results/i)
+  await screen.findByRole('heading', { name: /executive summary/i })
 })
