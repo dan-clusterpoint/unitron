@@ -151,6 +151,29 @@ def merge_martech(
     return result
 
 
+def build_snapshot(
+    property_data: dict[str, Any] | None,
+    martech_data: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Assemble a minimal snapshot from analysis artifacts."""
+    martech_count = 0
+    if martech_data:
+        for items in martech_data.values():
+            if isinstance(items, list):
+                martech_count += len(items)
+            elif isinstance(items, dict):
+                martech_count += len(items)
+    domains = property_data.get("domains", []) if property_data else []
+    return {
+        "profile": {"domains": domains},
+        "digitalScore": martech_count,
+        "riskMatrix": {},
+        "stackDelta": [],
+        "growthTriggers": [],
+        "nextActions": [],
+    }
+
+
 async def _get_with_retry(url: str, service: str) -> bool:
     """GET ``url`` with one retry, recording metrics."""
     last_code: int | None = None
@@ -294,11 +317,13 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
     property_data, property_degraded = property_res
 
     cms_list = martech_data.pop("cms", []) if martech_data else []
+    snapshot = build_snapshot(property_data, martech_data)
     result = {
         "property": property_data,
         "martech": martech_data or {},
         "cms": cms_list,
         "degraded": martech_degraded or property_degraded,
+        "snapshot": snapshot,
     }
     return JSONResponse(result)
 

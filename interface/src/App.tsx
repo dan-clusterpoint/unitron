@@ -55,6 +55,7 @@ export default function App() {
   }, [])
 
 
+  // Analyze the supplied URL and forward the snapshot to the AnalyzerCard.
   async function onAnalyze(): Promise<Snapshot | null> {
     setError('')
     setResult(null)
@@ -71,7 +72,7 @@ export default function App() {
       )
       const { snapshot, ...rest } = data
       setResult(rest)
-      return snapshot
+      return snapshot ?? null
     } catch (err) {
       setError('Failed to analyze. Please try again.')
       if (err instanceof Error && err.message) {
