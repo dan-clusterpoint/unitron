@@ -36,7 +36,13 @@ environment variable (default `http://property:8000`).
 
 To try the minimal web interface, start the API and open `interface/index.html`
 in a browser served from the same origin. The page contains a simple URL field
-and technology picker that POSTs to the `/generate` endpoint.
+and technology picker that POSTs to the `/generate` endpoint. You can also
+build and run a tiny container to host the page:
+
+```bash
+docker build -t interface-image ./interface
+docker run --rm -p 8080:80 interface-image
+```
 
 Set `UI_ORIGIN` to the domain where the frontend is served so the backend will
 allow cross-origin requests when the page is hosted separately.
