@@ -13,10 +13,14 @@ export const server = setupServer(
         notes: ['all good'],
       },
       martech: { core: ['GTM'] },
+      snapshot: {
+        profile: { name: 'Example' },
+        digitalScore: 50,
+        stackDelta: [],
+        growthTriggers: [],
+        nextActions: [],
+      },
     }),
-  ),
-  http.post('/insight', () =>
-    Response.json({ markdown: 'Test insight', degraded: false }),
   ),
 )
 

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { test, expect } from 'vitest'
-import type { AnalyzeResult, Snapshot } from './AnalyzerCard'
+import type { AnalyzeResult } from './AnalyzerCard'
 import { computeMartechCount } from './AnalyzerCard'
 
 test('shows spinner when loading', async () => {
@@ -10,7 +10,7 @@ test('shows spinner when loading', async () => {
       id="a"
       url="foo"
       setUrl={() => {}}
-      onAnalyze={() => {}}
+      onAnalyze={async () => null}
       headless={false}
       setHeadless={() => {}}
       force={false}
@@ -18,7 +18,6 @@ test('shows spinner when loading', async () => {
       loading={true}
       error=""
       result={null}
-      snapshot={null}
     />,
   )
   expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
@@ -31,7 +30,7 @@ test('displays error message', async () => {
       id="a"
       url="foo"
       setUrl={() => {}}
-      onAnalyze={() => {}}
+      onAnalyze={async () => null}
       headless={false}
       setHeadless={() => {}}
       force={false}
@@ -39,7 +38,6 @@ test('displays error message', async () => {
       loading={false}
       error="oops"
       result={null}
-      snapshot={null}
     />,
   )
   expect(screen.getByText('oops')).toBeInTheDocument()
@@ -64,7 +62,7 @@ test('renders result lists', async () => {
       id="a"
       url="foo"
       setUrl={() => {}}
-      onAnalyze={() => {}}
+      onAnalyze={async () => null}
       headless={false}
       setHeadless={() => {}}
       force={false}
@@ -72,7 +70,6 @@ test('renders result lists', async () => {
       loading={false}
       error=""
       result={result}
-      snapshot={null}
     />,
   )
   expect(
@@ -90,7 +87,7 @@ test('shows degraded banner', async () => {
       id="a"
       url="foo"
       setUrl={() => {}}
-      onAnalyze={() => {}}
+      onAnalyze={async () => null}
       headless={false}
       setHeadless={() => {}}
       force={false}
@@ -98,38 +95,9 @@ test('shows degraded banner', async () => {
       loading={false}
       error=""
       result={{ ...result, degraded: true }}
-      snapshot={null}
     />,
   )
   expect(screen.getByText(/partial results/i)).toBeInTheDocument()
-})
-
-test('renders snapshot when provided', async () => {
-  const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  const snap: Snapshot = {
-    profile: { name: 'Acme' },
-    digitalScore: 75,
-    stackDelta: [],
-    growthTriggers: [],
-    nextActions: [],
-  }
-  render(
-    <AnalyzerCard
-      id="a"
-      url="foo"
-      setUrl={() => {}}
-      onAnalyze={() => {}}
-      headless={false}
-      setHeadless={() => {}}
-      force={false}
-      setForce={() => {}}
-      loading={false}
-      error=""
-      result={result}
-      snapshot={snap}
-    />,
-  )
-  expect(screen.getByText('Acme')).toBeInTheDocument()
 })
 
 test('counts nested martech buckets correctly', () => {

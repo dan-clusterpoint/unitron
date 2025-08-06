@@ -36,9 +36,8 @@ test('shows loading spinner and displays result', async () => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://example.com', headless: false, force: false, domains: [] })
       await new Promise((r) => setTimeout(r, 1000))
-      return Response.json(full)
+      return Response.json({ ...full, snapshot: snap })
     }),
-    http.get('/analyze', async () => Response.json({ snapshot: snap })),
   )
   render(
     <DomainProvider>
@@ -100,9 +99,8 @@ test('shows degraded banner when martech is null', async () => {
     http.post('/analyze', async ({ request }) => {
       const body = await request.json()
       expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false, domains: [] })
-      return Response.json(partial)
+      return Response.json({ ...partial, snapshot: snap })
     }),
-    http.get('/analyze', async () => Response.json({ snapshot: snap })),
   )
   render(
     <DomainProvider>
