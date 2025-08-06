@@ -1,0 +1,77 @@
+{
+  "_comment": "Vendor lists sourced from W3Techs and Gartner/G2 alternatives pages [1-4]",
+  "cms": {
+    "label": "Content Management System",
+    "vendors": [
+      "WordPress",
+      "Drupal",
+      "Sitecore",
+      "Tridion",
+      "Contentful",
+      "Adobe Experience Manager"
+    ]
+  },
+  "analytics": {
+    "label": "Web / Product Analytics",
+    "vendors": [
+      "Google Analytics",
+      "Adobe Analytics",
+      "Mixpanel",
+      "Amplitude",
+      "Heap",
+      "Piwik PRO"
+    ]
+  },
+  "targeting": {
+    "label": "Targeting / Personalisation",
+    "vendors": [
+      "Optimizely",
+      "Dynamic Yield",
+      "Adobe Target",
+      "VWO",
+      "Monetate"
+    ]
+  },
+  "dmp": {
+    "label": "Data Management Platform",
+    "vendors": [
+      "Lotame",
+      "Adobe Audience Manager",
+      "Oracle BlueKai",
+      "Salesforce Audience Studio",
+      "OnAudience"
+    ]
+  },
+  "marketing_automation": {
+    "label": "Marketing Automation / Email",
+    "vendors": [
+      "HubSpot",
+      "Marketo",
+      "Pardot",
+      "ActiveCampaign",
+      "Mailchimp",
+      "Eloqua"
+    ]
+  },
+  "dsp": {
+    "label": "Demand-Side Platform",
+    "vendors": [
+      "Google DV360",
+      "The Trade Desk",
+      "Amazon DSP",
+      "MediaMath",
+      "Xandr",
+      "Yahoo DSP"
+    ]
+  },
+  "tag_management": {
+    "label": "Tag Management",
+    "vendors": [
+      "Google Tag Manager",
+      "Tealium",
+      "Adobe Launch",
+      "Ensighten",
+      "Segment"
+    ]
+  }
+}

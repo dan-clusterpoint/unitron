@@ -1,54 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unitron</title>
-  <style>
-    body { font-family: sans-serif; margin: 2rem; }
-    label { display: block; margin-top: 1rem; }
-    select { min-width: 200px; }
-    textarea, pre { width: 100%; box-sizing: border-box; }
-  </style>
-</head>
-<body>
-  <h1>Unitron Demo</h1>
-  <label>
-    Website URL:
-    <input type="text" id="url" placeholder="https://example.com" />
-  </label>
-  <label>
-    Technologies:
-    <select id="tech" multiple size="5">
-      <option>HubSpot</option>
-      <option>Marketo</option>
-      <option>Segment</option>
-      <option>Google Analytics</option>
-      <option>Pardot</option>
-    </select>
-  </label>
-  <button id="go">Generate</button>
-  <h2>Response</h2>
-  <pre id="output"></pre>
-  <script>
-    document.getElementById('go').addEventListener('click', async () => {
-      const url = document.getElementById('url').value;
-      const select = document.getElementById('tech');
-      const techs = Array.from(select.selectedOptions).map(o => o.value);
-      const output = document.getElementById('output');
-      output.textContent = 'Loading...';
-      try {
-        const res = await fetch('/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, martech_manual: techs })
-        });
-        const data = await res.json();
-        output.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        output.textContent = 'Error: ' + err;
-      }
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unitron Analyzer</title>
+    <meta name="description" content="AI-powered tool to analyze any domain and surface actionable insights." />
+    <meta property="og:title" content="Unitron Analyzer" />
+    <meta property="og:description" content="AI-powered tool to analyze any domain and surface actionable insights." />
+    <meta property="og:image" content="/vite.svg" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
