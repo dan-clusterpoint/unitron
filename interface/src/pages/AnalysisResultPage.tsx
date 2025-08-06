@@ -5,6 +5,7 @@ import { apiFetch } from '../api'
 type Snapshot = {
   profile: ExecutiveSummaryCardProps['profile']
   digitalScore: number
+  risk?: ExecutiveSummaryCardProps['risk']
   riskMatrix?: ExecutiveSummaryCardProps['risk']
   stackDelta: ExecutiveSummaryCardProps['stack']
   growthTriggers: string[]
@@ -32,7 +33,7 @@ export default function AnalysisResultPage() {
       <ExecutiveSummaryCard
         profile={snapshot.profile}
         score={snapshot.digitalScore}
-        risk={snapshot.riskMatrix}
+        risk={snapshot.risk ?? snapshot.riskMatrix}
         stack={snapshot.stackDelta}
         triggers={triggers}
         actions={snapshot.nextActions}
