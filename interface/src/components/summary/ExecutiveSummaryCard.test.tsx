@@ -26,3 +26,30 @@ test('renders executive summary snapshot', () => {
   )
   expect(asFragment()).toMatchSnapshot()
 })
+
+test('omits sections when data is missing', () => {
+  const {
+    asFragment,
+    queryByLabelText,
+    queryAllByTestId,
+    container,
+  } = render(
+    <ExecutiveSummaryCard
+      profile={{
+        name: 'Acme Inc',
+        industry: 'SaaS',
+        location: 'NYC',
+        website: 'https://acme.com',
+      }}
+      score={75}
+      stack={[]}
+      triggers={[]}
+      actions={[]}
+    />,
+  )
+  expect(queryByLabelText('healthchecks')).toBeNull()
+  expect(container.querySelector('.xs\\:col-span-2.space-y-1')).toBeNull()
+  expect(queryAllByTestId('growth-trigger')).toHaveLength(0)
+  expect(container.querySelector('ul.flex.flex-wrap.gap-2')).toBeNull()
+  expect(asFragment()).toMatchSnapshot()
+})

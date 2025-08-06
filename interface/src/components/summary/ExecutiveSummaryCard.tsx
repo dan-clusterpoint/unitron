@@ -32,18 +32,24 @@ export default function ExecutiveSummaryCard({
           <CompanyProfileCard {...profile} />
         </div>
         <DigitalScoreBar score={score} />
-        <MiniRiskMatrix position={risk} />
-        <div className="xs:col-span-2 space-y-1">
-          {stack.map((s) => (
-            <StackDeltaRow key={s.label} {...s} />
-          ))}
-        </div>
-        <div className="xs:col-span-2">
-          <GrowthTriggersList triggers={triggers} />
-        </div>
-        <div className="xs:col-span-2">
-          <NextActionsChips actions={actions} />
-        </div>
+        {risk && <MiniRiskMatrix position={risk} />}
+        {stack.length > 0 && (
+          <div className="xs:col-span-2 space-y-1">
+            {stack.map((s) => (
+              <StackDeltaRow key={s.label} {...s} />
+            ))}
+          </div>
+        )}
+        {triggers.length > 0 && (
+          <div className="xs:col-span-2">
+            <GrowthTriggersList triggers={triggers} />
+          </div>
+        )}
+        {actions.length > 0 && (
+          <div className="xs:col-span-2">
+            <NextActionsChips actions={actions} />
+          </div>
+        )}
       </article>
     </section>
   )

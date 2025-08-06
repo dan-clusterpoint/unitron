@@ -1,5 +1,70 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`omits sections when data is missing 1`] = `
+<DocumentFragment>
+  <section
+    aria-labelledby="exec-summary-heading"
+  >
+    <h2
+      class="sr-only"
+      id="exec-summary-heading"
+    >
+      Executive Summary
+    </h2>
+    <article
+      class="grid grid-cols-1 xs:grid-cols-2 gap-4 p-4 bg-white rounded shadow max-h-[320px] overflow-auto"
+    >
+      <div
+        class="xs:col-span-2"
+      >
+        <div
+          class="flex items-center gap-4 p-4 border rounded bg-white"
+        >
+          <div
+            class="text-sm"
+          >
+            <div
+              class="font-medium"
+            >
+              Acme Inc
+            </div>
+            <div>
+              SaaS
+            </div>
+            <div>
+              NYC
+            </div>
+            <a
+              class="text-blue-600 underline break-all"
+              href="https://acme.com"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              https://acme.com
+            </a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div
+          class="text-sm mb-1"
+        >
+          Digital Score: 75
+        </div>
+        <div
+          class="h-2 bg-gray-200 rounded"
+        >
+          <div
+            class="h-full rounded"
+            style="width: 75%; background-color: rgb(230, 159, 0);"
+          />
+        </div>
+      </div>
+    </article>
+  </section>
+</DocumentFragment>
+`;
+
 exports[`renders executive summary snapshot 1`] = `
 <DocumentFragment>
   <section
