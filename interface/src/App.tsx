@@ -24,7 +24,6 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<AnalyzeResult | null>(null)
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [health, setHealth] = useState<'green' | 'yellow' | 'red'>('red')
   const [menuOpen, setMenuOpen] = useState(false)
   const [banner, setBanner] = useState('')
@@ -56,21 +55,23 @@ export default function App() {
   }, [])
 
 
-  async function onAnalyze() {
+  async function onAnalyze(): Promise<Snapshot | null> {
     setError('')
     setResult(null)
-    setSnapshot(null)
     setLoading(true)
     try {
       const clean = normalizeUrl(url)
-      const data = await apiFetch<AnalyzeResult>('/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: clean, headless, force, domains }),
-      })
-      setResult(data)
-      const snap = await apiFetch<{ snapshot: Snapshot }>('/analyze')
-      setSnapshot(snap.snapshot)
+      const data = await apiFetch<AnalyzeResult & { snapshot: Snapshot }>(
+        '/analyze',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: clean, headless, force, domains }),
+        },
+      )
+      const { snapshot, ...rest } = data
+      setResult(rest)
+      return snapshot
     } catch (err) {
       setError('Failed to analyze. Please try again.')
       if (err instanceof Error && err.message) {
@@ -78,6 +79,7 @@ export default function App() {
       } else {
         setBanner('Network error. Please retry.')
       }
+      return null
     } finally {
       setLoading(false)
     }
@@ -163,7 +165,6 @@ export default function App() {
                 loading={loading}
                 error={error}
                 result={result}
-                snapshot={snapshot}
               />
             </div>
           </div>

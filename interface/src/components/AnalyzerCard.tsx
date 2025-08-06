@@ -53,7 +53,7 @@ export type AnalyzerProps = {
   id: string
   url: string
   setUrl: (v: string) => void
-  onAnalyze: () => void
+  onAnalyze: () => Promise<Snapshot | null>
   headless: boolean
   setHeadless: (v: boolean) => void
   force: boolean
@@ -61,7 +61,6 @@ export type AnalyzerProps = {
   loading: boolean
   error: string
   result: AnalyzeResult | null
-  snapshot: Snapshot | null
 }
 
 
@@ -77,31 +76,14 @@ export default function AnalyzerCard({
   loading,
   error,
   result,
-  snapshot: snapshotProp,
 }: AnalyzerProps) {
-  const [snapshot, setSnapshot] = useState<ExecutiveSummaryCardProps | null>(
-    null,
-  )
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [martechManual, setMartechManual] = useState<MartechItem[]>([])
 
-  useEffect(() => {
-    if (snapshotProp) {
-      const triggers =
-        snapshotProp.growthTriggers.length > 0
-          ? snapshotProp.growthTriggers
-          : ['—']
-      setSnapshot({
-        profile: snapshotProp.profile,
-        score: snapshotProp.digitalScore,
-        risk: snapshotProp.riskMatrix,
-        stack: snapshotProp.stackDelta,
-        triggers,
-        actions: snapshotProp.nextActions,
-      })
-    } else {
-      setSnapshot(null)
-    }
-  }, [snapshotProp])
+  async function handleAnalyze() {
+    const snap = await onAnalyze()
+    setSnapshot(snap)
+  }
 
   useEffect(() => {
     if (result?.martech) {
@@ -128,6 +110,19 @@ export default function AnalyzerCard({
     const { property, martech, degraded } = result
     const domainCount = property?.domains.length || 0
     const martechCount = computeMartechCount(martech)
+    const snapshotForCard: ExecutiveSummaryCardProps | null = snapshot
+      ? {
+          profile: snapshot.profile,
+          score: snapshot.digitalScore,
+          risk: snapshot.riskMatrix,
+          stack: snapshot.stackDelta,
+          triggers:
+            snapshot.growthTriggers.length > 0
+              ? snapshot.growthTriggers
+              : ['—'],
+          actions: snapshot.nextActions,
+        }
+      : null
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
@@ -178,9 +173,9 @@ export default function AnalyzerCard({
             Partial results shown due to degraded analysis.
           </div>
         )}
-        {snapshot && (
+        {snapshotForCard && (
           <div className="mb-4">
-            <ExecutiveSummaryCard {...snapshot} />
+            <ExecutiveSummaryCard {...snapshotForCard} />
           </div>
         )}
         {property && (
@@ -223,7 +218,7 @@ export default function AnalyzerCard({
         />
         <button
           aria-label="analyze"
-          onClick={onAnalyze}
+          onClick={() => void handleAnalyze()}
           disabled={loading || !url}
           className="btn-primary rounded-l-none rounded-r-md h-full min-w-[8rem] disabled:opacity-50 active:scale-95"
         >
