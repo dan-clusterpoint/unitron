@@ -6,14 +6,14 @@ export interface ExecutiveSummaryCardProps {
   profile: CompanyProfileProps
   score: number
   vendors: string[]
-  triggers: GrowthTriggersListProps['triggers']
+  triggers?: GrowthTriggersListProps['triggers']
 }
 
 export default function ExecutiveSummaryCard({
   profile,
   score,
   vendors,
-  triggers,
+  triggers = [],
 }: ExecutiveSummaryCardProps) {
   return (
     <section aria-labelledby="exec-summary-heading">

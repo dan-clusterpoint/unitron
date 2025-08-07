@@ -90,6 +90,9 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         else:
             notes.append(f"{host} did not resolve")
 
+    actionable = [n for n in notes if "resolve" not in n.lower()]
+    actionable = actionable[:3]
+
     confidence = len(resolved) / len(results)
 
     industry = ""
@@ -114,13 +117,14 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         except Exception:  # noqa: BLE001
             pass
 
-    return JSONResponse(
-        {
-            "domains": resolved,
-            "confidence": round(confidence, 2),
-            "notes": notes,
-            "industry": industry,
-            "location": location,
-            "logoUrl": logo_url,
-        }
-    )
+    payload = {
+        "domains": resolved,
+        "confidence": round(confidence, 2),
+        "industry": industry,
+        "location": location,
+        "logoUrl": logo_url,
+    }
+    if actionable:
+        payload["notes"] = actionable
+
+    return JSONResponse(payload)
