@@ -216,12 +216,12 @@ def build_snapshot(
         round(confidence * 70) + min(martech_count * 10, 30),
     )
 
-    stack = [{"label": vendor, "status": "added"} for vendor in martech_list]
+    vendors = list(dict.fromkeys(martech_list))
 
     return {
         "profile": profile,
         "digitalScore": digital_score,
-        "stack": stack,
+        "vendors": vendors,
         "growthTriggers": notes,
     }
 

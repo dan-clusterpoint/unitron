@@ -1,19 +1,18 @@
 import CompanyProfileCard, { type CompanyProfileProps } from './CompanyProfileCard'
 import DigitalScoreBar from './DigitalScoreBar'
-import StackDeltaRow, { type StackDeltaRowProps } from './StackDeltaRow'
 import GrowthTriggersList, { type GrowthTriggersListProps } from './GrowthTriggersList'
 
 export interface ExecutiveSummaryCardProps {
   profile: CompanyProfileProps
   score: number
-  stack: StackDeltaRowProps[]
+  vendors: string[]
   triggers: GrowthTriggersListProps['triggers']
 }
 
 export default function ExecutiveSummaryCard({
   profile,
   score,
-  stack,
+  vendors,
   triggers,
 }: ExecutiveSummaryCardProps) {
   return (
@@ -26,10 +25,10 @@ export default function ExecutiveSummaryCard({
           <CompanyProfileCard {...profile} />
         </div>
         <DigitalScoreBar score={score} />
-        {stack.length > 0 && (
-          <div className="xs:col-span-2 space-y-1">
-            {stack.map((s) => (
-              <StackDeltaRow key={s.label} {...s} />
+        {vendors.length > 0 && (
+          <div className="xs:col-span-2 space-y-1 text-sm">
+            {vendors.map((v) => (
+              <div key={v}>{v}</div>
             ))}
           </div>
         )}

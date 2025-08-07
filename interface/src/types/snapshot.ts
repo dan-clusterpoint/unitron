@@ -3,7 +3,7 @@ import type { ExecutiveSummaryCardProps } from '../components/summary'
 export interface Snapshot {
   profile: ExecutiveSummaryCardProps['profile']
   digitalScore: number
-  stack: ExecutiveSummaryCardProps['stack']
+  vendors: ExecutiveSummaryCardProps['vendors']
   growthTriggers: string[]
 }
 

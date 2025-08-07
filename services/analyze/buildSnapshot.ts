@@ -8,29 +8,24 @@
 export interface Snapshot {
   profile: unknown;
   digitalScore: number;
-  stack: unknown;
+  vendors: unknown;
   growthTriggers: unknown;
 }
 
 export interface BuildSnapshotResult {
   profile: unknown;
   digitalScore: number;
-  stack: unknown;
+  vendors: unknown;
   growthTriggers: unknown;
 }
 
 export function buildSnapshot(result: BuildSnapshotResult): Snapshot {
-  const {
-    profile,
-    digitalScore,
-    stack,
-    growthTriggers,
-  } = result;
+  const { profile, digitalScore, vendors, growthTriggers } = result;
 
   return {
     profile,
     digitalScore,
-    stack,
+    vendors,
     growthTriggers,
   };
 }

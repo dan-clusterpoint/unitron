@@ -13,7 +13,7 @@ risk assessment and suggested next actions.
   "profile": {},
   "digitalScore": 75,
   "risk": {},
-  "stackDelta": {},
+  "vendors": [],
   "growthTriggers": {},
   "nextActions": {}
 }

@@ -12,10 +12,6 @@ export {
   type RiskLevel,
 } from './MiniRiskMatrix'
 export {
-  default as StackDeltaRow,
-  type StackDeltaRowProps,
-} from './StackDeltaRow'
-export {
   default as GrowthTriggersList,
   type GrowthTriggersListProps,
 } from './GrowthTriggersList'

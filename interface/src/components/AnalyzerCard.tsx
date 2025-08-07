@@ -108,7 +108,7 @@ export default function AnalyzerCard({
       ? {
           profile: snapshot.profile,
           score: snapshot.digitalScore,
-          stack: snapshot.stack,
+          vendors: snapshot.vendors,
           triggers: snapshot.growthTriggers,
         }
       : null
