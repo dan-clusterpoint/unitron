@@ -3,15 +3,15 @@
 ## POST /analyze
 
 Returns the core analysis artifacts. The response now includes a
-`snapshot` object that combines the profile, digital score, risk
-assessment and suggested next actions.
+`snapshot` object that combines the profile, weighted digital score,
+risk assessment and suggested next actions.
 
 ### Snapshot schema
 
 ```json
 {
   "profile": {},
-  "digitalScore": {},
+  "digitalScore": 75,
   "risk": {},
   "stackDelta": {},
   "growthTriggers": {},

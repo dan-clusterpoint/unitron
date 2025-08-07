@@ -7,7 +7,7 @@
 
 export interface Snapshot {
   profile: unknown;
-  digitalScore: unknown;
+  digitalScore: number;
   risk: unknown;
   stackDelta: unknown;
   growthTriggers: unknown;
@@ -16,7 +16,7 @@ export interface Snapshot {
 
 export interface BuildSnapshotResult {
   profile: unknown;
-  digitalScore: unknown;
+  digitalScore: number;
   risk: unknown;
   stackDelta: unknown;
   growthTriggers: unknown;

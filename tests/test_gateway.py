@@ -145,7 +145,8 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["profile"]["industry"] == "SaaS"
     assert snapshot["profile"]["location"] == "New York, NY"
     assert snapshot["profile"]["logoUrl"] == "https://logo.example.com/logo.png"
-    assert snapshot["digitalScore"] > 0
+    expected_score = min(100, round(0.9 * 70) + min(2 * 10, 30))
+    assert snapshot["digitalScore"] == expected_score
     assert snapshot["risk"]["x"] == 0
     assert snapshot["risk"]["y"] == 1
     assert snapshot["stackDelta"][0]["label"] == "GA"
