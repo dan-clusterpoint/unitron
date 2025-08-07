@@ -12,7 +12,7 @@ test('renders executive summary snapshot', () => {
         website: 'https://acme.com',
       }}
       score={75}
-      risk={{ x: 1, y: 2 }}
+      risk={{ x: 1, y: 2, level: 'high' }}
       stack={[
         { label: 'React', status: 'added' },
         { label: 'Vue', status: 'removed' },

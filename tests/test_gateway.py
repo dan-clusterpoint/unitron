@@ -149,6 +149,7 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["digitalScore"] == expected_score
     assert snapshot["risk"]["x"] == 0
     assert snapshot["risk"]["y"] == 1
+    assert snapshot["risk"]["level"] == "medium"
     assert snapshot["stackDelta"][0]["label"] == "GA"
     assert snapshot["stackDelta"][0]["status"] == "added"
     assert snapshot["growthTriggers"]

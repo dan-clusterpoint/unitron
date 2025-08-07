@@ -9,6 +9,7 @@ export {
 export {
   default as MiniRiskMatrix,
   type MiniRiskMatrixProps,
+  type RiskLevel,
 } from './MiniRiskMatrix'
 export {
   default as StackDeltaRow,

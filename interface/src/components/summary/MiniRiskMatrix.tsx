@@ -1,16 +1,26 @@
 import type { JSX } from 'react'
 import { COLOR_BLIND_PALETTE } from './palette'
 
+export type RiskLevel = 'low' | 'medium' | 'high'
+
 export interface MiniRiskMatrixProps {
   position?: { x: number; y: number }
+  level?: RiskLevel
   onClick?: () => void
 }
 
-export default function MiniRiskMatrix({ position, onClick }: MiniRiskMatrixProps) {
+export default function MiniRiskMatrix({ position, level = 'high', onClick }: MiniRiskMatrixProps) {
   function handleClick() {
     if (onClick) onClick()
     else document.getElementById('healthchecks')?.scrollIntoView({ behavior: 'smooth' })
   }
+  const colorMap: Record<RiskLevel, string> = {
+    low: COLOR_BLIND_PALETTE.green,
+    medium: COLOR_BLIND_PALETTE.amber,
+    high: COLOR_BLIND_PALETTE.red,
+  }
+  const activeColor = colorMap[level]
+
   const cells: JSX.Element[] = []
   for (let y = 0; y < 3; y++) {
     for (let x = 0; x < 3; x++) {
@@ -20,9 +30,7 @@ export default function MiniRiskMatrix({ position, onClick }: MiniRiskMatrixProp
           key={`${x}-${y}`}
           className="w-3 h-3 border"
           style={{
-            backgroundColor: active
-              ? COLOR_BLIND_PALETTE.red
-              : '#f3f4f6',
+            backgroundColor: active ? activeColor : '#f3f4f6',
           }}
         />
       )

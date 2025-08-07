@@ -179,7 +179,9 @@ def build_snapshot(
             domain = domain_list[0]
         confidence = float(property_data.get("confidence", 0.0) or 0.0)
         notes = property_data.get("notes", []) or []
-        industry = property_data.get("industry", "") or property_data.get("category", "")
+        industry = property_data.get("industry", "") or property_data.get(
+            "category", ""
+        )
         location = property_data.get("location", "") or property_data.get("country", "")
         logo_url = (
             property_data.get("logoUrl")
@@ -223,7 +225,8 @@ def build_snapshot(
     else:
         y = 0
 
-    risk = {"x": x, "y": y}
+    level = ["low", "medium", "high"][max(x, y)]
+    risk = {"x": x, "y": y, "level": level}
 
     stack_delta = [{"label": vendor, "status": "added"} for vendor in martech_list]
 
