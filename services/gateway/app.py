@@ -169,7 +169,7 @@ def build_snapshot(
 
     domain = ""
     confidence = 0.0
-    notes: list[str] = []
+    growth_triggers: list[str] = []
     industry = ""
     location = ""
     logo_url = ""
@@ -178,7 +178,7 @@ def build_snapshot(
         if domain_list:
             domain = domain_list[0]
         confidence = float(property_data.get("confidence", 0.0) or 0.0)
-        notes = property_data.get("notes", []) or []
+        growth_triggers = property_data.get("notes") or []
         enrichment = property_data.get("enrichment") or {}
         industry = (
             property_data.get("industry")
@@ -222,7 +222,7 @@ def build_snapshot(
         "profile": profile,
         "digitalScore": digital_score,
         "vendors": vendors,
-        "growthTriggers": notes,
+        "growthTriggers": growth_triggers or [],
     }
 
 

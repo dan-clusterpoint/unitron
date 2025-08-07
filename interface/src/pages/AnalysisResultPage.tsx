@@ -20,17 +20,13 @@ export default function AnalysisResultPage() {
   }, [])
 
   if (!snapshot) return null
-
-  const triggers =
-    snapshot.growthTriggers.length > 0 ? snapshot.growthTriggers : ['—']
-
   return (
     <div className="p-4">
       <ExecutiveSummaryCard
         profile={snapshot.profile}
         score={snapshot.digitalScore}
         vendors={snapshot.vendors}
-        triggers={triggers}
+        triggers={snapshot.growthTriggers}
       />
     </div>
   )
