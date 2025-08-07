@@ -29,7 +29,7 @@ export default function AnalysisResultPage() {
       <ExecutiveSummaryCard
         profile={snapshot.profile}
         score={snapshot.digitalScore}
-        risk={snapshot.risk ?? snapshot.riskMatrix}
+        risk={snapshot.risk}
         stack={snapshot.stackDelta}
         triggers={triggers}
         actions={snapshot.nextActions}

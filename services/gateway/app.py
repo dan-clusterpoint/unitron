@@ -199,7 +199,7 @@ def build_snapshot(
     if logo_url:
         profile["logoUrl"] = logo_url
 
-    digital_score = int(confidence * 100) + martech_count
+    digital_score = min(100, int(confidence * 100) + martech_count)
 
     # Derive risk coordinates from domain confidence and martech coverage.
     if confidence >= 0.8:
@@ -220,7 +220,6 @@ def build_snapshot(
         y = 0
 
     risk = {"x": x, "y": y}
-    risk_matrix = risk  # backwards compat
 
     stack_delta = [{"label": vendor, "status": "added"} for vendor in martech_list]
 
@@ -248,7 +247,6 @@ def build_snapshot(
         "profile": profile,
         "digitalScore": digital_score,
         "risk": risk,
-        "riskMatrix": risk_matrix,
         "stackDelta": stack_delta,
         "growthTriggers": notes,
         "nextActions": next_actions,

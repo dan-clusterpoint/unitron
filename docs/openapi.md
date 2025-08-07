@@ -12,7 +12,7 @@ assessment and suggested next actions.
 {
   "profile": {},
   "digitalScore": {},
-  "riskMatrix": {},
+  "risk": {},
   "stackDelta": {},
   "growthTriggers": {},
   "nextActions": {}

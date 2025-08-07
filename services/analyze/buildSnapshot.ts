@@ -8,7 +8,7 @@
 export interface Snapshot {
   profile: unknown;
   digitalScore: unknown;
-  riskMatrix: unknown;
+  risk: unknown;
   stackDelta: unknown;
   growthTriggers: unknown;
   nextActions: unknown;
@@ -17,7 +17,7 @@ export interface Snapshot {
 export interface BuildSnapshotResult {
   profile: unknown;
   digitalScore: unknown;
-  riskMatrix: unknown;
+  risk: unknown;
   stackDelta: unknown;
   growthTriggers: unknown;
   nextActions: unknown;
@@ -27,7 +27,7 @@ export function buildSnapshot(result: BuildSnapshotResult): Snapshot {
   const {
     profile,
     digitalScore,
-    riskMatrix,
+    risk,
     stackDelta,
     growthTriggers,
     nextActions,
@@ -36,7 +36,7 @@ export function buildSnapshot(result: BuildSnapshotResult): Snapshot {
   return {
     profile,
     digitalScore,
-    riskMatrix,
+    risk,
     stackDelta,
     growthTriggers,
     nextActions,
