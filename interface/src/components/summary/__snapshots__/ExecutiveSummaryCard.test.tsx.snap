@@ -135,47 +135,6 @@ exports[`renders executive summary snapshot 1`] = `
           />
         </div>
       </div>
-      <button
-        aria-label="healthchecks"
-        class="grid grid-cols-3 grid-rows-3 gap-0.5"
-      >
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(213, 94, 0);"
-        />
-        <div
-          class="w-3 h-3 border"
-          style="background-color: rgb(243, 244, 246);"
-        />
-      </button>
       <div
         class="xs:col-span-2 space-y-1"
       >
@@ -298,29 +257,6 @@ exports[`renders executive summary snapshot 1`] = `
             />
           </div>
         </div>
-      </div>
-      <div
-        class="xs:col-span-2"
-      >
-        <ul
-          class="flex flex-wrap gap-2"
-          role="list"
-        >
-          <li>
-            <button
-              class="px-2 py-1 text-sm border rounded-full bg-gray-100"
-            >
-              Analyze stack
-            </button>
-          </li>
-          <li>
-            <button
-              class="px-2 py-1 text-sm border rounded-full bg-gray-100"
-            >
-              Check risks
-            </button>
-          </li>
-        </ul>
       </div>
     </article>
   </section>

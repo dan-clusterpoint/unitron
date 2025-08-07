@@ -216,56 +216,13 @@ def build_snapshot(
         round(confidence * 70) + min(martech_count * 10, 30),
     )
 
-    # Derive risk coordinates from domain confidence and martech coverage.
-    if confidence >= 0.8:
-        x = 0
-        dns_risk = "low"
-    elif confidence >= 0.5:
-        x = 1
-        dns_risk = "medium"
-    else:
-        x = 2
-        dns_risk = "high"
-
-    if martech_count == 0:
-        y = 2
-    elif martech_count < 3:
-        y = 1
-    else:
-        y = 0
-
-    level = ["low", "medium", "high"][max(x, y)]
-    risk = {"x": x, "y": y, "level": level}
-
-    stack_delta = [{"label": vendor, "status": "added"} for vendor in martech_list]
-
-    next_actions: list[dict[str, str]] = []
-    if dns_risk != "low" and domain:
-        next_actions.append(
-            {"label": f"Investigate DNS records for {domain}", "targetId": "property"}
-        )
-    if martech_list:
-        next_actions.append(
-            {
-                "label": f"Review {martech_list[0]} usage",
-                "targetId": "martech",
-            }
-        )
-    else:
-        next_actions.append(
-            {
-                "label": "Consider adding analytics tooling",
-                "targetId": "martech",
-            }
-        )
+    stack = [{"label": vendor, "status": "added"} for vendor in martech_list]
 
     return {
         "profile": profile,
         "digitalScore": digital_score,
-        "risk": risk,
-        "stackDelta": stack_delta,
+        "stack": stack,
         "growthTriggers": notes,
-        "nextActions": next_actions,
     }
 
 

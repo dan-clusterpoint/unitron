@@ -108,10 +108,8 @@ export default function AnalyzerCard({
       ? {
           profile: snapshot.profile,
           score: snapshot.digitalScore,
-          risk: snapshot.risk,
-          stack: snapshot.stackDelta,
+          stack: snapshot.stack,
           triggers: snapshot.growthTriggers,
-          actions: snapshot.nextActions,
         }
       : null
     return (

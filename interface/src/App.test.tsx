@@ -27,10 +27,8 @@ test('shows loading spinner and displays result', async () => {
   const snap: Snapshot = {
     profile: { name: 'Example' },
     digitalScore: 50,
-    risk: { x: 0, y: 0, level: 'low' },
-    stackDelta: [],
+    stack: [],
     growthTriggers: [],
-    nextActions: [],
   }
   server.use(
     http.post('/analyze', async ({ request }) => {
@@ -93,10 +91,8 @@ test('shows degraded banner when martech is null', async () => {
   const snap: Snapshot = {
     profile: { name: 'Partial' },
     digitalScore: 40,
-    risk: { x: 0, y: 0, level: 'low' },
-    stackDelta: [],
+    stack: [],
     growthTriggers: [],
-    nextActions: [],
   }
   server.use(
     http.post('/analyze', async ({ request }) => {
