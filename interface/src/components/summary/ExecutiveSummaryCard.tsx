@@ -1,6 +1,6 @@
 import CompanyProfileCard, { type CompanyProfileProps } from './CompanyProfileCard'
 import DigitalScoreBar from './DigitalScoreBar'
-import MiniRiskMatrix, { type MiniRiskMatrixProps } from './MiniRiskMatrix'
+import MiniRiskMatrix, { type RiskLevel } from './MiniRiskMatrix'
 import StackDeltaRow, { type StackDeltaRowProps } from './StackDeltaRow'
 import GrowthTriggersList, { type GrowthTriggersListProps } from './GrowthTriggersList'
 import NextActionsChips, { type NextActionsChipsProps } from './NextActionsChips'
@@ -8,7 +8,7 @@ import NextActionsChips, { type NextActionsChipsProps } from './NextActionsChips
 export interface ExecutiveSummaryCardProps {
   profile: CompanyProfileProps
   score: number
-  risk?: MiniRiskMatrixProps['position']
+  risk?: { x: number; y: number; level: RiskLevel }
   stack: StackDeltaRowProps[]
   triggers: GrowthTriggersListProps['triggers']
   actions: NextActionsChipsProps['actions']
@@ -32,7 +32,9 @@ export default function ExecutiveSummaryCard({
           <CompanyProfileCard {...profile} />
         </div>
         <DigitalScoreBar score={score} />
-        {risk && <MiniRiskMatrix position={risk} />}
+        {risk && (
+          <MiniRiskMatrix position={{ x: risk.x, y: risk.y }} level={risk.level} />
+        )}
         {stack.length > 0 && (
           <div className="xs:col-span-2 space-y-1">
             {stack.map((s) => (
