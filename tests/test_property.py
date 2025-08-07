@@ -21,6 +21,10 @@ def test_analyze_success():
     assert r.status_code == 200
     data = r.json()
     assert len(data["domains"]) >= 1
+    # Enrichment fields should always be present, even if empty
+    assert "industry" in data
+    assert "location" in data
+    assert "logoUrl" in data
 
 
 def test_analyze_with_url():

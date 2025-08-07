@@ -20,6 +20,11 @@ exports[`omits sections when data is missing 1`] = `
         <div
           class="flex items-center gap-4 p-4 border rounded bg-white"
         >
+          <img
+            alt="Acme Inc logo"
+            class="w-12 h-12 rounded object-cover"
+            src="https://logo.example.com/acme.png"
+          />
           <div
             class="text-sm"
           >
@@ -85,6 +90,11 @@ exports[`renders executive summary snapshot 1`] = `
         <div
           class="flex items-center gap-4 p-4 border rounded bg-white"
         >
+          <img
+            alt="Acme Inc logo"
+            class="w-12 h-12 rounded object-cover"
+            src="https://logo.example.com/acme.png"
+          />
           <div
             class="text-sm"
           >

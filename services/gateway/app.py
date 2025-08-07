@@ -179,12 +179,21 @@ def build_snapshot(
             domain = domain_list[0]
         confidence = float(property_data.get("confidence", 0.0) or 0.0)
         notes = property_data.get("notes", []) or []
-        industry = property_data.get("industry", "") or property_data.get(
-            "category", ""
+        enrichment = property_data.get("enrichment") or {}
+        industry = (
+            property_data.get("industry")
+            or enrichment.get("industry")
+            or property_data.get("category", "")
         )
-        location = property_data.get("location", "") or property_data.get("country", "")
+        location = (
+            property_data.get("location")
+            or enrichment.get("location")
+            or property_data.get("country", "")
+        )
         logo_url = (
             property_data.get("logoUrl")
+            or enrichment.get("logoUrl")
+            or enrichment.get("logo")
             or property_data.get("logo_url")
             or property_data.get("logo")
             or ""

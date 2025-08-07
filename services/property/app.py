@@ -92,10 +92,35 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
 
     confidence = len(resolved) / len(results)
 
+    industry = ""
+    location = ""
+    logo_url = ""
+    enrich_url = os.getenv("ENRICH_URL")
+    if enrich_url:
+        try:
+            resp = await app.state.client.get(
+                f"{enrich_url}?domain={bare}", timeout=5
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            industry = data.get("industry", "") or data.get("category", "")
+            location = data.get("location", "") or data.get("country", "")
+            logo_url = (
+                data.get("logoUrl")
+                or data.get("logo_url")
+                or data.get("logo")
+                or ""
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
     return JSONResponse(
         {
             "domains": resolved,
             "confidence": round(confidence, 2),
             "notes": notes,
+            "industry": industry,
+            "location": location,
+            "logoUrl": logo_url,
         }
     )
