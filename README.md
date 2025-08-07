@@ -127,7 +127,7 @@ curl -sS -X POST http://localhost:8080/analyze \
 #   "snapshot": {
 #     "profile": {},
 #     "digitalScore": {},
-#     "riskMatrix": {},
+#     "risk": {},
 #     "stackDelta": {},
 #     "growthTriggers": {},
 #     "nextActions": {}
