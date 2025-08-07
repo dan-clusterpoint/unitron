@@ -147,14 +147,9 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["profile"]["logoUrl"] == "https://logo.example.com/logo.png"
     expected_score = min(100, round(0.9 * 70) + min(2 * 10, 30))
     assert snapshot["digitalScore"] == expected_score
-    assert snapshot["risk"]["x"] == 0
-    assert snapshot["risk"]["y"] == 1
-    assert snapshot["risk"]["level"] == "medium"
-    assert snapshot["stackDelta"][0]["label"] == "GA"
-    assert snapshot["stackDelta"][0]["status"] == "added"
+    assert snapshot["stack"][0]["label"] == "GA"
+    assert snapshot["stack"][0]["status"] == "added"
     assert snapshot["growthTriggers"]
-    assert snapshot["nextActions"][0]["label"] == "Review GA usage"
-    assert snapshot["nextActions"][0]["targetId"] == "martech"
 
 
 def test_analyze_failure_increments_metrics(monkeypatch):

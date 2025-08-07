@@ -6,9 +6,8 @@ describe('Domain analysis flow', () => {
         snapshot: {
           profile: { name: 'Acme Corp' },
           digitalScore: 75,
-          stackDelta: [],
+          stack: [],
           growthTriggers: ['one', 'two', 'three', 'four'],
-          nextActions: [],
         },
       },
     }).as('analyze')
