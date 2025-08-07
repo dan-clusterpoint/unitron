@@ -29,7 +29,7 @@ export default function AnalysisResultPage() {
       <ExecutiveSummaryCard
         profile={snapshot.profile}
         score={snapshot.digitalScore}
-        stack={snapshot.stack}
+        vendors={snapshot.vendors}
         triggers={triggers}
       />
     </div>

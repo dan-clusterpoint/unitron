@@ -16,7 +16,7 @@ export const server = setupServer(
       snapshot: {
         profile: { name: 'Example' },
         digitalScore: 50,
-        stack: [],
+        vendors: [],
         growthTriggers: [],
       },
     }),

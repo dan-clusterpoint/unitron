@@ -13,10 +13,7 @@ test('renders executive summary snapshot', () => {
         logoUrl: 'https://logo.example.com/acme.png',
       }}
       score={75}
-      stack={[
-        { label: 'React', status: 'added' },
-        { label: 'Vue', status: 'removed' },
-      ]}
+      vendors={['React', 'Vue']}
       triggers={['Add chat widget', 'Improve SEO']}
     />,
   )
@@ -35,7 +32,7 @@ test('omits sections when data is missing', () => {
         logoUrl: 'https://logo.example.com/acme.png',
       }}
       score={75}
-      stack={[]}
+      vendors={[]}
       triggers={[]}
     />,
   )
