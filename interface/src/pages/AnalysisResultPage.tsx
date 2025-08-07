@@ -17,7 +17,12 @@ export default function AnalysisResultPage() {
 
   useEffect(() => {
     async function load() {
-      const data = await apiFetch<{ snapshot: Snapshot }>('/analyze')
+      const url = window.location.href
+      const data = await apiFetch<{ snapshot: Snapshot }>('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
       setSnapshot(data.snapshot)
     }
     void load()
