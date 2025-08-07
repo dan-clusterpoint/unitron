@@ -8,6 +8,7 @@ import {
   type ExecutiveSummaryCardProps,
 } from './summary'
 import catalog from '../data/martech_catalog.json'
+import type { Snapshot } from '../types/snapshot'
 
 const vendorToCategory: Record<string, string> = {}
 for (const [cat, info] of Object.entries(catalog)) {
@@ -40,15 +41,7 @@ export type AnalyzeResult = {
   degraded: boolean
 }
 
-export type Snapshot = {
-  profile: ExecutiveSummaryCardProps['profile']
-  digitalScore: number
-  risk?: ExecutiveSummaryCardProps['risk']
-  riskMatrix?: ExecutiveSummaryCardProps['risk']
-  stackDelta: ExecutiveSummaryCardProps['stack']
-  growthTriggers: string[]
-  nextActions: ExecutiveSummaryCardProps['actions']
-}
+export type { Snapshot } from '../types/snapshot'
 
 export type AnalyzerProps = {
   id: string

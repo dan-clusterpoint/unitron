@@ -1,16 +1,7 @@
 import { useEffect, useState } from 'react'
-import ExecutiveSummaryCard, { type ExecutiveSummaryCardProps } from '../components/summary/ExecutiveSummaryCard'
+import ExecutiveSummaryCard from '../components/summary/ExecutiveSummaryCard'
 import { apiFetch } from '../api'
-
-type Snapshot = {
-  profile: ExecutiveSummaryCardProps['profile']
-  digitalScore: number
-  risk?: ExecutiveSummaryCardProps['risk']
-  riskMatrix?: ExecutiveSummaryCardProps['risk']
-  stackDelta: ExecutiveSummaryCardProps['stack']
-  growthTriggers: string[]
-  nextActions: ExecutiveSummaryCardProps['actions']
-}
+import type { Snapshot } from '../types/snapshot'
 
 export default function AnalysisResultPage() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
