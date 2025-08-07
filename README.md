@@ -126,7 +126,7 @@ curl -sS -X POST http://localhost:8080/analyze \
 #   "cms": [],
 #   "snapshot": {
 #     "profile": {},
-#     "digitalScore": {},
+#     "digitalScore": 75,
 #     "risk": {},
 #     "stackDelta": {},
 #     "growthTriggers": {},

@@ -199,7 +199,11 @@ def build_snapshot(
     if logo_url:
         profile["logoUrl"] = logo_url
 
-    digital_score = min(100, int(confidence * 100) + martech_count)
+    # Weight domain confidence and martech coverage for a balanced score.
+    digital_score = min(
+        100,
+        round(confidence * 70) + min(martech_count * 10, 30),
+    )
 
     # Derive risk coordinates from domain confidence and martech coverage.
     if confidence >= 0.8:
