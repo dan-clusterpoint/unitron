@@ -131,6 +131,8 @@ def test_analyze_builds_snapshot(monkeypatch):
                     "location": "New York, NY",
                     "logoUrl": "https://logo.example.com/logo.png",
                     "tagline": "We build stuff",
+                    "robotsTxt": True,
+                    "sitemapXml": False,
                 },
             )
         return httpx.Response(404)
@@ -151,6 +153,7 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["digitalScore"] == expected_score
     assert snapshot["vendors"] == ["GA", "Segment"]
     assert snapshot["growthTriggers"]
+    assert snapshot["seo"] == {"robotsTxt": True, "sitemapXml": False}
 
 
 def test_analyze_failure_increments_metrics(monkeypatch):

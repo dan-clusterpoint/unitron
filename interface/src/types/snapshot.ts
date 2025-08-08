@@ -5,5 +5,6 @@ export interface Snapshot {
   digitalScore: number
   vendors: ExecutiveSummaryCardProps['vendors']
   growthTriggers: string[]
+  seo?: ExecutiveSummaryCardProps['seo']
 }
 

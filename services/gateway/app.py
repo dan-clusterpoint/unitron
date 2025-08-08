@@ -175,6 +175,7 @@ def build_snapshot(
     logo_url = ""
     tagline = ""
     social: dict[str, str] | None = None
+    seo_flags: dict[str, bool] | None = None
     if property_data:
         domain_list = property_data.get("domains") or []
         if domain_list:
@@ -202,6 +203,14 @@ def build_snapshot(
         )
         tagline = property_data.get("tagline") or enrichment.get("tagline", "")
         social = property_data.get("social")
+        robots = property_data.get("robotsTxt")
+        sitemap = property_data.get("sitemapXml")
+        if robots is not None or sitemap is not None:
+            seo_flags = {}
+            if robots is not None:
+                seo_flags["robotsTxt"] = bool(robots)
+            if sitemap is not None:
+                seo_flags["sitemapXml"] = bool(sitemap)
 
     profile: dict[str, Any] = {}
     if domain:
@@ -225,13 +234,15 @@ def build_snapshot(
     )
 
     vendors = list(dict.fromkeys(martech_list))
-
-    return {
+    result = {
         "profile": profile,
         "digitalScore": digital_score,
         "vendors": vendors,
         "growthTriggers": growth_triggers or [],
     }
+    if seo_flags:
+        result["seo"] = seo_flags
+    return result
 
 
 async def _get_with_retry(url: str, service: str) -> bool:
