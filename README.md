@@ -288,11 +288,25 @@ Unitron is composed of three lightweight FastAPI services: **gateway**, **martec
 
 The `docker-compose.yml` file wires them together with sensible defaults for local development. No external databases are required; an in-memory SQLite URL is the default for the martech component. Contributors may swap in Postgres or S3 simply by exporting `DB_URL` or other environment variables.
 
-### Local dev loops
+### Local development
 1. Clone the repo.
-2. Run `docker compose up --build`.
-3. Watch the logs for all services to report `Uvicorn running` within two seconds.
-4. Navigate to `http://localhost:8080/docs` for API docs.
+2. Start the martech service before the gateway:
+   ```bash
+   docker compose up martech
+   # or
+   uvicorn services.martech.app:app --reload --port 8081
+   ```
+3. If you're not using Docker, point the gateway at martech:
+   ```bash
+   export MARTECH_URL=http://localhost:8081
+   ```
+4. Launch the gateway:
+   ```bash
+   docker compose up gateway
+   # or
+   uvicorn services.gateway.app:app --reload --port 8080
+   ```
+5. Navigate to `http://localhost:8080/docs` for API docs.
 
 ### Reliability principles
 - The single Dockerfile (`docker/python.Dockerfile`) copies only local files and never reaches out to the internet during build.
