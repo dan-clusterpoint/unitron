@@ -250,7 +250,7 @@ def test_metrics_endpoint(monkeypatch):
     assert "insight_call_duration" in data
 
 
-def test_analyze_error_detail_mentions_service(monkeypatch):
+def test_analyze_martech_failure_returns_degraded(monkeypatch):
     async def handler(request: httpx.Request) -> httpx.Response:
         if "martech" in str(request.url):
             return httpx.Response(500)
@@ -261,9 +261,18 @@ def test_analyze_error_detail_mentions_service(monkeypatch):
     transport = httpx.MockTransport(handler)
     _set_mock_transport(monkeypatch, transport)
 
+    before = gateway_app.metrics["martech"]["failure"]
+    before_code = gateway_app.metrics["martech"]["codes"].get("500", 0)
+
     r = client.post("/analyze", json={"url": "https://example.com"})
-    assert r.status_code == 502
-    assert r.json()["detail"] == "martech service unavailable"
+    assert r.status_code == 200
+    data = r.json()
+    assert data["property"]["domains"] == ["example.com"]
+    assert data["martech"] == {}
+    assert data["cms"] == []
+    assert data["degraded"] is True
+    assert gateway_app.metrics["martech"]["failure"] == before + 1
+    assert gateway_app.metrics["martech"]["codes"].get("500", 0) == before_code + 1
 
 
 @pytest.mark.parametrize(
