@@ -300,11 +300,13 @@ async def _post_with_retry(
     service: str,
     *,
     pass_status: bool = False,
+    optional: bool = False,
 ) -> tuple[dict[str, Any] | None, bool]:
     """POST ``data`` to ``url`` with one retry on failure.
 
     Returns a tuple of ``(response_json, degraded)``. ``degraded`` is ``True``
-    when the service reports a 503 status code, indicating it is not ready.
+    when the service reports a 503 status code or when ``optional`` is ``True``
+    and the request ultimately fails.
     """
     last_exc: Exception | None = None
     last_code: int | None = None
@@ -313,9 +315,7 @@ async def _post_with_retry(
         start = time.perf_counter()
         logger.debug("POST %s body=%s", url, redact(json.dumps(data)))
         try:
-            timeout_seconds = (
-                INSIGHT_TIMEOUT if service in ("insight", "aeris") else 5
-            )
+            timeout_seconds = INSIGHT_TIMEOUT if service in ("insight", "aeris") else 5
             resp = await app.state.client.post(url, json=data, timeout=timeout_seconds)
             duration = time.perf_counter() - start
             if service in ("insight", "aeris"):
@@ -357,6 +357,9 @@ async def _post_with_retry(
         detail = last_detail
     if last_detail:
         logger.debug("RESPONSE %s body=%s", url, redact(last_detail))
+    if optional:
+        logger.warning("Optional request to %s failed: %s", service, detail)
+        return None, True
     raise HTTPException(status_code=status, detail=detail)
 
 
@@ -376,6 +379,7 @@ async def analyze(req: AnalyzeRequest) -> JSONResponse:
             "force": req.force,
         },
         "martech",
+        optional=True,
     )
     property_task = _post_with_retry(
         f"{PROPERTY_URL}/analyze",
