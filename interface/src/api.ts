@@ -1,3 +1,6 @@
+import type { AerisResponse } from './types/aeris'
+export type { AerisResponse } from './types/aeris'
+
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 if (!BASE_URL && import.meta.env.MODE !== 'test') {
@@ -20,16 +23,6 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   } catch {
     throw new Error('Invalid response')
   }
-}
-
-export type AerisResponse = {
-  core_score: number
-  signal_breakdown: unknown[]
-  peers: unknown[]
-  variants: unknown[]
-  opportunities: unknown[]
-  narratives: unknown[]
-  degraded: boolean
 }
 
 export async function fetchAeris(url: string): Promise<AerisResponse> {

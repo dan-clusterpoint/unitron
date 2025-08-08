@@ -1,27 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Progress } from '../ui/progress'
-import type { AerisResponse } from '../../api'
-
-interface BreakdownItem {
-  name: string
-  score: number
-}
-interface PeerItem {
-  name: string
-  score: number
-}
-interface VariantItem {
-  name: string
-  score: number
-}
+import type {
+  AerisResponse,
+  AerisBreakdownItem,
+  AerisPeerItem,
+  AerisVariantItem,
+} from '../../types/aeris'
 
 export default function AerisDashboard({ data }: { data: AerisResponse }) {
-  const signals = (data.signal_breakdown as BreakdownItem[]) || []
-  const peers = (data.peers as PeerItem[]) || []
-  const variants = (data.variants as VariantItem[]) || []
-  const opportunities = (data.opportunities as string[]) || []
-  const narratives = (data.narratives as string[]) || []
+  const signals: AerisBreakdownItem[] = data.signal_breakdown ?? []
+  const peers: AerisPeerItem[] = data.peers ?? []
+  const variants: AerisVariantItem[] = data.variants ?? []
+  const opportunities: string[] = data.opportunities ?? []
+  const narratives: string[] = data.narratives ?? []
 
   return (
     <div className="space-y-4">
