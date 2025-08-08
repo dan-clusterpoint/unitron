@@ -8,6 +8,7 @@ from typing import Any
 
 from services.insight.app import app
 import services.insight.app as insight_mod
+import json
 
 client = TestClient(app)
 
@@ -115,6 +116,33 @@ def test_research(monkeypatch):
     r = client.post("/research", json={"topic": "AI"})
     assert r.status_code == 200
     assert r.json() == {"markdown": "Research result", "degraded": False}
+
+
+def test_aeris_endpoint(monkeypatch):
+    async def fake_call(messages, **_kwargs):
+        return (
+            json.dumps(
+                {
+                    "core_score": 1,
+                    "signal_breakdown": [],
+                    "peers": [],
+                    "variants": [],
+                    "opportunities": [],
+                    "narratives": [],
+                }
+            ),
+            "stop",
+            False,
+        )
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "call_openai_with_retry", fake_call, raising=False
+    )
+
+    r = client.post("/aeris", json={"url": "https://example.com", "notes": "hi"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["core_score"] == 1
 
 
 def test_research_trim(monkeypatch):
