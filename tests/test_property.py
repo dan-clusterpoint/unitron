@@ -25,6 +25,7 @@ def test_analyze_success():
     assert "industry" in data
     assert "location" in data
     assert "logoUrl" in data
+    assert "tagline" in data
 
 
 def test_analyze_with_url():

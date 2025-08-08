@@ -7,6 +7,7 @@ test('renders executive summary snapshot', () => {
     <ExecutiveSummaryCard
       profile={{
         name: 'Acme Inc',
+        tagline: 'We build stuff',
         industry: 'SaaS',
         location: 'NYC',
         website: 'https://acme.com',
@@ -26,6 +27,7 @@ test('omits sections when data is missing', () => {
     <ExecutiveSummaryCard
       profile={{
         name: 'Acme Inc',
+        tagline: 'We build stuff',
         industry: 'SaaS',
         location: 'NYC',
         website: 'https://acme.com',

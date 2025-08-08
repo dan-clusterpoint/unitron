@@ -11,6 +11,7 @@ from services.shared import SecurityHeadersMiddleware
 from pydantic import BaseModel
 from services.shared.utils import normalize_url
 from starlette.responses import JSONResponse
+from bs4 import BeautifulSoup
 
 
 @asynccontextmanager
@@ -98,6 +99,7 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
     industry = ""
     location = ""
     logo_url = ""
+    tagline = ""
     enrich_url = os.getenv("ENRICH_URL")
     if enrich_url:
         try:
@@ -117,12 +119,29 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         except Exception:  # noqa: BLE001
             pass
 
+    # Attempt to fetch a short tagline from the site itself.
+    fetch_domain = resolved[0]
+    try:
+        resp = await app.state.client.get(f"https://{fetch_domain}", timeout=5)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        title = soup.find("title")
+        if title and title.get_text(strip=True):
+            tagline = title.get_text(strip=True)
+        else:
+            meta = soup.find("meta", attrs={"name": "description"})
+            if meta and meta.get("content"):
+                tagline = meta["content"].strip()
+    except Exception:  # noqa: BLE001
+        pass
+
     payload = {
         "domains": resolved,
         "confidence": round(confidence, 2),
         "industry": industry,
         "location": location,
         "logoUrl": logo_url,
+        "tagline": tagline,
     }
     if actionable:
         payload["notes"] = actionable
