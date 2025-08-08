@@ -110,6 +110,7 @@ export default function AnalyzerCard({
           score: snapshot.digitalScore,
           vendors: snapshot.vendors,
           triggers: snapshot.growthTriggers,
+          seo: snapshot.seo,
         }
       : null
     return (

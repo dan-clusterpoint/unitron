@@ -16,9 +16,14 @@ test('renders executive summary snapshot', () => {
       score={75}
       vendors={['React', 'Vue']}
       triggers={['Add chat widget', 'Improve SEO']}
+      seo={{ robotsTxt: true, sitemapXml: false }}
     />,
   )
   expect(screen.getByAltText('Acme Inc logo')).toBeInTheDocument()
+  expect(screen.getByTestId('seo-basics')).toHaveTextContent(
+    /Robots\.txt ✓/,
+  )
+  expect(screen.getByTestId('seo-basics')).toHaveTextContent(/Sitemap ✗/)
   expect(asFragment()).toMatchSnapshot()
 })
 
@@ -40,5 +45,6 @@ test('omits sections when data is missing', () => {
   )
   expect(container.querySelector('.xs\\:col-span-2.space-y-1')).toBeNull()
   expect(queryAllByTestId('growth-trigger')).toHaveLength(0)
+  expect(screen.queryByTestId('seo-basics')).toBeNull()
   expect(asFragment()).toMatchSnapshot()
 })

@@ -27,6 +27,7 @@ export default function AnalysisResultPage() {
         score={snapshot.digitalScore}
         vendors={snapshot.vendors}
         triggers={snapshot.growthTriggers}
+        seo={snapshot.seo}
       />
     </div>
   )

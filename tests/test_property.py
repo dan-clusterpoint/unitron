@@ -26,6 +26,8 @@ def test_analyze_success():
     assert "location" in data
     assert "logoUrl" in data
     assert "tagline" in data
+    assert isinstance(data["robotsTxt"], bool)
+    assert isinstance(data["sitemapXml"], bool)
 
 
 def test_analyze_with_url():

@@ -145,6 +145,23 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
     except Exception:  # noqa: BLE001
         pass
 
+    robots = False
+    sitemap = False
+    try:
+        resp = await app.state.client.head(
+            f"https://{fetch_domain}/robots.txt", timeout=5
+        )
+        robots = resp.status_code < 400
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        resp = await app.state.client.head(
+            f"https://{fetch_domain}/sitemap.xml", timeout=5
+        )
+        sitemap = resp.status_code < 400
+    except Exception:  # noqa: BLE001
+        pass
+
     payload = {
         "domains": resolved,
         "confidence": round(confidence, 2),
@@ -153,6 +170,8 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         "logoUrl": logo_url,
         "tagline": tagline,
         "social": social,
+        "robotsTxt": robots,
+        "sitemapXml": sitemap,
     }
     if actionable:
         payload["notes"] = actionable

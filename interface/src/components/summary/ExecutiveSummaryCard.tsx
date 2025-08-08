@@ -7,6 +7,10 @@ export interface ExecutiveSummaryCardProps {
   score: number
   vendors: string[]
   triggers?: GrowthTriggersListProps['triggers']
+  seo?: {
+    robotsTxt?: boolean
+    sitemapXml?: boolean
+  }
 }
 
 export default function ExecutiveSummaryCard({
@@ -14,6 +18,7 @@ export default function ExecutiveSummaryCard({
   score,
   vendors,
   triggers = [],
+  seo,
 }: ExecutiveSummaryCardProps) {
   return (
     <section aria-labelledby="exec-summary-heading">
@@ -25,6 +30,17 @@ export default function ExecutiveSummaryCard({
           <CompanyProfileCard {...profile} />
         </div>
         <DigitalScoreBar score={score} />
+        {seo && (seo.robotsTxt !== undefined || seo.sitemapXml !== undefined) && (
+          <div className="xs:col-span-2 text-xs flex gap-4" data-testid="seo-basics">
+            <span className="font-medium">SEO basics:</span>
+            {seo.robotsTxt !== undefined && (
+              <span>Robots.txt {seo.robotsTxt ? '✓' : '✗'}</span>
+            )}
+            {seo.sitemapXml !== undefined && (
+              <span>Sitemap {seo.sitemapXml ? '✓' : '✗'}</span>
+            )}
+          </div>
+        )}
         {vendors.length > 0 && (
           <div className="xs:col-span-2 space-y-1 text-sm">
             {vendors.map((v) => (

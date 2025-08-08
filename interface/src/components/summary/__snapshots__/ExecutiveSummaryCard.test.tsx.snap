@@ -146,6 +146,22 @@ exports[`renders executive summary snapshot 1`] = `
         </div>
       </div>
       <div
+        class="xs:col-span-2 text-xs flex gap-4"
+        data-testid="seo-basics"
+      >
+        <span
+          class="font-medium"
+        >
+          SEO basics:
+        </span>
+        <span>
+          Robots.txt ✓
+        </span>
+        <span>
+          Sitemap ✗
+        </span>
+      </div>
+      <div
         class="xs:col-span-2 space-y-1 text-sm"
       >
         <div>
