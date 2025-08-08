@@ -554,3 +554,18 @@ def test_aeris_timeout(monkeypatch):
     r = client.post("/aeris", json={"url": "https://example.com"})
     assert r.status_code == 502
     assert recorded["timeout"] == 30
+
+
+def test_aeris_forwards_notes(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = json.loads(request.content)
+        return httpx.Response(200, json={"core_score": 4, "signal_breakdown": []})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/aeris", json={"url": "https://example.com", "notes": "hi"})
+    assert r.status_code == 200
+    assert captured["payload"]["notes"] == "hi"

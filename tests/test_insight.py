@@ -145,6 +145,11 @@ def test_aeris_endpoint(monkeypatch):
     assert data["core_score"] == 1
 
 
+def test_aeris_invalid_request():
+    r = client.post("/aeris", json={})
+    assert r.status_code == 400
+
+
 def test_research_trim(monkeypatch):
     async def fake_report(prompt: str, **_kwargs):
         return {"markdown": "Trim me", "degraded": False}
