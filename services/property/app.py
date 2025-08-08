@@ -100,26 +100,22 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
     location = ""
     logo_url = ""
     tagline = ""
+    social: dict[str, str] = {}
     enrich_url = os.getenv("ENRICH_URL")
     if enrich_url:
         try:
-            resp = await app.state.client.get(
-                f"{enrich_url}?domain={bare}", timeout=5
-            )
+            resp = await app.state.client.get(f"{enrich_url}?domain={bare}", timeout=5)
             resp.raise_for_status()
             data = resp.json()
             industry = data.get("industry", "") or data.get("category", "")
             location = data.get("location", "") or data.get("country", "")
             logo_url = (
-                data.get("logoUrl")
-                or data.get("logo_url")
-                or data.get("logo")
-                or ""
+                data.get("logoUrl") or data.get("logo_url") or data.get("logo") or ""
             )
         except Exception:  # noqa: BLE001
             pass
 
-    # Attempt to fetch a short tagline from the site itself.
+    # Attempt to fetch a short tagline and social links from the site itself.
     fetch_domain = resolved[0]
     try:
         resp = await app.state.client.get(f"https://{fetch_domain}", timeout=5)
@@ -132,6 +128,20 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
             meta = soup.find("meta", attrs={"name": "description"})
             if meta and meta.get("content"):
                 tagline = meta["content"].strip()
+
+        for link in soup.find_all("a", href=True):
+            href = link["href"].strip()
+            lower = href.lower()
+            if "linkedin.com" in lower and "linkedin" not in social:
+                social["linkedin"] = href
+            elif (
+                "twitter.com" in lower or "x.com" in lower
+            ) and "twitter" not in social:
+                social["twitter"] = href
+            elif lower.startswith("mailto:") and "email" not in social:
+                social["email"] = href
+            if len(social) == 3:
+                break
     except Exception:  # noqa: BLE001
         pass
 
@@ -142,6 +152,7 @@ async def analyze(req: RawAnalyzeRequest) -> JSONResponse:
         "location": location,
         "logoUrl": logo_url,
         "tagline": tagline,
+        "social": social,
     }
     if actionable:
         payload["notes"] = actionable
