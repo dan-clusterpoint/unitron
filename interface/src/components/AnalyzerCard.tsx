@@ -9,6 +9,7 @@ import {
 } from './summary'
 import catalog from '../data/martech_catalog.json'
 import type { Snapshot } from '../types/snapshot'
+import { fetchAeris, type AerisResponse } from '../api'
 
 const vendorToCategory: Record<string, string> = {}
 for (const [cat, info] of Object.entries(catalog)) {
@@ -73,10 +74,17 @@ export default function AnalyzerCard({
 }: AnalyzerProps) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [martechManual, setMartechManual] = useState<MartechItem[]>([])
+  const [aeris, setAeris] = useState<AerisResponse | null>(null)
 
   async function handleAnalyze() {
+    setAeris(null)
     const snap = await onAnalyze()
     setSnapshot(snap)
+    if (snap) {
+      fetchAeris(url)
+        .then((score) => setAeris(score))
+        .catch(() => setAeris(null))
+    }
   }
 
   useEffect(() => {
@@ -118,7 +126,7 @@ export default function AnalyzerCard({
         <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
         <nav aria-label="Sections" className="mb-4">
           <ul className="flex flex-wrap gap-2 text-sm">
-            {property && (
+            {property && !aeris && (
               <li>
                 <a
                   href="#property"
@@ -143,20 +151,37 @@ export default function AnalyzerCard({
           </ul>
         </nav>
         <div className="grid grid-cols-2 gap-4 mb-4" role="region" aria-label="Key metrics">
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{domainCount}</div>
-            <div className="text-xs">Domains</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">
-              {Math.round((property?.confidence || 0) * 100)}%
-            </div>
-            <div className="text-xs">Confidence</div>
-          </div>
-          <div className="p-3 rounded bg-gray-800 text-white text-center">
-            <div className="text-lg font-semibold">{martechCount}</div>
-            <div className="text-xs">Martech Vendors</div>
-          </div>
+          {aeris ? (
+            <>
+              <div className="p-3 rounded bg-gray-800 text-white text-center">
+                <div className="text-lg font-semibold">
+                  {Math.round(aeris.core_score)}
+                </div>
+                <div className="text-xs">AERIS Score</div>
+              </div>
+              <div className="p-3 rounded bg-gray-800 text-white text-center">
+                <div className="text-lg font-semibold">{martechCount}</div>
+                <div className="text-xs">Martech Vendors</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-3 rounded bg-gray-800 text-white text-center">
+                <div className="text-lg font-semibold">{domainCount}</div>
+                <div className="text-xs">Domains</div>
+              </div>
+              <div className="p-3 rounded bg-gray-800 text-white text-center">
+                <div className="text-lg font-semibold">
+                  {Math.round((property?.confidence || 0) * 100)}%
+                </div>
+                <div className="text-xs">Confidence</div>
+              </div>
+              <div className="p-3 rounded bg-gray-800 text-white text-center">
+                <div className="text-lg font-semibold">{martechCount}</div>
+                <div className="text-xs">Martech Vendors</div>
+              </div>
+            </>
+          )}
         </div>
         {degraded && (
           <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
@@ -168,7 +193,7 @@ export default function AnalyzerCard({
             <ExecutiveSummaryCard {...snapshotForCard} />
           </div>
         )}
-        {property && (
+        {property && !aeris && (
           <section id="property">
             <PropertyResults property={property} />
           </section>

@@ -21,3 +21,21 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     throw new Error('Invalid response')
   }
 }
+
+export type AerisResponse = {
+  core_score: number
+  signal_breakdown: unknown[]
+  peers: unknown[]
+  variants: unknown[]
+  opportunities: unknown[]
+  narratives: unknown[]
+  degraded: boolean
+}
+
+export async function fetchAeris(url: string): Promise<AerisResponse> {
+  return apiFetch<AerisResponse>('/aeris', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  })
+}
