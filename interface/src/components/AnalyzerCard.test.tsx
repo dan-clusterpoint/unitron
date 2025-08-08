@@ -58,7 +58,11 @@ const result: AnalyzeResult = {
 
 test('renders AERIS dashboard after analysis', async () => {
   vi.mock('../api', () => ({
-    fetchAeris: vi.fn().mockResolvedValue({ core_score: 10, signal_breakdown: [] }),
+    fetchAeris: vi.fn().mockResolvedValue({
+      core_score: 10,
+      signal_breakdown: [],
+      degraded: false,
+    }),
   }))
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   const onAnalyze = vi.fn().mockResolvedValue({

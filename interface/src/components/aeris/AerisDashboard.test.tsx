@@ -12,6 +12,7 @@ const mockData = {
   variants: [{ name: 'V1', score: 30 }],
   opportunities: ['Opportunity 1'],
   narratives: ['Narrative 1'],
+  degraded: false,
 }
 
 test('renders AerisDashboard snapshot', () => {
