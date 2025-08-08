@@ -7,6 +7,7 @@ export interface CompanyProfileProps extends HTMLAttributes<HTMLDivElement> {
   industry?: string
   location?: string
   logoUrl?: string
+  tagline?: string
 }
 
 export default function CompanyProfileCard({
@@ -15,6 +16,7 @@ export default function CompanyProfileCard({
   industry,
   location,
   logoUrl,
+  tagline,
   className,
   ...props
 }: CompanyProfileProps) {
@@ -35,6 +37,7 @@ export default function CompanyProfileCard({
       )}
       <div className="text-sm">
         <div className="font-medium">{name}</div>
+        {tagline && <div className="text-gray-600">{tagline}</div>}
         {industry && <div>{industry}</div>}
         {location && <div>{location}</div>}
         {website && (

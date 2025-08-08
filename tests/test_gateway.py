@@ -130,6 +130,7 @@ def test_analyze_builds_snapshot(monkeypatch):
                     "industry": "SaaS",
                     "location": "New York, NY",
                     "logoUrl": "https://logo.example.com/logo.png",
+                    "tagline": "We build stuff",
                 },
             )
         return httpx.Response(404)
@@ -145,6 +146,7 @@ def test_analyze_builds_snapshot(monkeypatch):
     assert snapshot["profile"]["industry"] == "SaaS"
     assert snapshot["profile"]["location"] == "New York, NY"
     assert snapshot["profile"]["logoUrl"] == "https://logo.example.com/logo.png"
+    assert snapshot["profile"]["tagline"] == "We build stuff"
     expected_score = min(100, round(0.9 * 70) + min(2 * 10, 30))
     assert snapshot["digitalScore"] == expected_score
     assert snapshot["vendors"] == ["GA", "Segment"]

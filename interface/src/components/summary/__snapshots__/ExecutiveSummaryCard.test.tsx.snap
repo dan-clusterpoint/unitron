@@ -33,6 +33,11 @@ exports[`omits sections when data is missing 1`] = `
             >
               Acme Inc
             </div>
+            <div
+              class="text-gray-600"
+            >
+              We build stuff
+            </div>
             <div>
               SaaS
             </div>
@@ -102,6 +107,11 @@ exports[`renders executive summary snapshot 1`] = `
               class="font-medium"
             >
               Acme Inc
+            </div>
+            <div
+              class="text-gray-600"
+            >
+              We build stuff
             </div>
             <div>
               SaaS
