@@ -37,6 +37,17 @@ test('shows loading spinner and displays result', async () => {
       await new Promise((r) => setTimeout(r, 1000))
       return Response.json({ ...full, snapshot: snap })
     }),
+    http.post('/aeris', () =>
+      Response.json({
+        core_score: 10,
+        signal_breakdown: [],
+        peers: [],
+        variants: [],
+        opportunities: [],
+        narratives: [],
+        degraded: false,
+      }),
+    ),
   )
   render(
     <DomainProvider>
@@ -46,10 +57,9 @@ test('shows loading spinner and displays result', async () => {
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'example.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
-  await waitFor(() =>
-    expect(document.querySelector('.animate-pulse')).toBeInTheDocument(),
-  )
-  await screen.findByRole('heading', { name: 'Confidence' })
+  await waitFor(() => expect(document.querySelector('.animate-pulse')).toBeInTheDocument())
+  await screen.findByText('AERIS Score')
+  expect(screen.queryByRole('heading', { name: 'Confidence' })).not.toBeInTheDocument()
   await screen.findByRole('tab', { name: /Content Management System/i })
   await screen.findByRole('heading', { name: /executive summary/i })
 })
@@ -100,6 +110,17 @@ test('shows degraded banner when martech is null', async () => {
       expect(body).toEqual({ url: 'https://partial.com', headless: false, force: false, domains: [] })
       return Response.json({ ...partial, snapshot: snap })
     }),
+    http.post('/aeris', () =>
+      Response.json({
+        core_score: 20,
+        signal_breakdown: [],
+        peers: [],
+        variants: [],
+        opportunities: [],
+        narratives: [],
+        degraded: false,
+      }),
+    ),
   )
   render(
     <DomainProvider>
@@ -109,7 +130,8 @@ test('shows degraded banner when martech is null', async () => {
   const input = screen.getByPlaceholderText('https://example.com')
   await userEvent.type(input, 'partial.com')
   await userEvent.click(screen.getByRole('button', { name: /analyze/i }))
-  await screen.findByRole('heading', { name: 'Confidence' })
+  await screen.findByText('AERIS Score')
+  expect(screen.queryByRole('heading', { name: 'Confidence' })).not.toBeInTheDocument()
   await screen.findByText(/partial results/i)
   await screen.findByRole('heading', { name: /executive summary/i })
 })
