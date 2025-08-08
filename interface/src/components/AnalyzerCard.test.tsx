@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
-import { test, expect } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { act } from 'react-dom/test-utils'
+import { test, expect, vi } from 'vitest'
 import type { AnalyzeResult } from './AnalyzerCard'
 import { computeMartechCount } from './AnalyzerCard'
 
@@ -55,14 +56,54 @@ const result: AnalyzeResult = {
   degraded: false,
 }
 
-test('renders result lists', async () => {
+test('renders AERIS dashboard after analysis', async () => {
+  vi.mock('../api', () => ({
+    fetchAeris: vi.fn().mockResolvedValue({
+      core_score: 10,
+      signal_breakdown: [],
+      degraded: false,
+    }),
+  }))
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  render(
+  const onAnalyze = vi.fn().mockResolvedValue({
+    profile: {
+      name: 'ex',
+      tagline: '',
+      industry: '',
+      location: '',
+      website: '',
+      logoUrl: '',
+    },
+    score: 0,
+    vendors: [],
+    triggers: [],
+    seo: {},
+  })
+  const { rerender } = render(
     <AnalyzerCard
       id="a"
       url="foo"
       setUrl={() => {}}
-      onAnalyze={async () => null}
+      onAnalyze={onAnalyze}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={null}
+    />,
+  )
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /analyze/i }))
+    await onAnalyze.mock.results[0].value
+  })
+  rerender(
+    <AnalyzerCard
+      id="a"
+      url="foo"
+      setUrl={() => {}}
+      onAnalyze={onAnalyze}
       headless={false}
       setHeadless={() => {}}
       force={false}
@@ -72,12 +113,7 @@ test('renders result lists', async () => {
       result={result}
     />,
   )
-  expect(
-    screen.getByRole('heading', { name: 'Confidence' })
-  ).toBeInTheDocument()
-  expect(
-    screen.getByRole('tab', { name: /Content Management System/i })
-  ).toBeInTheDocument()
+  expect(await screen.findByText('AERIS Score')).toBeInTheDocument()
 })
 
 test('shows degraded banner', async () => {
