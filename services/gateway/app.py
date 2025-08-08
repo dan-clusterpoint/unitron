@@ -285,13 +285,23 @@ async def ready() -> JSONResponse:
     martech_task = _get_with_retry(f"{MARTECH_URL}/ready", "martech")
     property_task = _get_with_retry(f"{PROPERTY_URL}/ready", "property")
     ok_martech, ok_property = await asyncio.gather(martech_task, property_task)
-    return JSONResponse(
-        {
-            "ready": ok_martech and ok_property,
-            "martech": "ok" if ok_martech else "degraded",
-            "property": "ok" if ok_property else "degraded",
-        }
+
+    status = {
+        "ready": ok_martech and ok_property,
+        "martech": "ok" if ok_martech else "degraded",
+        "property": "ok" if ok_property else "degraded",
+    }
+    logger.info(
+        "Downstream readiness - martech=%s property=%s ready=%s",
+        status["martech"],
+        status["property"],
+        status["ready"],
     )
+    if not ok_property:
+        logger.info("Property service unreachable during readiness check")
+    if not ok_martech:
+        logger.warning("Martech service unreachable during readiness check")
+    return JSONResponse(status)
 
 
 async def _post_with_retry(
