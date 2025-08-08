@@ -174,6 +174,7 @@ def build_snapshot(
     location = ""
     logo_url = ""
     tagline = ""
+    social: dict[str, str] | None = None
     if property_data:
         domain_list = property_data.get("domains") or []
         if domain_list:
@@ -200,8 +201,9 @@ def build_snapshot(
             or ""
         )
         tagline = property_data.get("tagline") or enrichment.get("tagline", "")
+        social = property_data.get("social")
 
-    profile: dict[str, str] = {}
+    profile: dict[str, Any] = {}
     if domain:
         profile["name"] = domain
         profile["website"] = f"https://{domain}"
@@ -213,6 +215,8 @@ def build_snapshot(
         profile["logoUrl"] = logo_url
     if tagline:
         profile["tagline"] = tagline
+    if social:
+        profile["social"] = social
 
     # Weight domain confidence and martech coverage for a balanced score.
     digital_score = min(
