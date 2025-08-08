@@ -62,6 +62,7 @@ metrics: dict[str, dict[str, Any]] = {
     "martech": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "property": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
     "insight": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
+    "aeris": {"success": 0, "failure": 0, "duration": 0.0, "codes": {}},
 }
 
 
@@ -312,10 +313,12 @@ async def _post_with_retry(
         start = time.perf_counter()
         logger.debug("POST %s body=%s", url, redact(json.dumps(data)))
         try:
-            timeout_seconds = INSIGHT_TIMEOUT if service == "insight" else 5
+            timeout_seconds = (
+                INSIGHT_TIMEOUT if service in ("insight", "aeris") else 5
+            )
             resp = await app.state.client.post(url, json=data, timeout=timeout_seconds)
             duration = time.perf_counter() - start
-            if service == "insight":
+            if service in ("insight", "aeris"):
                 insight_call_duration.observe(duration)
             if resp.status_code != 200:
                 last_code = resp.status_code
@@ -329,7 +332,7 @@ async def _post_with_retry(
             return resp.json(), False
         except httpx.HTTPStatusError as exc:  # noqa: BLE001
             duration = time.perf_counter() - start
-            if service == "insight":
+            if service in ("insight", "aeris"):
                 insight_call_duration.observe(duration)
             last_exc = exc
             last_code = exc.response.status_code
@@ -339,7 +342,7 @@ async def _post_with_retry(
                 break
         except Exception as exc:  # noqa: BLE001
             duration = time.perf_counter() - start
-            if service == "insight":
+            if service in ("insight", "aeris"):
                 insight_call_duration.observe(duration)
             last_exc = exc
     record_failure(service, last_code)
@@ -444,3 +447,25 @@ async def research(data: dict[str, Any]) -> JSONResponse:
     if research_data is None:
         return JSONResponse({"markdown": "", "degraded": True}, status_code=503)
     return JSONResponse(research_data)
+
+
+@app.post("/aeris")
+async def aeris(data: dict[str, Any]) -> JSONResponse:
+    """Proxy AERIS analysis to the insight service."""
+    aeris_data, _degraded = await _post_with_retry(
+        f"{INSIGHT_URL}/aeris", data, "aeris"
+    )
+    if aeris_data is None:
+        return JSONResponse(
+            {
+                "core_score": 0,
+                "signal_breakdown": [],
+                "peers": [],
+                "variants": [],
+                "opportunities": [],
+                "narratives": [],
+                "degraded": True,
+            },
+            status_code=503,
+        )
+    return JSONResponse(aeris_data)

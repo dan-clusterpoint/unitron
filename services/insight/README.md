@@ -16,6 +16,7 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `POST /insight-and-personas` – body `{ "url": "https://example.com", "industry": "SaaS", "pain_point": "Slow onboarding", "stack": [{"category": "analytics", "vendor": "GA4"}], "evidence_standards": "Use peer-reviewed data", "credibility_scoring": "1-5", "deliverable_guidelines": "Plain language", "audience": "CTO", "preferences": "Focus on OSS" }`
   returns { "insight": {"actions": [...], "evidence": "..."}, "personas": [{"id": "P1"}], "cms_manual": "WordPress", "degraded": false }. Insight and persona prompts run concurrently. The `evidence` field summarizing findings is always included. If the persona response is empty, placeholder company and technology personas are created with all attributes set to "unknown". The gateway will return a timeout after 20s if the insight service is slow. The optional fields fine‑tune how the report is generated.
 - `GET /metrics` – usage counters for requests and data gaps.
+- `POST /aeris` – body `{ "url": "https://example.com", "notes": "optional" }` returns `{ "core_score": 0.0, "signal_breakdown": [], "peers": [], "variants": [], "opportunities": [], "narratives": [] }`.
 
 ## Environment variables
 
@@ -25,6 +26,7 @@ It runs at `http://localhost:8083` when using Docker Compose.
 - `OPENAI_MAX_TOKENS` – maximum tokens returned by the LLM
   (default `800`).
 - `MACRO_SECTION_CAP` – maximum number of macro sections returned by `/research`.
+- `OPENAI_AERIS_MODEL` – chat model name used by `/aeris` (default `gpt-4o-mini`).
 
 ### Normalized insight schema
 

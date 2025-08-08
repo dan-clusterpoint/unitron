@@ -513,3 +513,44 @@ def test_generate_accepts_legacy_list(monkeypatch):
     )
     assert r.status_code == 200
     assert r.json()["result"] == {"ok": True}
+
+
+def test_aeris_proxies(monkeypatch):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        return httpx.Response(200, json={"core_score": 5, "signal_breakdown": []})
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/aeris", json={"url": "https://example.com"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["core_score"] == 5
+    assert captured["path"] == "/aeris"
+    assert gateway_app.metrics["aeris"]["success"] >= 1
+
+
+def test_aeris_timeout(monkeypatch):
+    recorded = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(0.05)
+        return httpx.Response(400, text="slow")
+
+    class RecordingClient(httpx.AsyncClient):
+        def __init__(self, *args, **kwargs):
+            super().__init__(transport=httpx.MockTransport(handler), *args, **kwargs)
+
+        async def post(self, url, *args, **kwargs):
+            recorded["timeout"] = kwargs.get("timeout")
+            return await super().post(url, *args, **kwargs)
+
+    monkeypatch.setattr(gateway_app.httpx, "AsyncClient", RecordingClient)
+    gateway_app.app.state.client = RecordingClient()
+
+    r = client.post("/aeris", json={"url": "https://example.com"})
+    assert r.status_code == 502
+    assert recorded["timeout"] == 30

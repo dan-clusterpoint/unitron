@@ -76,6 +76,7 @@ metrics: dict[str, Any] = {
         "duration": 0.0,
     },
     "insight": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "aeris": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
     "data_gaps": 0,
 }
 
@@ -124,6 +125,11 @@ class ReadyResponse(BaseModel):
 
 class ResearchRequest(BaseModel):
     topic: str
+
+
+class AerisRequest(BaseModel):
+    url: str
+    notes: str | None = None
 
 
 class MarkdownResponse(BaseModel):
@@ -610,3 +616,57 @@ async def insight_and_personas(req: InsightPersonaRequest) -> JSONResponse:
         return JSONResponse(result)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(500, detail=str(exc))
+
+
+@app.post("/aeris")
+async def aeris(data: dict[str, Any]) -> JSONResponse:
+    """Return AERIS analysis for a URL and optional notes."""
+    try:
+        req = _validate_with_schema(data, AerisRequest)
+    except (ValidationError, Exception):
+        raise HTTPException(status_code=400, detail="Invalid request")
+
+    prompt = f"Analyze {req.url} using the AERIS framework."
+    if req.notes:
+        prompt += f"\nNotes: {req.notes}"
+    prompt += (
+        "\nReturn JSON with keys: core_score, signal_breakdown, peers, "
+        "variants, opportunities, narratives."
+    )
+
+    start = time.perf_counter()
+    try:
+        content, _finish, degraded_call = await orchestrator.call_openai_with_retry(
+            [
+                {"role": "system", "content": "Return JSON."},
+                {"role": "user", "content": prompt},
+            ],
+            model=os.getenv("OPENAI_AERIS_MODEL"),
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    try:
+        parsed = json.loads(content) if content else {}
+    except Exception:  # noqa: BLE001
+        parsed = {}
+        degraded_call = True
+
+    result = {
+        "core_score": parsed.get("core_score", 0),
+        "signal_breakdown": parsed.get("signal_breakdown", []),
+        "peers": parsed.get("peers", []),
+        "variants": parsed.get("variants", []),
+        "opportunities": parsed.get("opportunities", []),
+        "narratives": parsed.get("narratives", []),
+        "degraded": degraded_call,
+    }
+
+    _append_size_warning(result)
+    duration = time.perf_counter() - start
+    scope = len(json.dumps(req.model_dump()))
+    sources = len(re.findall(r"https?://", json.dumps(result)))
+    gap_count = json.dumps(result).count("[Data Gap]")
+    _record_metrics("aeris", scope, sources, duration, gap_count)
+    logger.debug("aeris response: %s", redact(json.dumps(result)))
+    return JSONResponse(result)
