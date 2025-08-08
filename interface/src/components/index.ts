@@ -15,5 +15,6 @@ export { default as FeatureIcon } from './FeatureIcon'
 export { default as PropertyResults } from './PropertyResults'
 export { default as MartechResults } from './MartechResults'
 export { default as MartechCategorySelector } from './MartechCategorySelector'
+export { default as AerisDashboard } from './aeris/AerisDashboard'
 
 export * from './summary'

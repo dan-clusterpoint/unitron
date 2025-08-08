@@ -3,6 +3,7 @@ import PropertyResults from './PropertyResults'
 import MartechCategorySelector, {
   type MartechItem,
 } from './MartechCategorySelector'
+import AerisDashboard from './aeris/AerisDashboard'
 import {
   ExecutiveSummaryCard,
   type ExecutiveSummaryCardProps,
@@ -110,8 +111,6 @@ export default function AnalyzerCard({
 
   if (result) {
     const { property, martech, degraded } = result
-    const domainCount = property?.domains.length || 0
-    const martechCount = computeMartechCount(martech)
     const snapshotForCard: ExecutiveSummaryCardProps | null = snapshot
       ? {
           profile: snapshot.profile,
@@ -150,39 +149,6 @@ export default function AnalyzerCard({
             )}
           </ul>
         </nav>
-        <div className="grid grid-cols-2 gap-4 mb-4" role="region" aria-label="Key metrics">
-          {aeris ? (
-            <>
-              <div className="p-3 rounded bg-gray-800 text-white text-center">
-                <div className="text-lg font-semibold">
-                  {Math.round(aeris.core_score)}
-                </div>
-                <div className="text-xs">AERIS Score</div>
-              </div>
-              <div className="p-3 rounded bg-gray-800 text-white text-center">
-                <div className="text-lg font-semibold">{martechCount}</div>
-                <div className="text-xs">Martech Vendors</div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="p-3 rounded bg-gray-800 text-white text-center">
-                <div className="text-lg font-semibold">{domainCount}</div>
-                <div className="text-xs">Domains</div>
-              </div>
-              <div className="p-3 rounded bg-gray-800 text-white text-center">
-                <div className="text-lg font-semibold">
-                  {Math.round((property?.confidence || 0) * 100)}%
-                </div>
-                <div className="text-xs">Confidence</div>
-              </div>
-              <div className="p-3 rounded bg-gray-800 text-white text-center">
-                <div className="text-lg font-semibold">{martechCount}</div>
-                <div className="text-xs">Martech Vendors</div>
-              </div>
-            </>
-          )}
-        </div>
         {degraded && (
           <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
             Partial results shown due to degraded analysis.
@@ -191,6 +157,11 @@ export default function AnalyzerCard({
         {snapshotForCard && (
           <div className="mb-4">
             <ExecutiveSummaryCard {...snapshotForCard} />
+          </div>
+        )}
+        {aeris && (
+          <div className="mb-4">
+            <AerisDashboard data={aeris} />
           </div>
         )}
         {property && !aeris && (
