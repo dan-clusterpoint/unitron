@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react'
-import PropertyResults from './PropertyResults'
 import MartechCategorySelector, {
   type MartechItem,
 } from './MartechCategorySelector'
 import AerisDashboard from './aeris/AerisDashboard'
-import {
-  ExecutiveSummaryCard,
-  type ExecutiveSummaryCardProps,
-} from './summary'
 import catalog from '../data/martech_catalog.json'
 import type { Snapshot } from '../types/snapshot'
 import { fetchAeris, type AerisResponse } from '../api'
@@ -73,19 +68,15 @@ export default function AnalyzerCard({
   error,
   result,
 }: AnalyzerProps) {
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [martechManual, setMartechManual] = useState<MartechItem[]>([])
   const [aeris, setAeris] = useState<AerisResponse | null>(null)
 
   async function handleAnalyze() {
     setAeris(null)
-    const snap = await onAnalyze()
-    setSnapshot(snap)
-    if (snap) {
-      fetchAeris(url)
-        .then((score) => setAeris(score))
-        .catch(() => setAeris(null))
-    }
+    await onAnalyze()
+    fetchAeris(url)
+      .then((score) => setAeris(score))
+      .catch(() => setAeris(null))
   }
 
   useEffect(() => {
@@ -110,53 +101,12 @@ export default function AnalyzerCard({
   }, [result])
 
   if (result) {
-    const { property, martech, degraded } = result
-    const snapshotForCard: ExecutiveSummaryCardProps | null = snapshot
-      ? {
-          profile: snapshot.profile,
-          score: snapshot.digitalScore,
-          vendors: snapshot.vendors,
-          triggers: snapshot.growthTriggers,
-          seo: snapshot.seo,
-        }
-      : null
+    const { martech, degraded } = result
     return (
       <div id={id} className="max-w-lg mx-auto my-12 p-6 bg-white rounded-lg shadow prose">
-        <h2 className="text-xl font-semibold mb-4">Analysis Result</h2>
-        <nav aria-label="Sections" className="mb-4">
-          <ul className="flex flex-wrap gap-2 text-sm">
-            {property && !aeris && (
-              <li>
-                <a
-                  href="#property"
-                  className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500"
-                  tabIndex={0}
-                >
-                  Property
-                </a>
-              </li>
-            )}
-            {martech && (
-              <li>
-                <a
-                  href="#martech"
-                  className="underline text-blue-800 focus:outline-none focus:ring-2 ring-offset-2 ring-blue-500"
-                  tabIndex={0}
-                >
-                  Martech
-                </a>
-              </li>
-            )}
-          </ul>
-        </nav>
         {degraded && (
           <div className="border border-yellow-500 bg-yellow-50 text-yellow-700 p-2 rounded mb-4 text-sm">
             Partial results shown due to degraded analysis.
-          </div>
-        )}
-        {snapshotForCard && (
-          <div className="mb-4">
-            <ExecutiveSummaryCard {...snapshotForCard} />
           </div>
         )}
         {aeris && (
@@ -164,18 +114,11 @@ export default function AnalyzerCard({
             <AerisDashboard data={aeris} />
           </div>
         )}
-        {property && !aeris && (
-          <section id="property">
-            <PropertyResults property={property} />
-          </section>
-        )}
         {martech && (
-          <section id="martech">
-            <MartechCategorySelector
-              value={martechManual}
-              onChange={setMartechManual}
-            />
-          </section>
+          <MartechCategorySelector
+            value={martechManual}
+            onChange={setMartechManual}
+          />
         )}
       </div>
     )

@@ -1,10 +1,12 @@
-import type { ExecutiveSummaryCardProps } from '../components/summary'
+import type { CompanyProfileProps } from '../components/summary'
 
 export interface Snapshot {
-  profile: ExecutiveSummaryCardProps['profile']
+  profile: CompanyProfileProps
   digitalScore: number
-  vendors: ExecutiveSummaryCardProps['vendors']
+  vendors: string[]
   growthTriggers: string[]
-  seo?: ExecutiveSummaryCardProps['seo']
+  seo?: {
+    robotsTxt?: boolean
+    sitemapXml?: boolean
+  }
 }
-
