@@ -132,6 +132,20 @@ class AerisRequest(BaseModel):
     notes: str | None = None
 
 
+class AerisScore(BaseModel):
+    name: str
+    score: float
+
+
+class AerisAnalysis(BaseModel):
+    core_score: float
+    signal_breakdown: list[AerisScore] = Field(default_factory=list)
+    peers: list[AerisScore] = Field(default_factory=list)
+    variants: list[AerisScore] = Field(default_factory=list)
+    opportunities: list[str] = Field(default_factory=list)
+    narratives: list[str] = Field(default_factory=list)
+
+
 class MarkdownResponse(BaseModel):
     markdown: str
     degraded: bool
@@ -184,6 +198,30 @@ def _to_persona_list(gen: dict) -> list[dict]:
             if isinstance(v, dict):
                 out.append({"id": k, **v})
     return out
+
+
+AERIS_PROMPT = """
+You are the Unitron AERIS analyst. Apply the AERIS framework to the provided
+URL and optional notes.
+
+1. Score each signal from 0 to 100 and return them in `signal_breakdown` as
+   objects `{ "name": str, "score": float }`.
+2. Compute `core_score` as a composite of the signals.
+3. Benchmark the target against relevant peers and score each in `peers`.
+4. Suggest meaningful product `variants` with scores.
+5. List key `opportunities` and strategic `narratives`.
+6. Prepare a short markdown summary using this template:
+
+```markdown
+## AERIS Summary
+- **Core Score:** {core_score}
+- **Signals:** {signal_breakdown}
+- **Opportunities:**\n  - {opportunities}
+```
+
+Return JSON with keys: core_score, signal_breakdown, peers, variants,
+opportunities, narratives.
+"""
 
 
 @app.get("/health")
@@ -626,41 +664,49 @@ async def aeris(data: dict[str, Any]) -> JSONResponse:
     except (ValidationError, Exception):
         raise HTTPException(status_code=400, detail="Invalid request")
 
-    prompt = f"Analyze {req.url} using the AERIS framework."
-    if req.notes:
-        prompt += f"\nNotes: {req.notes}"
-    prompt += (
-        "\nReturn JSON with keys: core_score, signal_breakdown, peers, "
-        "variants, opportunities, narratives."
-    )
+    schema = AerisAnalysis.model_json_schema()
+    schema.pop("$schema", None)
+    response_format = {
+        "type": "json_schema",
+        "json_schema": {"name": "aeris", "schema": schema, "strict": True},
+    }
+
+    messages = [
+        {"role": "system", "content": AERIS_PROMPT},
+        {
+            "role": "user",
+            "content": f"URL: {req.url}\nNotes: {req.notes or ''}",
+        },
+    ]
 
     start = time.perf_counter()
     try:
         content, _finish, degraded_call = await orchestrator.call_openai_with_retry(
-            [
-                {"role": "system", "content": "Return JSON."},
-                {"role": "user", "content": prompt},
-            ],
+            messages,
             model=os.getenv("OPENAI_AERIS_MODEL"),
+            response_format=response_format,
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(exc))
 
+    status = 200
+    degraded = degraded_call
     try:
         parsed = json.loads(content) if content else {}
+        validated = _validate_with_schema(parsed, AerisAnalysis)
+        result = validated.model_dump()
     except Exception:  # noqa: BLE001
-        parsed = {}
-        degraded_call = True
-
-    result = {
-        "core_score": parsed.get("core_score", 0),
-        "signal_breakdown": parsed.get("signal_breakdown", []),
-        "peers": parsed.get("peers", []),
-        "variants": parsed.get("variants", []),
-        "opportunities": parsed.get("opportunities", []),
-        "narratives": parsed.get("narratives", []),
-        "degraded": degraded_call,
-    }
+        status = 502
+        degraded = True
+        result = AerisAnalysis(
+            core_score=0,
+            signal_breakdown=[],
+            peers=[],
+            variants=[],
+            opportunities=[],
+            narratives=[],
+        ).model_dump()
+    result["degraded"] = degraded
 
     _append_size_warning(result)
     duration = time.perf_counter() - start
@@ -669,4 +715,4 @@ async def aeris(data: dict[str, Any]) -> JSONResponse:
     gap_count = json.dumps(result).count("[Data Gap]")
     _record_metrics("aeris", scope, sources, duration, gap_count)
     logger.debug("aeris response: %s", redact(json.dumps(result)))
-    return JSONResponse(result)
+    return JSONResponse(result, status_code=status)

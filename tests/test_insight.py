@@ -145,6 +145,19 @@ def test_aeris_endpoint(monkeypatch):
     assert data["core_score"] == 1
 
 
+def test_aeris_missing_score(monkeypatch):
+    async def fake_call(messages, **_kwargs):
+        return json.dumps({}), "stop", False
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "call_openai_with_retry", fake_call, raising=False
+    )
+
+    r = client.post("/aeris", json={"url": "https://example.com"})
+    assert r.status_code == 502
+    assert r.json()["degraded"] is True
+
+
 def test_aeris_invalid_request():
     r = client.post("/aeris", json={})
     assert r.status_code == 400
