@@ -14,6 +14,7 @@ export default function AerisDashboard({ data }: { data: AerisResponse }) {
   const variants: AerisVariantItem[] = data.variants ?? []
   const opportunities: string[] = data.opportunities ?? []
   const narratives: string[] = data.narratives ?? []
+  const unavailable = data.degraded || data.core_score == null
 
   return (
     <div className="space-y-4">
@@ -22,7 +23,9 @@ export default function AerisDashboard({ data }: { data: AerisResponse }) {
           <CardTitle>AERIS Score</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-4xl font-bold">{Math.round(data.core_score)}</div>
+          <div className="text-4xl font-bold">
+            {unavailable ? 'AERIS unavailable' : Math.round(data.core_score)}
+          </div>
         </CardContent>
       </Card>
 

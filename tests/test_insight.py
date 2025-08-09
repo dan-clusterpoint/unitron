@@ -158,6 +158,19 @@ def test_aeris_missing_score(monkeypatch):
     assert r.json()["degraded"] is True
 
 
+def test_aeris_generation_failure(monkeypatch):
+    async def fake_call(messages, **_kwargs):  # noqa: ARG001
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        insight_mod.orchestrator, "call_openai_with_retry", fake_call, raising=False
+    )
+
+    r = client.post("/aeris", json={"url": "https://example.com"})
+    assert r.status_code == 502
+    assert r.json()["degraded"] is True
+
+
 def test_aeris_invalid_request():
     r = client.post("/aeris", json={})
     assert r.status_code == 400

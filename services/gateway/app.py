@@ -466,9 +466,17 @@ async def research(data: dict[str, Any]) -> JSONResponse:
 @app.post("/aeris")
 async def aeris(data: dict[str, Any]) -> JSONResponse:
     """Proxy AERIS analysis to the insight service."""
-    aeris_data, _degraded = await _post_with_retry(
-        f"{INSIGHT_URL}/aeris", data, "aeris"
-    )
+    try:
+        aeris_data, _degraded = await _post_with_retry(
+            f"{INSIGHT_URL}/aeris", data, "aeris", pass_status=True
+        )
+    except HTTPException as exc:
+        try:
+            detail_json = json.loads(str(exc.detail))
+        except Exception:  # noqa: BLE001
+            detail_json = {"detail": str(exc.detail)}
+        return JSONResponse(detail_json, status_code=exc.status_code)
+
     if aeris_data is None:
         return JSONResponse(
             {
