@@ -103,6 +103,50 @@ test('renders AERIS dashboard above technology chips after analysis', async () =
   expect(screen.queryByText(/Analysis Result/i)).not.toBeInTheDocument()
 })
 
+test('normalizes URL without scheme before fetching AERIS', async () => {
+  const { fetchAeris } = await import('../api')
+  vi.mocked(fetchAeris).mockClear()
+  const { default: AnalyzerCard } = await import('./AnalyzerCard')
+  const onAnalyze = vi.fn().mockResolvedValue(null)
+  const setUrl = vi.fn()
+  const { rerender } = render(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={setUrl}
+      onAnalyze={onAnalyze}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={null}
+    />,
+  )
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /analyze/i }))
+    await onAnalyze.mock.results[0].value
+  })
+  rerender(
+    <AnalyzerCard
+      id="a"
+      url="example.com"
+      setUrl={setUrl}
+      onAnalyze={onAnalyze}
+      headless={false}
+      setHeadless={() => {}}
+      force={false}
+      setForce={() => {}}
+      loading={false}
+      error=""
+      result={result}
+    />,
+  )
+  expect(await screen.findByText('AERIS Score')).toBeInTheDocument()
+  expect(fetchAeris).toHaveBeenCalledWith('https://example.com')
+})
+
 test('shows degraded banner', async () => {
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
   render(
