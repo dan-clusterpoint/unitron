@@ -6,6 +6,7 @@ import AerisDashboard from './aeris/AerisDashboard'
 import catalog from '../data/martech_catalog.json'
 import type { Snapshot } from '../types/snapshot'
 import { fetchAeris, type AerisResponse } from '../api'
+import { normalizeUrl } from '../utils'
 
 const vendorToCategory: Record<string, string> = {}
 for (const [cat, info] of Object.entries(catalog)) {
@@ -73,8 +74,10 @@ export default function AnalyzerCard({
 
   async function handleAnalyze() {
     setAeris(null)
+    const clean = normalizeUrl(url)
+    setUrl(clean)
     await onAnalyze()
-    fetchAeris(url)
+    fetchAeris(clean)
       .then((score) => setAeris(score))
       .catch(() => setAeris(null))
   }
