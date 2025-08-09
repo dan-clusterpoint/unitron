@@ -61,7 +61,6 @@ test('shows loading spinner and displays result', async () => {
   await screen.findByText('AERIS Score')
   expect(screen.queryByRole('heading', { name: 'Confidence' })).not.toBeInTheDocument()
   await screen.findByRole('tab', { name: /Content Management System/i })
-  await screen.findByRole('heading', { name: /executive summary/i })
 })
 
 test('shows error banner when request fails', async () => {
@@ -133,5 +132,4 @@ test('shows degraded banner when martech is null', async () => {
   await screen.findByText('AERIS Score')
   expect(screen.queryByRole('heading', { name: 'Confidence' })).not.toBeInTheDocument()
   await screen.findByText(/partial results/i)
-  await screen.findByRole('heading', { name: /executive summary/i })
 })

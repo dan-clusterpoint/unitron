@@ -45,18 +45,14 @@ test('displays error message', async () => {
 })
 
 const result: AnalyzeResult = {
-  property: {
-    domains: ['example.com'],
-    confidence: 1,
-    notes: ['note'],
-  },
+  property: null,
   martech: {
     core: ['GTM'],
   },
   degraded: false,
 }
 
-test('renders AERIS dashboard after analysis', async () => {
+test('renders AERIS dashboard above technology chips after analysis', async () => {
   vi.mock('../api', () => ({
     fetchAeris: vi.fn().mockResolvedValue({
       core_score: 10,
@@ -65,20 +61,7 @@ test('renders AERIS dashboard after analysis', async () => {
     }),
   }))
   const { default: AnalyzerCard } = await import('./AnalyzerCard')
-  const onAnalyze = vi.fn().mockResolvedValue({
-    profile: {
-      name: 'ex',
-      tagline: '',
-      industry: '',
-      location: '',
-      website: '',
-      logoUrl: '',
-    },
-    score: 0,
-    vendors: [],
-    triggers: [],
-    seo: {},
-  })
+  const onAnalyze = vi.fn().mockResolvedValue(null)
   const { rerender } = render(
     <AnalyzerCard
       id="a"
@@ -114,6 +97,10 @@ test('renders AERIS dashboard after analysis', async () => {
     />,
   )
   expect(await screen.findByText('AERIS Score')).toBeInTheDocument()
+  expect(
+    screen.getByRole('tab', { name: /Content Management System/i }),
+  ).toBeInTheDocument()
+  expect(screen.queryByText(/Analysis Result/i)).not.toBeInTheDocument()
 })
 
 test('shows degraded banner', async () => {

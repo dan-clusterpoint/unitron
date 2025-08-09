@@ -20,7 +20,3 @@ export {
   type NextActionsChipsProps,
   type NextAction,
 } from './NextActionsChips'
-export {
-  default as ExecutiveSummaryCard,
-  type ExecutiveSummaryCardProps,
-} from './ExecutiveSummaryCard'
