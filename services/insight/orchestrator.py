@@ -43,6 +43,7 @@ async def call_openai_with_retry(
     max_tokens: int | None = None,
     model: str | None = None,
     stream: bool = False,
+    response_format: dict[str, Any] | None = None,
 ) -> tuple[str, str, bool]:
     """Call OpenAI with retry and return ``(content, finish_reason, degraded)``."""
 
@@ -64,6 +65,8 @@ async def call_openai_with_retry(
     }
     if max_tokens is not None:
         params["max_tokens"] = max_tokens
+    if response_format is not None:
+        params["response_format"] = response_format
 
     for attempt in range(3):
         try:
