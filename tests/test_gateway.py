@@ -542,6 +542,29 @@ def test_aeris_proxies(monkeypatch):
     assert gateway_app.metrics["aeris"]["success"] >= 1
 
 
+def test_aeris_degraded(monkeypatch):
+    async def handler(request: httpx.Request) -> httpx.Response:  # noqa: ARG001
+        return httpx.Response(
+            502,
+            json={
+                "core_score": 0,
+                "signal_breakdown": [],
+                "peers": [],
+                "variants": [],
+                "opportunities": [],
+                "narratives": [],
+                "degraded": True,
+            },
+        )
+
+    transport = httpx.MockTransport(handler)
+    _set_mock_transport(monkeypatch, transport)
+
+    r = client.post("/aeris", json={"url": "https://example.com"})
+    assert r.status_code == 502
+    assert r.json()["degraded"] is True
+
+
 def test_aeris_timeout(monkeypatch):
     recorded = {}
 
@@ -561,7 +584,7 @@ def test_aeris_timeout(monkeypatch):
     gateway_app.app.state.client = RecordingClient()
 
     r = client.post("/aeris", json={"url": "https://example.com"})
-    assert r.status_code == 502
+    assert r.status_code == 400
     assert recorded["timeout"] == 30
 
 

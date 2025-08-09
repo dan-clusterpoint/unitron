@@ -680,21 +680,30 @@ async def aeris(data: dict[str, Any]) -> JSONResponse:
     ]
 
     start = time.perf_counter()
+    status = 200
+    degraded = False
     try:
         content, _finish, degraded_call = await orchestrator.call_openai_with_retry(
             messages,
             model=os.getenv("OPENAI_AERIS_MODEL"),
             response_format=response_format,
         )
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=str(exc))
-
-    status = 200
-    degraded = degraded_call
-    try:
-        parsed = json.loads(content) if content else {}
-        validated = _validate_with_schema(parsed, AerisAnalysis)
-        result = validated.model_dump()
+        degraded = degraded_call
+        try:
+            parsed = json.loads(content) if content else {}
+            validated = _validate_with_schema(parsed, AerisAnalysis)
+            result = validated.model_dump()
+        except Exception:  # noqa: BLE001
+            status = 502
+            degraded = True
+            result = AerisAnalysis(
+                core_score=0,
+                signal_breakdown=[],
+                peers=[],
+                variants=[],
+                opportunities=[],
+                narratives=[],
+            ).model_dump()
     except Exception:  # noqa: BLE001
         status = 502
         degraded = True

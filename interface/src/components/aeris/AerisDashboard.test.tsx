@@ -19,3 +19,18 @@ test('renders AerisDashboard snapshot', () => {
   const { asFragment } = render(<AerisDashboard data={mockData} />)
   expect(asFragment()).toMatchSnapshot()
 })
+
+test('shows unavailable when degraded', () => {
+  const { getByText } = render(
+    <AerisDashboard data={{ ...mockData, degraded: true }} />
+  )
+  getByText('AERIS unavailable')
+})
+
+test('shows unavailable when core_score missing', () => {
+  const { core_score, ...rest } = mockData
+  const { getByText } = render(
+    <AerisDashboard data={{ ...rest } as any} />
+  )
+  getByText('AERIS unavailable')
+})
