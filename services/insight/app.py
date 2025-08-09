@@ -76,7 +76,14 @@ metrics: dict[str, Any] = {
         "duration": 0.0,
     },
     "insight": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
-    "aeris": {"requests": 0, "scope": 0, "sources": 0, "duration": 0.0},
+    "aeris": {
+        "requests": 0,
+        "scope": 0,
+        "sources": 0,
+        "duration": 0.0,
+        "last_raw_response": "",
+        "last_parse_error": None,
+    },
     "data_gaps": 0,
 }
 
@@ -689,13 +696,23 @@ async def aeris(data: dict[str, Any]) -> JSONResponse:
             response_format=response_format,
         )
         degraded = degraded_call
+        metrics["aeris"]["last_raw_response"] = redact(content or "")
+        logger.debug(
+            "aeris raw content: %s", metrics["aeris"]["last_raw_response"]
+        )
         try:
             parsed = json.loads(content) if content else {}
             validated = _validate_with_schema(parsed, AerisAnalysis)
             result = validated.model_dump()
-        except Exception:  # noqa: BLE001
+            metrics["aeris"]["last_parse_error"] = None
+        except Exception as exc:  # noqa: BLE001
             status = 502
             degraded = True
+            metrics["aeris"]["last_parse_error"] = redact(str(exc))
+            logger.warning("aeris parsing error: %s", redact(str(exc)))
+            logger.debug(
+                "aeris raw content: %s", metrics["aeris"]["last_raw_response"]
+            )
             result = AerisAnalysis(
                 core_score=0,
                 signal_breakdown=[],
@@ -704,9 +721,12 @@ async def aeris(data: dict[str, Any]) -> JSONResponse:
                 opportunities=[],
                 narratives=[],
             ).model_dump()
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         status = 502
         degraded = True
+        metrics["aeris"]["last_raw_response"] = ""
+        metrics["aeris"]["last_parse_error"] = redact(str(exc))
+        logger.warning("aeris openai error: %s", redact(str(exc)))
         result = AerisAnalysis(
             core_score=0,
             signal_breakdown=[],
